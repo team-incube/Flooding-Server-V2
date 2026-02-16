@@ -4,6 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 
 @Entity
 @Table(name = "tb_user")
@@ -30,28 +31,19 @@ class UserJpaEntity(
     @field:Column(name = "dormitory_room")
     var dormitoryRoom: Int
 ) {
-    @JvmInline
-    value class StudentNumber(val value: Int){
-        override fun toString(): String {
-            return value.toString()
-        }
-        fun getGrade(): Int {
-            return value / 1000
-        }
-        fun getClassNumber(): Int {
-            return value % 1000 / 100
-        }
-        fun getNumber(): Int {
-            return value % 100
-        }
-    }
-    @JvmInline
-    value class DormitoryRoom(val value: Int) {
-        override fun toString(): String {
-            return value.toString()
-        }
-        fun getFloor(): Int {
-            return value / 100
-        }
-    }
+    @get:Transient
+    val grade: Int
+        get() = studentNumber / 1000
+
+    @get:Transient
+    val classNumber: Int
+        get() = studentNumber % 1000 / 100
+
+    @get:Transient
+    val number: Int
+        get() = studentNumber % 100
+
+    @get:Transient
+    val dormitoryFloor: Int
+        get() = dormitoryRoom / 100
 }
