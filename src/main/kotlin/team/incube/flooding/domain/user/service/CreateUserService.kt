@@ -25,13 +25,13 @@ class CreateUserService(
                 team.themoment.datagsm.sdk.oauth.model.Sex.WOMAN -> Sex.WOMAN
             },
             email = student.email,
-            studentNumber = UserJpaEntity.StudentNumber(student.studentNumber),
+            studentNumber = student.studentNumber,
             role = when (student.role) {
                 StudentRole.GENERAL_STUDENT -> Role.GENERAL_STUDENT
                 StudentRole.STUDENT_COUNCIL -> Role.STUDENT_COUNCIL
                 StudentRole.DORMITORY_MANAGER -> Role.DORMITORY_MANAGER
             },
-            dormitoryRoom = UserJpaEntity.DormitoryRoom(student.dormitoryRoom ?: 0)
+            dormitoryRoom = student.dormitoryRoom
         )
 
         userRepository.save(user)
