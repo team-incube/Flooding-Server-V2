@@ -26,3 +26,12 @@ sdk:
   exception:
     enabled: true
     use-english-message: false
+
+oauth:
+  client-id: ${OAUTH_CLIENT_ID}
+  client-secret: ${OAUTH_CLIENT_SECRET}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000

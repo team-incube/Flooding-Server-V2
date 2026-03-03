@@ -14,7 +14,7 @@ import team.themoment.sdk.exception.ExpectedException
 class CreateUserService(
     private val userRepository: UserRepository
 ) {
-    fun execute(oauthUser: UserInfo) {
+    fun execute(oauthUser: UserInfo): UserJpaEntity {
         if (!oauthUser.isStudent()) throw ExpectedException("학생이 아닙니다.", HttpStatus.FORBIDDEN)
 
         val student = oauthUser.student ?: throw ExpectedException("학생 정보가 없습니다.", HttpStatus.BAD_REQUEST)
@@ -37,5 +37,6 @@ class CreateUserService(
         )
 
         userRepository.save(user)
+        return user
     }
 }
