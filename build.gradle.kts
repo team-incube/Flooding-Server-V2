@@ -34,6 +34,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.0.0")
+    implementation("com.github.themoment-team:the-sdk:1.4")
 }
 
 kotlin {

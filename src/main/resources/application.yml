@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: flooding-server-v2
+
+sdk:
+  logging:
+    enabled: true
+    not-logging-urls:
+      - "/v3/api-docs/**"
+      - "/swagger-ui/**"
+
+  response:
+    enabled: true
+    not-wrapping-urls:
+      - "/v3/api-docs/**"
+      - "/v3/api-docs"
+      - "/swagger-ui/**"
+
+  swagger:
+    enabled: true
+    title: "Flooding Server API"
+    version: "v1"
+    paths-to-match:
+      - "/**"
+
+  exception:
+    enabled: true
+    use-english-message: false
