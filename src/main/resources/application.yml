@@ -19,7 +19,7 @@ sdk:
   swagger:
     enabled: true
     title: "Flooding Server API"
-    version: "v1"
+    version: "v2"
     paths-to-match:
       - "/**"
 
