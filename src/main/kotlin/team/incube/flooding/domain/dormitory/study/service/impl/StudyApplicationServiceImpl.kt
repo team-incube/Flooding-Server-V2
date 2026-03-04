@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import team.incube.flooding.domain.dormitory.study.repository.StudyBanJpaRepository
-import team.incube.flooding.domain.dormitory.study.repository.StudyRedisAdapter
+import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
