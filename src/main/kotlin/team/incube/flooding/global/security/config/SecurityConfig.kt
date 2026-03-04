@@ -30,7 +30,7 @@ class SecurityConfig(
                 //자습
                 it.requestMatchers(HttpMethod.POST, "/study").hasRole("GENERAL_STUDENT")
                 it.requestMatchers(HttpMethod.DELETE, "/study").hasRole("GENERAL_STUDENT")
-                it.requestMatchers(HttpMethod.POST,"/study/ban").hasAnyRole("DORMITORY_MANAGER", "ADMIN")
+                it.requestMatchers(HttpMethod.POST, "/study/ban/**").hasAnyRole("DORMITORY_MANAGER", "ADMIN")
                 it.anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
