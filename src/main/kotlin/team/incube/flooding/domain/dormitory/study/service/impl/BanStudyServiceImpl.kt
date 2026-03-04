@@ -23,15 +23,16 @@ class BanStudyServiceImpl(
             ExpectedException("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND)
         }
 
-        if(studyBanJpaRepository.existsByUserAndBannedUntilAfter(targetUser, LocalDateTime.now())) {
+        val now = LocalDateTime.now()
+        if(studyBanJpaRepository.existsByUserAndBannedUntilAfter(targetUser, now)) {
             throw ExpectedException("이미 자습 금지 상태입니다.", HttpStatus.CONFLICT)
         }
 
         studyBanJpaRepository.save(
             StudyBanJpaEntity(
                 user = targetUser,
-                bannedAt = LocalDateTime.now(),
-                bannedUntil = LocalDateTime.now().plusWeeks(1)
+                bannedAt = now,
+                bannedUntil = now.plusWeeks(1)
             )
         )
     }
