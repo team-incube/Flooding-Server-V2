@@ -4,19 +4,16 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
-import team.incube.flooding.domain.dormitory.study.repository.StudyBanJpaRepository
 import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
-import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Service
 @Transactional
 class StudyApplicationServiceImpl (
     private val studyRedisAdapter: StudyRedisAdapter,
-    private val studyBanJpaRepository: StudyBanJpaRepository,
     private val currentUserProvider: CurrentUserProvider
 ) : StudyApplicationService {
 
@@ -31,10 +28,10 @@ class StudyApplicationServiceImpl (
         if(now.isBefore(opentime) || now.isAfter(closetime)) {
             throw ExpectedException("자습 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
         }
-        if(studyBanJpaRepository.existsByUserAndBannedUntilAfter(user, LocalDateTime.now())) {
+        val status = studyRedisAdapter.getApplicationStatus(user.id)
+        if(status == StudyApplicationStatus.BANNED) {
             throw ExpectedException("자습 금지 상태입니다.", HttpStatus.FORBIDDEN)
         }
-        val status = studyRedisAdapter.getApplicationStatus(user.id)
         if(status == StudyApplicationStatus.APPROVED || status == StudyApplicationStatus.CANCELLED) {
             throw ExpectedException("이미 자습을 신청했습니다.", HttpStatus.CONFLICT)
         }
