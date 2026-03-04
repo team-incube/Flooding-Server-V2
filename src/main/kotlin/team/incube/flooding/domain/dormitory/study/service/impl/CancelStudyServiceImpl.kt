@@ -19,10 +19,9 @@ class CancelStudyServiceImpl(
 
     override fun execute() {
 
-        var user = currentUserProvider.getCurrentUser()
-
-        val stutus = studyRedisAdapter.getApplicationStatus(user.id)
-        if(stutus != StudyApplicationStatus.APPROVED){
+        val user = currentUserProvider.getCurrentUser()
+        val status = studyRedisAdapter.getApplicationStatus(user.id)
+        if(status != StudyApplicationStatus.APPROVED){
             throw ExpectedException("자습 신청 내역이 없습니다.", HttpStatus.NOT_FOUND)
         }
 
