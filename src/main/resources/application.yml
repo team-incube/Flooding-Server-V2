@@ -42,6 +42,11 @@ sdk:
     enabled: true
     use-english-message: false
 
+study:
+  open-time: "20:00"
+  close-time: "21:00"
+  max-count: 50
+
 oauth:
   client-id: ${OAUTH_CLIENT_ID}
   client-secret: ${OAUTH_CLIENT_SECRET}

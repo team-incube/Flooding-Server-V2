@@ -3,6 +3,7 @@ package team.incube.flooding.domain.dormitory.study.service.impl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.dormitory.study.config.StudyProperties
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
@@ -14,7 +15,8 @@ import java.time.LocalTime
 @Transactional
 class StudyApplicationServiceImpl (
     private val studyRedisAdapter: StudyRedisAdapter,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val studyProperties: StudyProperties
 ) : StudyApplicationService {
 
     override fun execute() {
@@ -22,10 +24,8 @@ class StudyApplicationServiceImpl (
         var user = currentUserProvider.getCurrentUser()
 
         val now = LocalTime.now()
-        val opentime = LocalTime.of(20,0)
-        val closetime = LocalTime.of(21,0)
 
-        if(now.isBefore(opentime) || now.isAfter(closetime)) {
+        if(now.isBefore(studyProperties.openTime) || now.isAfter(studyProperties.closeTime)) {
             throw ExpectedException("자습 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
         }
         val status = studyRedisAdapter.getApplicationStatus(user.id)
@@ -36,7 +36,7 @@ class StudyApplicationServiceImpl (
             throw ExpectedException("이미 자습을 신청했습니다.", HttpStatus.CONFLICT)
         }
 
-        if(studyRedisAdapter.getCount()>=50){
+        if(studyRedisAdapter.getCount() >= studyProperties.maxCount){
             throw ExpectedException("자습 신청 인원이 마감되었습니다.", HttpStatus.CONFLICT)
         }
 
