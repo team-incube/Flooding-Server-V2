@@ -40,7 +40,7 @@ class StudyRedisAdapter(
         redisTemplate.opsForValue().decrement(COUNT_KEY)
         }
 
-        fun increamCount(): Long  {
+    fun incrementCount(): Long  {
             val count = redisTemplate.opsForValue().increment(COUNT_KEY) ?:0
             if(count == 1L) {
                 redisTemplate.expire(COUNT_KEY,ttlUntilMidnight())

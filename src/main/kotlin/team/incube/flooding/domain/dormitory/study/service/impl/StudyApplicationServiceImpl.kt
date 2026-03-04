@@ -44,6 +44,6 @@ class StudyApplicationServiceImpl (
         }
 
         studyRedisAdapter.saveApplication(user.id ,StudyApplicationStatus.APPROVED)
-        studyRedisAdapter.increamCount()
+        studyRedisAdapter.incrementCount()
     }
 }
