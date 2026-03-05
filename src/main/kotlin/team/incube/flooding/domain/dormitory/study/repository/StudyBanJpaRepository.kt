@@ -6,7 +6,6 @@ import team.incube.flooding.domain.dormitory.study.entity.StudyBanJpaEntity
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 import java.time.LocalDateTime
 
-@Repository
 interface StudyBanJpaRepository : JpaRepository<StudyBanJpaEntity, Long> {
     fun existsByUserAndBannedUntilAfter(
         user: UserJpaEntity,
