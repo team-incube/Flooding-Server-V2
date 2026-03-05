@@ -36,11 +36,12 @@ class StudyApplicationServiceImpl (
             throw ExpectedException("이미 자습을 신청했습니다.", HttpStatus.CONFLICT)
         }
 
-        if(studyRedisAdapter.getCount() >= studyProperties.maxCount){
+        val newCount = studyRedisAdapter.incrementCount()
+        if(newCount > studyProperties.maxCount){
+            studyRedisAdapter.decrementCount()
             throw ExpectedException("자습 신청 인원이 마감되었습니다.", HttpStatus.CONFLICT)
         }
 
-        studyRedisAdapter.saveApplication(user.id ,StudyApplicationStatus.APPROVED)
-        studyRedisAdapter.incrementCount()
+        studyRedisAdapter.saveApplication(user.id, StudyApplicationStatus.APPROVED)
     }
 }
