@@ -1,21 +1,24 @@
 spring:
   application:
     name: flooding-server-v2
+
   datasource:
-    url: jdbc:mysql://localhost:3306/flooding?serverTimezone=Asia/Seoul
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: ${JPA_DIALECT:org.hibernate.dialect.MySQLDialect}
+
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 sdk:
   logging:
@@ -43,9 +46,9 @@ sdk:
     use-english-message: false
 
 study:
-  open-time: "20:00"
-  close-time: "21:00"
-  max-count: 50
+  open-time: ${STUDY_OPEN_TIME:20:00}
+  close-time: ${STUDY_CLOSE_TIME:21:00}
+  max-count: ${STUDY_MAX_COUNT:50}
 
 oauth:
   client-id: ${OAUTH_CLIENT_ID}
@@ -53,5 +56,5 @@ oauth:
 
 jwt:
   secret: ${JWT_SECRET}
-  access-token-expiration: 3600000
-  refresh-token-expiration: 604800000
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
