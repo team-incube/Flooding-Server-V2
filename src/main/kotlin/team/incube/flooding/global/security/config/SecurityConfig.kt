@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.global.security.filter.JwtAuthenticationFilter
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse
 
 @Configuration
 @EnableWebSecurity
@@ -22,7 +21,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http
-            .csrf { it.csrfTokenRepository(withHttpOnlyFalse()) }
+            .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
@@ -30,8 +29,7 @@ class SecurityConfig(
                 it.requestMatchers("/v2/auth/**").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
 
-                //자습
-
+                // study
                 it.requestMatchers(HttpMethod.POST, "/study").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/study").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.POST, "/study/ban/**").hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
