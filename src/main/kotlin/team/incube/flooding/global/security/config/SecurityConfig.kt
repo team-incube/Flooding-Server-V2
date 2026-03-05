@@ -1,6 +1,5 @@
 package team.incube.flooding.global.security.config
 
-import io.swagger.v3.oas.models.PathItem
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -9,7 +8,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.global.security.filter.JwtAuthenticationFilter
 
