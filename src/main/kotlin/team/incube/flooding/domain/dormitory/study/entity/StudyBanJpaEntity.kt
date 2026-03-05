@@ -18,10 +18,10 @@ import java.time.LocalDateTime
 class StudyBanJpaEntity (
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long=0,
+    val id: Long = 0,
 
     @field:ManyToOne(fetch = FetchType.LAZY)
-    @field:JoinColumn(nullable = false,name="user_id")
+    @field:JoinColumn(nullable = false, name="user_id")
     val user: UserJpaEntity,
 
     @field:Column(name = "banned_at", nullable = false)
