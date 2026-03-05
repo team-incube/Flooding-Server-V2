@@ -15,7 +15,6 @@ import java.time.LocalDateTime
 @Entity
 @Table(name = "tb_study_application")
 class StudyApplicationJpaEntity(
-
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
