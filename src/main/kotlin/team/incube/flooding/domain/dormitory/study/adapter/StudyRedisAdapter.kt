@@ -13,7 +13,7 @@ class StudyRedisAdapter(
     private val redisTemplate: RedisTemplate<String, String>
 ){
     companion object {
-        private const val APPLICATION_KEY = "study:application:"
+        private const val APPLICATION_KEY = "study:application"
         private const val COUNT_KEY = "study:count"
     }
 
