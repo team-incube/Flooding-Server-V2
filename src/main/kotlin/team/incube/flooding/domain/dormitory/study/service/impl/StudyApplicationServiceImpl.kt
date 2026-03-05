@@ -15,7 +15,7 @@ import java.time.LocalTime
 
 @Service
 @Transactional
-class StudyApplicationServiceImpl (
+class StudyApplicationServiceImpl(
     private val studyRedisAdapter: StudyRedisAdapter,
     private val studyBanJpaRepository: StudyBanJpaRepository,
     private val currentUserProvider: CurrentUserProvider,
