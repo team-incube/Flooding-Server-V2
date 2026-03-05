@@ -2,8 +2,6 @@ package team.incube.flooding.domain.dormitory.study.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -27,10 +25,6 @@ class StudyApplicationJpaEntity(
     val user: UserJpaEntity,
 
     @field:Column(name = "applied_at", nullable = false)
-    val appliedAt: LocalDateTime = LocalDateTime.now(),
-
-    @field:Enumerated(EnumType.STRING)
-    @field:Column(name = "status", nullable = false)
-    var status: StudyApplicationStatus = StudyApplicationStatus.APPROVED
-
+    val appliedAt: LocalDateTime = LocalDateTime.now()
 )
+
