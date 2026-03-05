@@ -33,7 +33,7 @@ class StudyApplicationServiceImpl (
         }
         val status = studyRedisAdapter.getApplicationStatus(user.id)
         if(status == StudyApplicationStatus.BANNED ||
-            studyBanJpaRepository.existsByUserAndBannedUntilAfter(user, LocalDateTime.now())) {
+            studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())) {
             throw ExpectedException("자습 금지 상태입니다.", HttpStatus.FORBIDDEN)
         }
         if(status == StudyApplicationStatus.APPROVED) {

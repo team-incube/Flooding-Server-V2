@@ -24,7 +24,7 @@ class BanStudyServiceImpl(
         }
 
         val now = LocalDateTime.now()
-        if(studyBanJpaRepository.existsByUserAndBannedUntilAfter(targetUser, now)) {
+        if(studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(targetUserId, now)) {
             throw ExpectedException("이미 자습 금지 상태입니다.", HttpStatus.CONFLICT)
         }
 
