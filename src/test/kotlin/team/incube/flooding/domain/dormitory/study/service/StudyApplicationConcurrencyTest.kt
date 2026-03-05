@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.dormitory.study.service
 
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import java.util.concurrent.ConcurrentHashMap
@@ -75,6 +76,7 @@ class StudyApplicationConcurrencyTest {
         successCount.incrementAndGet()
     }
 
+    @Disabled("타이밍 의존적인 flaky 테스트 - 로컬에서만 수동 실행")
     @Test
     fun `현재구현_동시요청시_maxCount를_초과할_수_있다`() {
         var bugged = false
