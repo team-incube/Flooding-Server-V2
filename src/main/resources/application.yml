@@ -46,8 +46,8 @@ sdk:
     use-english-message: false
 
 study:
-  open-time: ${STUDY_OPEN_TIME:20:00}
-  close-time: ${STUDY_CLOSE_TIME:21:00}
+  open-time: "${STUDY_OPEN_TIME:20:00}"
+  close-time: "${STUDY_CLOSE_TIME:21:00}"
   max-count: ${STUDY_MAX_COUNT:50}
 
 oauth:
