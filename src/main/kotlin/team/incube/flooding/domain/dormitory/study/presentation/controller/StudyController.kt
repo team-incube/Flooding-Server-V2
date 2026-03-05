@@ -1,6 +1,5 @@
 package team.incube.flooding.domain.dormitory.study.presentation.controller
 
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -9,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 import team.incube.flooding.domain.dormitory.study.service.BanStudyService
 import team.incube.flooding.domain.dormitory.study.service.CancelStudyService
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
+import team.themoment.sdk.response.CommonApiResponse
 
 @RestController
 @RequestMapping("/study")
@@ -19,21 +19,18 @@ class StudyController(
 ) {
 
     @PostMapping
-    fun apply(): ResponseEntity<Unit> {
+    fun apply(): CommonApiResponse<Nothing> {
         studyApplicationService.execute()
-        return ResponseEntity.ok().build()
+        return CommonApiResponse.success("OK")
     }
-
     @DeleteMapping
-    fun cancel(): ResponseEntity<Unit> {
+    fun cancel(): CommonApiResponse<Nothing> {
         cancelStudyService.execute()
-        return ResponseEntity.ok().build()
+        return CommonApiResponse.success("OK")
     }
-
     @PostMapping("/ban/{userId}")
-    fun ban(@PathVariable userId: Long):ResponseEntity<Unit> {
+    fun ban(@PathVariable userId: Long): CommonApiResponse<Nothing> {
         banStudyService.execute(userId)
-        return ResponseEntity.ok().build()
+        return CommonApiResponse.success("OK")
     }
 }
-
