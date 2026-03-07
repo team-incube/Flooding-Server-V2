@@ -7,5 +7,6 @@ import java.time.LocalTime
 class StudyProperties(
     val openTime: LocalTime,
     val closeTime: LocalTime,
-    val maxCount: Int
+    val maxCount: Int,
+    val lockKey: String,
 )
