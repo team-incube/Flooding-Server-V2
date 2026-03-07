@@ -20,7 +20,7 @@ class StudyBanJpaEntity (
     val id: Long = 0,
 
     @field:ManyToOne(fetch = FetchType.LAZY)
-    @field:JoinColumn(nullable = false, name="user_id")
+    @field:JoinColumn(nullable = false, name = "user_id")
     val user: UserJpaEntity,
 
     @field:Column(name = "banned_at", nullable = false)
