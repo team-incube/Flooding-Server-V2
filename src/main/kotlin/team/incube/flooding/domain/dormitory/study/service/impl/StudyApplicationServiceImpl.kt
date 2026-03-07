@@ -28,23 +28,23 @@ class StudyApplicationServiceImpl(
 
         val now = LocalTime.now()
 
-        if(now.isBefore(studyProperties.openTime) || now.isAfter(studyProperties.closeTime)) {
+        if (now.isBefore(studyProperties.openTime) || now.isAfter(studyProperties.closeTime)) {
             throw ExpectedException("자습 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
         }
         val status = studyRedisAdapter.getApplicationStatus(user.id)
-        if(status == StudyApplicationStatus.BANNED ||
+        if (status == StudyApplicationStatus.BANNED ||
             studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())) {
             throw ExpectedException("자습 금지 상태입니다.", HttpStatus.FORBIDDEN)
         }
-        if(status == StudyApplicationStatus.APPROVED) {
+        if (status == StudyApplicationStatus.APPROVED) {
             throw ExpectedException("이미 자습을 신청했습니다.", HttpStatus.CONFLICT)
         }
-        if(status == StudyApplicationStatus.CANCELLED) {
+        if (status == StudyApplicationStatus.CANCELLED) {
             throw ExpectedException("자습을 취소하여 신청하지 못합니다.", HttpStatus.CONFLICT)
         }
 
         val newCount = studyRedisAdapter.incrementCount()
-        if(newCount > studyProperties.maxCount){
+        if (newCount > studyProperties.maxCount) {
             studyRedisAdapter.decrementCount()
             throw ExpectedException("자습 신청 인원이 마감되었습니다.", HttpStatus.CONFLICT)
         }
