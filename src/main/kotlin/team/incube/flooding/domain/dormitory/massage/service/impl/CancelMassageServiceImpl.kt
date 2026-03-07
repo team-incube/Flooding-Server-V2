@@ -18,7 +18,7 @@ class CancelMassageServiceImpl(
         val user = currentUserProvider.getCurrentUser()
 
         if (!massageRedisAdapter.isApply(user.id)) {
-            throw ExpectedException("안마의자 신청 내역이 없습니다.", HttpStatus.BAD_REQUEST)
+            throw ExpectedException("안마의자 신청 내역이 없습니다.", HttpStatus.NOT_FOUND)
         }
 
         massageRedisAdapter.cancel(user.id)
