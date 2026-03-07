@@ -50,6 +50,11 @@ study:
   close-time: "${STUDY_CLOSE_TIME:21:00}"
   max-count: ${STUDY_MAX_COUNT:50}
 
+massage:
+  open-time : "${MASSAGE_OPEN_TIME:20:20}"
+  max-count : ${MASSAGE_MAX_COUNT:5}
+  LOCK_KEY : ${MASSAGE_KEY":lock}
+
 oauth:
   client-id: ${OAUTH_CLIENT_ID}
   client-secret: ${OAUTH_CLIENT_SECRET}
