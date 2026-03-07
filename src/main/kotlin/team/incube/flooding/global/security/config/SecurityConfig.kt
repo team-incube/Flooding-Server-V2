@@ -28,13 +28,13 @@ class SecurityConfig(
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
 
                 // study
-                it.requestMatchers(HttpMethod.POST, "/domitory/study").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/domitory/study").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.POST, "/domitory/study/ban/**").hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/study").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/study").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/study/ban/**").hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 // massage
-                it.requestMatchers(HttpMethod.POST, "/domitory/massage").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/domitory/massage").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/massage").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massage").hasRole(Role.GENERAL_STUDENT.name)
                 it.anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
