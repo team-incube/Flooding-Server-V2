@@ -14,7 +14,6 @@ class MassageRedisAdapter(
 ) {
     companion object {
         private const val QUEUE_KEY = "massage:queue"
-        private const val MAX_CAPACITY = 5L
     }
 
     private fun ttlUntilMidnight() : Duration {
