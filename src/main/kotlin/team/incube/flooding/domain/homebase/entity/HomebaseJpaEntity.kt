@@ -15,9 +15,9 @@ class HomebaseJpaEntity(
     @field:Column(name = "floor", nullable = false)
     val floor: Int,
 
-    @field:Column(name = "table_id", nullable = false)
-    val tableId: Long,
+    @field:Column(name = "table_number", nullable = false)
+    val tableNumber: Int,
 
-    @field:Column(name = "reason")
-    val reason: String? = null
+    @field:Column(name = "is_attended", nullable = false)
+    val isAttended: Boolean = false
 )
