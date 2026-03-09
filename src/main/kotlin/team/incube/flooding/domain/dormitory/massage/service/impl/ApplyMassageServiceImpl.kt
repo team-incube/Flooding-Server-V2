@@ -3,7 +3,6 @@ package team.incube.flooding.domain.dormitory.massage.service.impl
 import org.redisson.api.RedissonClient
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.massage.adapter.MassageRedisAdapter
 import team.incube.flooding.domain.dormitory.massage.config.MassageProperties
 import team.incube.flooding.domain.dormitory.massage.service.ApplyMassageService
@@ -13,7 +12,6 @@ import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 
 @Service
-@Transactional
 class ApplyMassageServiceImpl(
     private val massageRedisAdapter: MassageRedisAdapter,
     private val massageProperties: MassageProperties,
