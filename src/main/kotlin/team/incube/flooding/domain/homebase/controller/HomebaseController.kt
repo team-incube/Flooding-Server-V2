@@ -9,8 +9,9 @@ import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
 class HomebaseController (
     private val homebaseService: HomebaseService
 ) {
-    @PostMapping
+    @PostMapping("/{homebaseId}")
     fun createHomebases(
+        @PathVariable homebaseId: Long,
         @RequestBody request: CreateHomebaseRequest
     ) {
         homebaseService.createHomebases(request)
@@ -21,7 +22,7 @@ class HomebaseController (
         return homebaseService.getHomebases()
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{homebaseId}/{tableId}")
     fun cancleHomebase(
         @PathVariable homebaseId: Long
     ) {
