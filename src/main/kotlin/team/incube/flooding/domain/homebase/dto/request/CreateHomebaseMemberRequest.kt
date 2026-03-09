@@ -1,6 +1,6 @@
 package team.incube.flooding.domain.homebase.dto.request
 
 data class CreateHomebaseMemberRequest (
-    val studentNumber: String,
+    val studentNumber: Int,
     val name: String
 )
