@@ -18,5 +18,5 @@ class HomebaseMemberJpaEntity (
 
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "homebase_id")
-    val homebaseId: HomebaseJpaEntity
+    val homebase: HomebaseJpaEntity
 )
