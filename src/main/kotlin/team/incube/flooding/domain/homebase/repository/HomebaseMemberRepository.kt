@@ -7,8 +7,6 @@ interface HomebaseMemberRepository : JpaRepository<HomebaseMemberJpaEntity, Long
 
     fun findByHomebaseId(homebaseId: Long): List<HomebaseMemberJpaEntity>
 
-    fun countByHomebaseId(homebaseId: Long): Int
-
     fun existsByStudentNumberAndHomebase_Period(
         studentNumber: String,
         period: Int
