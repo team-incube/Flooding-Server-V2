@@ -4,8 +4,6 @@ import team.incube.flooding.domain.homebase.dto.MemberDto
 
 data class GetHomebaseResponse (
     val homebaseId: Long,
-    val floor: Int,
-    val tableNumber: Int,
-    val isAttended: Boolean,
+    val period: Int,
     val members: List<MemberDto>
 )
