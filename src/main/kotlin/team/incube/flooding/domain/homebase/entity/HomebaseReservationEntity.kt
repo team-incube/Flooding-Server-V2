@@ -6,15 +6,17 @@ import jakarta.persistence.*
 @Table(name = "tb_homebase_reservation")
 class HomebaseReservationJpaEntity(
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @field:Id
+    @field:GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
+    @field:Column(nullable = false)
     val startPeriod: Int,
 
+    @field:Column(nullable = false)
     val endPeriod: Int,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "homebase_id")
+    @field:ManyToOne(fetch = FetchType.LAZY)
+    @field:JoinColumn(name = "homebase_id", nullable = false)
     val homebase: HomebaseJpaEntity
 )
