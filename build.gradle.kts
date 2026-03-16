@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     // Database
-    runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("org.postgresql:postgresql")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     // Redis
