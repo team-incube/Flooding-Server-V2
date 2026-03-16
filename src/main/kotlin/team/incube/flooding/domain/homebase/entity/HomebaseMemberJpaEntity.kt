@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "tb_homebase_member")
-class HomebaseMemberJpaEntity (
+class HomebaseMemberJpaEntity(
 
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,10 +13,10 @@ class HomebaseMemberJpaEntity (
     @field:Column(name = "student_number", nullable = false)
     val studentNumber: String,
 
-    @field:Column(name = "name", nullable = false)
+    @field:Column(nullable = false)
     val name: String,
 
     @field:ManyToOne(fetch = FetchType.LAZY)
-    @field:JoinColumn(name = "homebase_id")
-    val homebase: HomebaseJpaEntity
+    @field:JoinColumn(name = "reservation_id", nullable = false)
+    val reservation: HomebaseReservationJpaEntity
 )
