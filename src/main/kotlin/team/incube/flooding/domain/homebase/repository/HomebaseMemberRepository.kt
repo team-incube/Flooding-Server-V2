@@ -8,6 +8,10 @@ import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 interface HomebaseMemberRepository :
     JpaRepository<HomebaseMemberJpaEntity, Long> {
 
+    fun findByReservationId(reservationId: Long): List<HomebaseMemberJpaEntity>
+
+    fun deleteByReservationId(reservationId: Long)
+
     @Query(
         """
         SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
