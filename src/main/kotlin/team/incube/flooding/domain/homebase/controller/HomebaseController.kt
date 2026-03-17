@@ -1,31 +1,44 @@
 package team.incube.flooding.domain.homebase.controller
 
 import org.springframework.web.bind.annotation.*
-import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
+import team.incube.flooding.domain.homebase.service.HomebaseService
 
 @RestController
 @RequestMapping("/homebase")
-class HomebaseController (
+class HomebaseController(
+
     private val homebaseService: HomebaseService
+
 ) {
+
     @PostMapping("/{homebaseId}")
-    fun createHomebases(
+    fun createReservatio(
         @PathVariable homebaseId: Long,
         @RequestBody request: CreateHomebaseRequest
     ) {
-        homebaseService.createHomebases(request)
+        val newRequest = request.copy(homebaseId = homebaseId)
+        homebaseService.createReservation(newRequest)
     }
 
     @GetMapping
-    fun getHomebases(): List<GetHomebaseResponse>{
-        return homebaseService.getHomebases()
+    fun getReservation(): List<HomebaseReservationJpaEntity> {
+        return homebaseService.getReservationList()
     }
 
-    @DeleteMapping("/{homebaseId}/{tableId}")
-    fun cancleHomebase(
-        @PathVariable homebaseId: Long
+    @DeleteMapping("/{reservationId}")
+    fun deleteReservation(
+        @PathVariable homebaseId: Long,
     ) {
-        homebaseService.cancleHomebase()
+        homebaseService.deleteReservation(homebaseId)
+    }
+
+    @PatchMapping("/{reservationId}")
+    fun updateReservation(
+        @PathVariable homebaseId: Long,
+        @RequestBody request: CreateHomebaseRequest
+    ) {
+        homebaseService.updateMembers(homebaseId, request)
     }
 }
