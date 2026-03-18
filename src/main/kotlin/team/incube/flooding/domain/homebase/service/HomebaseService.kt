@@ -2,7 +2,8 @@ package team.incube.flooding.domain.homebase.service
 
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
-import team.incube.flooding.domain.homebase.dto.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
 import team.incube.flooding.domain.homebase.repository.HomebaseMemberRepository
@@ -19,9 +20,8 @@ class HomebaseService(
 ) {
 
     @Transactional
-    fun createReservation(request: CreateHomebaseRequest) {
-
-        val homebase = homebaseRepository.findById(request.homebaseId)
+    fun createReservation(homebaseId: Long, request: CreateHomebaseRequest) {
+        val homebase = homebaseRepository.findById(homebaseId)
             .orElseThrow { IllegalArgumentException("홈베이스가 존재하지 않습니다.") }
 
         validateCapacity(homebase.capacity, request.members.size)
@@ -37,7 +37,6 @@ class HomebaseService(
         )
 
         request.members.forEach {
-
             memberRepository.save(
                 HomebaseMemberJpaEntity(
                     studentNumber = it.studentNumber,
@@ -49,8 +48,8 @@ class HomebaseService(
     }
 
     @Transactional(readOnly = true)
-    fun getReservationList(): List<HomebaseReservationJpaEntity> {
-        return reservationRepository.findAll()
+    fun getReservationList(): List<GetHomebaseResponse> {
+        return reservationRepository.findAll().map { it.toResponse() }
     }
 
     @Transactional
