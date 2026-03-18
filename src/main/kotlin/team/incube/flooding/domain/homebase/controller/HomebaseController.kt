@@ -1,7 +1,7 @@
 package team.incube.flooding.domain.homebase.controller
 
 import org.springframework.web.bind.annotation.*
-import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.dto.CreateHomebaseRequest
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
 import team.incube.flooding.domain.homebase.service.HomebaseService
 

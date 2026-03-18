@@ -2,7 +2,7 @@ package team.incube.flooding.domain.homebase.service
 
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
-import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.dto.CreateHomebaseRequest
 import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
 import team.incube.flooding.domain.homebase.repository.HomebaseMemberRepository
