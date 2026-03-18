@@ -1,6 +1,8 @@
 package team.incube.flooding.domain.homebase.entity
 
 import jakarta.persistence.*
+import team.incube.flooding.domain.homebase.dto.MemberDto
+import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 
 @Entity
 @Table(name = "tb_homebase_reservation")
@@ -18,5 +20,16 @@ class HomebaseReservationJpaEntity(
 
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "homebase_id", nullable = false)
-    val homebase: HomebaseJpaEntity
-)
+    val homebase: HomebaseJpaEntity,
+
+    @field:OneToMany(mappedBy = "reservation", fetch = FetchType.EAGER)
+    val members: List<HomebaseMemberJpaEntity> = mutableListOf()
+) {
+    fun toResponse() = GetHomebaseResponse(
+        id = id,
+        startPeriod = startPeriod,
+        endPeriod = endPeriod,
+        homebaseId = homebase.id,
+        members = members.map { MemberDto(it.studentNumber, it.name) }
+    )
+}
