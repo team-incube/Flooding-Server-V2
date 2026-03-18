@@ -1,6 +1,4 @@
-package team.incube.flooding.domain.homebase.dto.request
-
-import team.incube.flooding.domain.homebase.dto.MemberDto
+package team.incube.flooding.domain.homebase.dto
 
 data class CreateHomebaseRequest(
     val homebaseId: Long,
