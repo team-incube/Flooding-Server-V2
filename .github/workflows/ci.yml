@@ -113,6 +113,7 @@ jobs:
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | \
             sudo nerdctl --address /run/containerd/containerd.sock login \
+              --insecure-registry \
               --username "${{ secrets.HARBOR_USERNAME }}" \
               --password-stdin \
               "${{ secrets.HARBOR_HOST }}"
