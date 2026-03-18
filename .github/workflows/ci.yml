@@ -138,6 +138,12 @@ jobs:
     needs: [test, build]
     if: always()
     steps:
+      - name: Sanitize commit message
+        id: msg
+        run: |
+          MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          echo "first_line=${MSG}" >> $GITHUB_OUTPUT
+
       - name: Send Slack notification
         uses: slackapi/slack-github-action@v1
         with:
@@ -150,7 +156,7 @@ jobs:
                   { "title": "Status",  "value": "${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}", "short": true },
                   { "title": "Branch",  "value": "${{ github.ref_name }}", "short": true },
                   { "title": "Commit",  "value": "${{ github.sha }}", "short": true },
-                  { "title": "Message", "value": "${{ github.event.head_commit.message }}", "short": false }
+                  { "title": "Message", "value": "${{ steps.msg.outputs.first_line }}", "short": false }
                 ]
               }]
             }
