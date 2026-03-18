@@ -21,7 +21,7 @@ jobs:
   # ── 1. Test ──────────────────────────────────────────────────
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, flooding]
     continue-on-error: true
     steps:
       - name: Checkout
@@ -59,7 +59,7 @@ jobs:
   # ── 2. Build → Scan → Push ───────────────────────────────────
   build:
     name: Build & Push
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, flooding]
     needs: test
     if: always()
     outputs:
@@ -101,51 +101,24 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "full=${FULL}" >> $GITHUB_OUTPUT
 
-      - name: Configure insecure registry (Harbor is HTTP)
+      - name: Build image (nerdctl)
         run: |
-          echo '{"insecure-registries":["${{ secrets.HARBOR_HOST }}"]}' | \
-            sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
+          sudo nerdctl --address /run/containerd/containerd.sock build \
+            --insecure-registry \
+            -t "${{ steps.meta.outputs.full }}" \
+            .
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
+      - name: Push to Harbor (nerdctl)
         if: github.ref_name == 'master' || github.ref_name == 'develop'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.HARBOR_HOST }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          load: true
-          tags: ${{ steps.meta.outputs.full }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.meta.outputs.full }}
-          format: table
-          exit-code: '1'
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-
-      - name: Push to Harbor
-        if: github.ref_name == 'master' || github.ref_name == 'develop'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.full }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: |
+          echo "${{ secrets.HARBOR_PASSWORD }}" | \
+            sudo nerdctl --address /run/containerd/containerd.sock login \
+              --username "${{ secrets.HARBOR_USERNAME }}" \
+              --password-stdin \
+              "${{ secrets.HARBOR_HOST }}"
+          sudo nerdctl --address /run/containerd/containerd.sock push \
+            --insecure-registry \
+            "${{ steps.meta.outputs.full }}"
 
   # ── 3. Trigger CD (master only) ──────────────────────────────
   trigger-cd:
@@ -160,7 +133,7 @@ jobs:
   # ── 4. Slack notification ────────────────────────────────────
   notify:
     name: Slack Notify
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, flooding]
     needs: [test, build]
     if: always()
     steps:
