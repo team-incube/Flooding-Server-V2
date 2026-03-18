@@ -18,5 +18,6 @@ class HomebaseMemberJpaEntity(
 
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "reservation_id", nullable = false)
+    @field:com.fasterxml.jackson.annotation.JsonIgnore
     val reservation: HomebaseReservationJpaEntity
 )
