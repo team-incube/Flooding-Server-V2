@@ -38,15 +38,14 @@ class HomebaseService(
             )
         )
 
-        request.members.forEach {
-            memberRepository.save(
-                HomebaseMemberJpaEntity(
-                    studentNumber = it.studentNumber,
-                    name = it.name,
-                    reservation = reservation
-                )
+        val members = request.members.map {
+            HomebaseMemberJpaEntity(
+                studentNumber = it.studentNumber,
+                name = it.name,
+                reservation = reservation
             )
         }
+        memberRepository.saveAll(members)
     }
 
     @Transactional(readOnly = true)
@@ -72,21 +71,18 @@ class HomebaseService(
             .orElseThrow { IllegalArgumentException("예약이 존재하지 않습니다.") }
 
         validateCapacity(reservation.homebase.capacity, request.members.size)
-
         validateStudentDuplicate(reservation.startPeriod, reservation.endPeriod, request.members)
 
         memberRepository.deleteByReservationId(reservationId)
 
-        request.members.forEach {
-
-            memberRepository.save(
-                HomebaseMemberJpaEntity(
-                    studentNumber = it.studentNumber,
-                    name = it.name,
-                    reservation = reservation
-                )
+        val members = request.members.map {
+            HomebaseMemberJpaEntity(
+                studentNumber = it.studentNumber,
+                name = it.name,
+                reservation = reservation
             )
         }
+        memberRepository.saveAll(members)
     }
 
     private fun validateCapacity(
