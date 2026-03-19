@@ -49,7 +49,7 @@ class HomebaseService(
 
     @Transactional(readOnly = true)
     fun getReservationList(): List<GetHomebaseResponse> {
-        return reservationRepository.findAll().map { it.toResponse() }
+        return reservationRepository.findAllWithMembers().map { it.toResponse() }
     }
 
     @Transactional

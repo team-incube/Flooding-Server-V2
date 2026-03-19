@@ -22,7 +22,7 @@ class HomebaseReservationJpaEntity(
     @field:JoinColumn(name = "homebase_id", nullable = false)
     val homebase: HomebaseJpaEntity,
 
-    @field:OneToMany(mappedBy = "reservation", fetch = FetchType.EAGER)
+    @field:OneToMany(mappedBy = "reservation")
     val members: List<HomebaseMemberJpaEntity> = mutableListOf()
 ) {
     fun toResponse() = GetHomebaseResponse(

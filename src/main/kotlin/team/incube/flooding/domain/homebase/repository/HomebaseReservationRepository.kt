@@ -30,4 +30,12 @@ interface HomebaseReservationRepository :
         """
     )
     fun findAllWithHomebase(): List<HomebaseReservationJpaEntity>
+
+    @Query("""
+        SELECT DISTINCT r 
+        FROM HomebaseReservationJpaEntity r 
+        JOIN FETCH r.homebase 
+        LEFT JOIN FETCH r.members
+    """)
+    fun findAllWithMembers(): List<HomebaseReservationJpaEntity>
 }
