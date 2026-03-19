@@ -22,15 +22,6 @@ interface HomebaseReservationRepository :
         @Param("endPeriod") endPeriod: Int
     ): List<HomebaseReservationJpaEntity>
 
-    @Query(
-        """
-        SELECT r
-        FROM HomebaseReservationJpaEntity r
-        JOIN FETCH r.homebase
-        """
-    )
-    fun findAllWithHomebase(): List<HomebaseReservationJpaEntity>
-
     @Query("""
         SELECT DISTINCT r 
         FROM HomebaseReservationJpaEntity r 
