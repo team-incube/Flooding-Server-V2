@@ -2,6 +2,7 @@ package team.incube.flooding.domain.homebase.controller
 
 import org.springframework.web.bind.annotation.*
 import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersRequest
 import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 import team.incube.flooding.domain.homebase.service.HomebaseService
 
@@ -36,8 +37,8 @@ class HomebaseController(
     @PatchMapping("/{reservationId}")
     fun updateReservation(
         @PathVariable reservationId: Long,
-        @RequestBody request: CreateHomebaseRequest
+        @RequestBody request: UpdateHomebaseMembersRequest
     ) {
-        homebaseService.updateMembers(reservationId, request)
+        homebaseService.updateReservationMembers(reservationId, request)
     }
 }

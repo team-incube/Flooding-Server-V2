@@ -2,7 +2,9 @@ package team.incube.flooding.domain.homebase.service
 
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
+import team.incube.flooding.domain.homebase.dto.MemberDto
 import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
+import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersRequest
 import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
@@ -26,7 +28,7 @@ class HomebaseService(
 
         validateCapacity(homebase.capacity, request.members.size)
         validateReservationOverlap(homebase.id, request.startPeriod, request.endPeriod)
-        validateStudentDuplicate(request)
+        validateStudentDuplicate(request.startPeriod, request.endPeriod, request.members)
 
         val reservation = reservationRepository.save(
             HomebaseReservationJpaEntity(
@@ -61,9 +63,9 @@ class HomebaseService(
     }
 
     @Transactional
-    fun updateMembers(
+    fun updateReservationMembers(
         reservationId: Long,
-        request: CreateHomebaseRequest
+        request: UpdateHomebaseMembersRequest
     ) {
 
         val reservation = reservationRepository.findById(reservationId)
@@ -71,7 +73,7 @@ class HomebaseService(
 
         validateCapacity(reservation.homebase.capacity, request.members.size)
 
-        validateStudentDuplicate(request)
+        validateStudentDuplicate(reservation.startPeriod, reservation.endPeriod, request.members)
 
         memberRepository.deleteByReservationId(reservationId)
 
@@ -114,12 +116,16 @@ class HomebaseService(
         }
     }
 
-    private fun validateStudentDuplicate(request: CreateHomebaseRequest) {
-        val studentNumbers = request.members.map { it.studentNumber }
+    private fun validateStudentDuplicate(
+        startPeriod: Int,
+        endPeriod: Int,
+        members: List<MemberDto>
+    ) {
+        val studentNumbers = members.map { it.studentNumber }
         val existingStudents = memberRepository.findExistingStudentNumbersInPeriod(
             studentNumbers,
-            request.startPeriod,
-            request.endPeriod
+            startPeriod,
+            endPeriod
         )
 
         if (existingStudents.isNotEmpty()) {
