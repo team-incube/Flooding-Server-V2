@@ -26,4 +26,17 @@ interface HomebaseMemberRepository :
         @Param("startPeriod") startPeriod: Int,
         @Param("endPeriod") endPeriod: Int
     ): Boolean
+
+    @Query("""
+    SELECT m.studentNumber
+    FROM HomebaseMemberJpaEntity m
+    WHERE m.studentNumber IN :studentNumbers
+    AND m.reservation.startPeriod <= :endPeriod
+    AND m.reservation.endPeriod >= :startPeriod
+""")
+    fun findExistingStudentNumbersInPeriod(
+        @Param("studentNumbers") studentNumbers: List<String>,
+        @Param("startPeriod") startPeriod: Int,
+        @Param("endPeriod") endPeriod: Int
+    ): List<String>
 }

@@ -115,19 +115,15 @@ class HomebaseService(
     }
 
     private fun validateStudentDuplicate(request: CreateHomebaseRequest) {
+        val studentNumbers = request.members.map { it.studentNumber }
+        val existingStudents = memberRepository.findExistingStudentNumbersInPeriod(
+            studentNumbers,
+            request.startPeriod,
+            request.endPeriod
+        )
 
-        request.members.forEach {
-
-            val exists =
-                memberRepository.existsStudentReservationOverlap(
-                    it.studentNumber,
-                    request.startPeriod,
-                    request.endPeriod
-                )
-
-            if (exists) {
-                throw IllegalArgumentException("이미 다른 홈베이스를 신청한 학생입니다.")
-            }
+        if (existingStudents.isNotEmpty()) {
+            throw IllegalArgumentException("이미 다른 홈베이스를 신청한 학생이 포함되어 있습니다: ${existingStudents.joinToString()}")
         }
     }
 }
