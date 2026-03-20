@@ -29,12 +29,13 @@ class HomebaseMemberService(
     }
 
     @Transactional(readOnly = true)
-    fun validateStudentDuplicate(startPeriod: Int, endPeriod: Int, members: List<MemberDto>) {
+    fun validateStudentDuplicate(startPeriod: Int, endPeriod: Int, members: List<MemberDto>, reservationId: Long? = null) {
         val studentNumbers = members.map { it.studentNumber }
         val existingStudents = memberRepository.findExistingStudentNumbersInPeriod(
             studentNumbers,
             startPeriod,
-            endPeriod
+            endPeriod,
+            reservationId
         )
 
         if (existingStudents.isNotEmpty()) {

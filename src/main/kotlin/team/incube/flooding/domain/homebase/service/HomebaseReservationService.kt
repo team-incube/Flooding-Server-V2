@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.homebase.service
 
+import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -22,7 +23,7 @@ class HomebaseReservationService(
     @Transactional
     fun createReservation(homebaseId: Long, request: CreateHomebaseRequest) {
         val homebase = homebaseRepository.findById(homebaseId)
-            .orElseThrow { ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "홈베이스가 존재하지 않습니다.") }
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "홈베이스가 존재하지 않습니다.") }
 
         validateCapacity(homebase.capacity, request.members.size)
         validateReservationOverlap(homebase.id, request.startPeriod, request.endPeriod)
@@ -52,20 +53,15 @@ class HomebaseReservationService(
     }
 
     @Transactional
-    fun updateReservationMembers(
-        reservationId: Long,
-        request: UpdateHomebaseMembersRequest
-    ) {
-
+    fun updateReservationMembers(reservationId: Long, request: UpdateHomebaseMembersRequest) {
         val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "예약이 존재하지 않습니다.") }
-
-        validateCapacity(reservation.homebase.capacity, request.members.size)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.") }
 
         memberService.validateStudentDuplicate(
             reservation.startPeriod,
             reservation.endPeriod,
-            request.members
+            request.members,
+            reservationId
         )
 
         memberService.deleteByReservationId(reservationId)
