@@ -2,6 +2,7 @@ package team.incube.flooding.domain.homebase.service
 
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
 import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersRequest
 import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
@@ -21,7 +22,7 @@ class HomebaseReservationService(
     @Transactional
     fun createReservation(homebaseId: Long, request: CreateHomebaseRequest) {
         val homebase = homebaseRepository.findById(homebaseId)
-            .orElseThrow { IllegalArgumentException("홈베이스가 존재하지 않습니다.") }
+            .orElseThrow { ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "홈베이스가 존재하지 않습니다.") }
 
         validateCapacity(homebase.capacity, request.members.size)
         validateReservationOverlap(homebase.id, request.startPeriod, request.endPeriod)
@@ -57,7 +58,7 @@ class HomebaseReservationService(
     ) {
 
         val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("예약이 존재하지 않습니다.") }
+            .orElseThrow { ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "예약이 존재하지 않습니다.") }
 
         validateCapacity(reservation.homebase.capacity, request.members.size)
 
