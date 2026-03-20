@@ -4,14 +4,12 @@ import org.springframework.web.bind.annotation.*
 import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
 import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersRequest
 import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
-import team.incube.flooding.domain.homebase.service.HomebaseService
+import team.incube.flooding.domain.homebase.service.HomebaseReservationService
 
 @RestController
 @RequestMapping("/homebase")
 class HomebaseController(
-
-    private val homebaseService: HomebaseService
-
+    private val homebaseService: HomebaseReservationService
 ) {
 
     @PostMapping("/{homebaseId}")
