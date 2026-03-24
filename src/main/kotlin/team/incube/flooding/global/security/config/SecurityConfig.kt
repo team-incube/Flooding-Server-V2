@@ -36,7 +36,16 @@ class SecurityConfig(
                 // massage
                 it.requestMatchers(HttpMethod.POST, "/dormitory/massage").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/massage").hasRole(Role.GENERAL_STUDENT.name)
+
+                // music
+                it.requestMatchers(HttpMethod.GET, "/dormitory/music").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/music").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/{musicId}").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/music/{musicId}/like").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/{musicId}/like").hasRole(Role.GENERAL_STUDENT.name)
                 it.anyRequest().authenticated()
+
+
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
