@@ -57,6 +57,8 @@ class HomebaseReservationService(
         val reservation = reservationRepository.findById(reservationId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.") }
 
+        validateCapacity(reservation.homebase.capacity, request.members.size)
+
         memberService.validateStudentDuplicate(
             reservation.startPeriod,
             reservation.endPeriod,
