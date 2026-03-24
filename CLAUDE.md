@@ -40,7 +40,7 @@ Required env vars: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `OAUTH_
 ### Naming
 
 - DB related fields (`@Table`, column names, etc.) use snake_case
-- DTO prefix by purpose: Get, Search, Create, Patch, Delete
+- DTO prefix by purpose (recommended): Get, Search, Create, Patch, Delete
   - example: `GetCertificatesResponse`
 - Entity naming: `{Domain}JpaEntity` (example: `UserJpaEntity`)
 - Redis repository naming: `{Domain}RedisRepository` (example: `BlackListRedisRepository`)
