@@ -71,9 +71,6 @@ class HomebaseReservationService(
     }
 
     private fun validateCapacity(capacity: Int, memberCount: Int) {
-        if (memberCount < 1) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "예약 인원은 최소 1명 이상이어야 합니다.")
-        }
         if (memberCount > capacity) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "정원을 초과했습니다.")
         }
