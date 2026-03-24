@@ -17,7 +17,7 @@ import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "자습", description = "자습 신청 관련 API")
 @RestController
-@RequestMapping("dormitory/study")
+@RequestMapping("dormitory/studies")
 class StudyController(
     private val studyApplicationService: StudyApplicationService,
     private val cancelStudyService: CancelStudyService,
