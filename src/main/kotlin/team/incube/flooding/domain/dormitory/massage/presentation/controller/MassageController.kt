@@ -14,7 +14,7 @@ import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "마사지", description = "마사지 신청 관련 API")
 @RestController
-@RequestMapping("/dormitory/massage")
+@RequestMapping("/dormitory/massages")
 class MassageController (
     private val applyMassageService: ApplyMassageService,
     private val cancelMassageService: CancelMassageService
