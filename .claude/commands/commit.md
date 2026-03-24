@@ -12,14 +12,14 @@ Steps:
 Commit message format: `type : description`
 
 Types:
-- add: add new code or file
-- update: modify existing code
-- fix: fix a bug
-- delete: remove code or file
-- docs: update documentation
-- test: add or modify tests
-- merge: merge branch
-- init: initialize project
+- add : add new code or file
+- update : modify existing code
+- fix : fix a bug
+- delete : remove code or file
+- docs : update documentation
+- test : add or modify tests
+- merge : merge branch
+- init : initialize project
 
 Rules:
 - Write the description in Korean
