@@ -38,3 +38,9 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Local env ###
+.env
+
+### Local Claude ###
+.claude/settings.local.json
