@@ -44,7 +44,8 @@ Required env vars: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `OAUTH_
   - example: `GetCertificatesResponse`
 - Entity naming: `{Domain}JpaEntity` (example: `UserJpaEntity`)
 - Redis repository naming: `{Domain}RedisRepository` (example: `BlackListRedisRepository`)
-- Table names are singular, REST API URLs are plural
+- Table names are singular
+- REST API URLs: Use the "plural" name to denote the collection resource archetype (e.g., `/studies`, `/users`). Controller resources that represent actions use verbs as-is (e.g., `/auth/signin`).
 - RequestBody parameter name in presentation layer is fixed to `request`
 
 ```kotlin
