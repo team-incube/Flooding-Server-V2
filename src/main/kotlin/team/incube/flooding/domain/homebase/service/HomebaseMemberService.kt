@@ -1,11 +1,13 @@
 package team.incube.flooding.domain.homebase.service
 
+import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.homebase.dto.MemberDto
 import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
 import team.incube.flooding.domain.homebase.repository.HomebaseMemberRepository
+import team.themoment.sdk.exception.ExpectedException
 
 @Service
 class HomebaseMemberService(
@@ -39,7 +41,7 @@ class HomebaseMemberService(
         )
 
         if (existingStudents.isNotEmpty()) {
-            throw IllegalArgumentException("이미 다른 홈베이스를 신청한 학생이 포함되어 있습니다: ${existingStudents.joinToString()}")
+            throw ExpectedException("이미 다른 홈베이스를 신청한 학생이 포함되어 있습니다. " , HttpStatus.BAD_REQUEST)
         }
     }
 }
