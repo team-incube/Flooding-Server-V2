@@ -10,11 +10,7 @@ import team.incube.flooding.domain.homebase.repository.HomebaseRepository
 import team.incube.flooding.domain.homebase.repository.HomebaseReservationRepository
 
 @Service
-class CreateHomebaseReservationService(
-    private val homebaseRepository: HomebaseRepository,
-    private val reservationRepository: HomebaseReservationRepository,
-    private val memberService: HomebaseMemberService
-) {
+class CreateHomebaseReservationService(private val homebaseRepository: HomebaseRepository, private val reservationRepository: HomebaseReservationRepository, private val memberService: HomebaseMemberService) {
     @Transactional
     fun createReservation(homebaseId: Long, request: CreateHomebaseRequest) {
         val homebase = homebaseRepository.findById(homebaseId)

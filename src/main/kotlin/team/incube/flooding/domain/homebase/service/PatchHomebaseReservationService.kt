@@ -8,10 +8,7 @@ import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersReq
 import team.incube.flooding.domain.homebase.repository.HomebaseReservationRepository
 
 @Service
-class PatchHomebaseReservationService(
-    private val reservationRepository: HomebaseReservationRepository,
-    private val memberService: HomebaseMemberService
-) {
+class PatchHomebaseReservationService(private val reservationRepository: HomebaseReservationRepository, private val memberService: HomebaseMemberService) {
     @Transactional
     fun patchReservation(reservationId: Long, request: UpdateHomebaseMembersRequest) {
         val reservation = reservationRepository.findById(reservationId)

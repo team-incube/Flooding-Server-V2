@@ -10,9 +10,7 @@ import team.incube.flooding.domain.homebase.repository.HomebaseMemberRepository
 import team.themoment.sdk.exception.ExpectedException
 
 @Service
-class HomebaseMemberService(
-    private val memberRepository: HomebaseMemberRepository
-) {
+class HomebaseMemberService(private val memberRepository: HomebaseMemberRepository) {
     @Transactional
     fun saveAllMembers(reservation: HomebaseReservationJpaEntity, memberDtos: List<MemberDto>) {
         val members = memberDtos.map {
