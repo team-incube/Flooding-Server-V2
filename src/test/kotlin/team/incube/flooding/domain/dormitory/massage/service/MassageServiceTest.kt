@@ -17,7 +17,6 @@ import java.util.concurrent.locks.ReentrantLock
  * 인메모리로 시뮬레이션하여 검증합니다.
  */
 class MassageServiceTest {
-
     private val MAX_COUNT = 5
     private val OPEN_TIME = LocalTime.of(20, 20)
 
@@ -72,9 +71,10 @@ class MassageServiceTest {
         val successCount = AtomicInteger(0)
         val beforeOpenTime = OPEN_TIME.minusMinutes(1)
 
-        val exception = assertThrows(RuntimeException::class.java) {
-            applyLogic(1L, beforeOpenTime, queue, lock, successCount)
-        }
+        val exception =
+            assertThrows(RuntimeException::class.java) {
+                applyLogic(1L, beforeOpenTime, queue, lock, successCount)
+            }
 
         assertEquals("안마의자 신청 시간이 아닙니다.", exception.message)
         assertEquals(0, queue.size)
@@ -107,9 +107,10 @@ class MassageServiceTest {
         }
         assertEquals(MAX_COUNT, queue.size)
 
-        val exception = assertThrows(RuntimeException::class.java) {
-            applyLogic(MAX_COUNT + 1L, now, queue, lock, successCount)
-        }
+        val exception =
+            assertThrows(RuntimeException::class.java) {
+                applyLogic(MAX_COUNT + 1L, now, queue, lock, successCount)
+            }
 
         assertEquals("신청 인원이 마감되었습니다.", exception.message)
         assertEquals(MAX_COUNT, queue.size)
@@ -124,9 +125,10 @@ class MassageServiceTest {
 
         applyLogic(1L, now, queue, lock, successCount)
 
-        val exception = assertThrows(RuntimeException::class.java) {
-            applyLogic(1L, now, queue, lock, successCount)
-        }
+        val exception =
+            assertThrows(RuntimeException::class.java) {
+                applyLogic(1L, now, queue, lock, successCount)
+            }
 
         assertEquals("이미 신청하였습니다.", exception.message)
         assertEquals(1, successCount.get())
@@ -138,9 +140,10 @@ class MassageServiceTest {
     fun `신청_내역이_없을_때_취소하면_예외가_발생한다`() {
         val queue = mutableListOf<Long>()
 
-        val exception = assertThrows(RuntimeException::class.java) {
-            cancelLogic(1L, queue)
-        }
+        val exception =
+            assertThrows(RuntimeException::class.java) {
+                cancelLogic(1L, queue)
+            }
 
         assertEquals("안마의자 신청 내역이 없습니다.", exception.message)
     }
@@ -190,7 +193,8 @@ class MassageServiceTest {
                     latch.await()
                     try {
                         applyLogic(userId, now, queue, lock, successCount)
-                    } catch (_: Exception) {}
+                    } catch (_: Exception) {
+                    }
                 }
             }
 
@@ -221,7 +225,8 @@ class MassageServiceTest {
                 latch.await()
                 try {
                     applyLogic(SAME_USER_ID, now, queue, lock, successCount)
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                }
             }
         }
 

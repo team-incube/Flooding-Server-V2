@@ -8,9 +8,8 @@ import team.themoment.datagsm.sdk.oauth.DataGsmClient
 @Configuration
 class OAuthConfig(
     @Value($$"${oauth.client-id}") private val clientId: String,
-    @Value("\${oauth.client-secret}") private val clientSecret: String
+    @Value("\${oauth.client-secret}") private val clientSecret: String,
 ) {
     @Bean
-    fun dataGsmClient(): DataGsmClient =
-        DataGsmClient.builder(clientSecret).build()
+    fun dataGsmClient(): DataGsmClient = DataGsmClient.builder(clientSecret).build()
 }

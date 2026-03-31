@@ -8,12 +8,14 @@ import team.incube.flooding.domain.dormitory.music.presentation.data.response.Wa
 interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
     fun existsByUserId(userId: Long): Boolean
 
-    @Query("""
+    @Query(
+        """
         SELECT new team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse(
             m.id, m.musicUrl, m.appliedAt, COUNT(l.id))
         FROM WakeUpMusicJpaEntity m LEFT JOIN WakeUpMusicLikeJpaEntity l ON m.id = l.music.id
         GROUP BY m.id
         ORDER BY m.appliedAt DESC
-    """)
+    """,
+    )
     fun findAllWithLikeCount(): List<WakeUpMusicResponse>
 }

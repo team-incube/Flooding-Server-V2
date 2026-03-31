@@ -19,21 +19,16 @@ class ClubJpaEntity(
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
-
     @field:Column(name = "name", nullable = false)
     val name: String,
-
     @field:Column(name = "type", nullable = false, length = 20)
     @field:Enumerated(EnumType.STRING)
     val type: ClubType,
-
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "leader_id")
     val leader: UserJpaEntity?,
-
     @field:Column(name = "image_url")
     val imageUrl: String?,
-
     @field:Column(name = "status", nullable = false, length = 20)
     @field:Enumerated(EnumType.STRING)
     val status: ClubStatus,

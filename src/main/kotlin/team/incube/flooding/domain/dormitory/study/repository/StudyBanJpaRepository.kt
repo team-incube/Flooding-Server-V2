@@ -7,6 +7,6 @@ import java.time.LocalDateTime
 interface StudyBanJpaRepository : JpaRepository<StudyBanJpaEntity, Long> {
     fun existsByUserIdAndBannedUntilAfter(
         userId: Long,
-        now: LocalDateTime
+        now: LocalDateTime,
     ): Boolean
 }

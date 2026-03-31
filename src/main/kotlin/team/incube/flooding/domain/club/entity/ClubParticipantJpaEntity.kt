@@ -23,7 +23,6 @@ class ClubParticipantJpaEntity(
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "club_id", nullable = false)
     val club: ClubJpaEntity,
-
     @field:Id
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "user_id", nullable = false)

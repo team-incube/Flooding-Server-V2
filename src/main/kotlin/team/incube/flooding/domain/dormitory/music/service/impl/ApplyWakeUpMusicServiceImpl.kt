@@ -13,9 +13,8 @@ import team.themoment.sdk.exception.ExpectedException
 @Service
 class ApplyWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
 ) : ApplyWakeUpMusicService {
-
     @Transactional
     override fun execute(request: ApplyWakeUpMusicRequest) {
         val user = currentUserProvider.getCurrentUser()
@@ -27,8 +26,8 @@ class ApplyWakeUpMusicServiceImpl(
         wakeUpMusicRepository.save(
             WakeUpMusicJpaEntity(
                 user = user,
-                musicUrl = request.musicUrl
-            )
+                musicUrl = request.musicUrl,
+            ),
         )
     }
 }

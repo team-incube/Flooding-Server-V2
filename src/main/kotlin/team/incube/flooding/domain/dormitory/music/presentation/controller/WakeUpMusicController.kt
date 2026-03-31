@@ -30,50 +30,52 @@ class WakeUpMusicController(
     private val likeWakeUpMusicService: LikeWakeUpMusicService,
     private val cancelLikeWakeUpMusicService: CancelLikeWakeUpMusicService,
 ) {
-
     @Operation(
         summary = "기상음악 목록 조회",
-        description = "신청된 기상음악 목록을 조회합니다."
+        description = "신청된 기상음악 목록을 조회합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "기상음악 목록 조회 성공"),
     )
     @GetMapping
-    fun getWakeUpMusic(): CommonApiResponse<List<WakeUpMusicResponse>> {
-        return CommonApiResponse.success("OK", getWakeUpMusicService.execute())
-    }
+    fun getWakeUpMusic(): CommonApiResponse<List<WakeUpMusicResponse>> =
+        CommonApiResponse.success("OK", getWakeUpMusicService.execute())
 
     @Operation(
         summary = "기상음악 신청",
-        description = "기상음악을 신청합니다. 이미 신청한 경우 신청할 수 없습니다."
+        description = "기상음악을 신청합니다. 이미 신청한 경우 신청할 수 없습니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "기상음악 신청 성공"),
         ApiResponse(responseCode = "409", description = "이미 기상음악을 신청함"),
     )
     @PostMapping
-    fun applyWakeUpMusic(@RequestBody request: ApplyWakeUpMusicRequest): CommonApiResponse<Nothing> {
+    fun applyWakeUpMusic(
+        @RequestBody request: ApplyWakeUpMusicRequest,
+    ): CommonApiResponse<Nothing> {
         applyWakeUpMusicService.execute(request)
         return CommonApiResponse.success("OK")
     }
 
     @Operation(
         summary = "기상음악 취소",
-        description = "신청한 기상음악을 취소합니다."
+        description = "신청한 기상음악을 취소합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "기상음악 취소 성공"),
         ApiResponse(responseCode = "404", description = "기상음악 신청 내역 없음"),
     )
     @DeleteMapping("/{musicId}")
-    fun cancelWakeUpMusic(@PathVariable musicId: Long): CommonApiResponse<Nothing> {
+    fun cancelWakeUpMusic(
+        @PathVariable musicId: Long,
+    ): CommonApiResponse<Nothing> {
         cancelWakeUpMusicService.execute(musicId)
         return CommonApiResponse.success("OK")
     }
 
     @Operation(
         summary = "기상음악 좋아요",
-        description = "기상음악에 좋아요를 누릅니다. 이미 좋아요한 경우 누를 수 없습니다."
+        description = "기상음악에 좋아요를 누릅니다. 이미 좋아요한 경우 누를 수 없습니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "좋아요 성공"),
@@ -81,21 +83,25 @@ class WakeUpMusicController(
         ApiResponse(responseCode = "409", description = "이미 좋아요한 기상음악"),
     )
     @PostMapping("/{musicId}/like")
-    fun likeWakeUpMusic(@PathVariable musicId: Long): CommonApiResponse<Nothing> {
+    fun likeWakeUpMusic(
+        @PathVariable musicId: Long,
+    ): CommonApiResponse<Nothing> {
         likeWakeUpMusicService.execute(musicId)
         return CommonApiResponse.success("OK")
     }
 
     @Operation(
         summary = "기상음악 좋아요 취소",
-        description = "기상음악의 좋아요를 취소합니다."
+        description = "기상음악의 좋아요를 취소합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "좋아요 취소 성공"),
         ApiResponse(responseCode = "404", description = "기상음악 또는 좋아요 내역 없음"),
     )
     @DeleteMapping("/{musicId}/like")
-    fun cancelLikeWakeUpMusic(@PathVariable musicId: Long): CommonApiResponse<Nothing> {
+    fun cancelLikeWakeUpMusic(
+        @PathVariable musicId: Long,
+    ): CommonApiResponse<Nothing> {
         cancelLikeWakeUpMusicService.execute(musicId)
         return CommonApiResponse.success("OK")
     }

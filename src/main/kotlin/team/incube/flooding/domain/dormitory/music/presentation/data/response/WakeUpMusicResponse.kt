@@ -6,5 +6,5 @@ data class WakeUpMusicResponse(
     val id: Long,
     val musicUrl: String,
     val appliedAt: LocalDateTime,
-    val likeCount: Long
+    val likeCount: Long,
 )

@@ -14,26 +14,20 @@ class UserJpaEntity(
     @field:Id
     @field:Column(name = "id")
     val id: Long,
-
     @field:Column(name = "name", nullable = false)
     var name: String,
-
     @field:Column(name = "sex", nullable = false)
     @field:Enumerated(EnumType.STRING)
     var sex: Sex,
-
     @field:Column(name = "email", nullable = false, unique = true)
     var email: String,
-
     @field:Column(name = "student_number", nullable = false)
     var studentNumber: Int,
-
     @field:Column(name = "role", nullable = false)
     @field:Enumerated(EnumType.STRING)
     var role: Role,
-
     @field:Column(name = "dormitory_room", nullable = false)
-    var dormitoryRoom: Int
+    var dormitoryRoom: Int,
 ) {
     @get:Transient
     val grade: Int

@@ -16,17 +16,18 @@ import team.incube.flooding.domain.auth.service.SignInService
 @RestController
 @RequestMapping("/v2/auth")
 class AuthController(
-    private val signInService: SignInService
+    private val signInService: SignInService,
 ) {
     @Operation(
         summary = "로그인",
-        description = "OAuth 인증 코드를 사용하여 로그인합니다. 학생만 로그인할 수 있으며, 최초 로그인 시 자동으로 회원가입됩니다."
+        description = "OAuth 인증 코드를 사용하여 로그인합니다. 학생만 로그인할 수 있으며, 최초 로그인 시 자동으로 회원가입됩니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "로그인 성공"),
         ApiResponse(responseCode = "403", description = "학생이 아닌 사용자"),
     )
     @PostMapping("/signin")
-    fun signIn(@RequestBody request: SignInRequest): SignInResponse =
-        signInService.execute(request.authCode)
+    fun signIn(
+        @RequestBody request: SignInRequest,
+    ): SignInResponse = signInService.execute(request.authCode)
 }

@@ -10,9 +10,6 @@ import team.incube.flooding.domain.dormitory.music.service.GetWakeUpMusicService
 class GetWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
 ) : GetWakeUpMusicService {
-
     @Transactional(readOnly = true)
-    override fun execute(): List<WakeUpMusicResponse> {
-        return wakeUpMusicRepository.findAllWithLikeCount()
-    }
+    override fun execute(): List<WakeUpMusicResponse> = wakeUpMusicRepository.findAllWithLikeCount()
 }

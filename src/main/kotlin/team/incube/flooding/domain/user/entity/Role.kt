@@ -4,5 +4,5 @@ enum class Role {
     STUDENT_COUNCIL,
     DORMITORY_MANAGER,
     ADMIN,
-    GENERAL_STUDENT
+    GENERAL_STUDENT,
 }
