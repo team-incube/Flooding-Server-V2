@@ -18,4 +18,6 @@ class ClubMemberController(
     ) {
         clubMemberService.inviteMember(clubId, userId)
     }
+
+
 }
