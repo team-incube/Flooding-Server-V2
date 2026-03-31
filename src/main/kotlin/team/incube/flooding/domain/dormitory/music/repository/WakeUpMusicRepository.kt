@@ -14,7 +14,7 @@ interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
             m.id, m.musicUrl, m.appliedAt, COUNT(l.id))
         FROM WakeUpMusicJpaEntity m LEFT JOIN WakeUpMusicLikeJpaEntity l ON m.id = l.music.id
         WHERE m.appliedAt >= :startOfDay AND m.appliedAt < :endOfDay
-        GROUP BY m.id
+        GROUP BY m.id, m.musicUrl, m.appliedAt
         ORDER BY m.appliedAt DESC
     """)
     fun findAllWithLikeCountByDate(startOfDay: LocalDateTime, endOfDay: LocalDateTime): List<WakeUpMusicResponse>
