@@ -1,5 +1,5 @@
 package team.incube.flooding.domain.auth.dto.request
 
-data class SignInReqDto(
+data class SignInRequest(
     val authCode: String
 )
