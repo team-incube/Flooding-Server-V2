@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 
 @Entity
-@Table(name = "tb_wake_up_music_like")
+@Table(name = "tb_wake_up_music_like", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "music_id"])])
 class WakeUpMusicLikeJpaEntity(
 
     @field:Id
