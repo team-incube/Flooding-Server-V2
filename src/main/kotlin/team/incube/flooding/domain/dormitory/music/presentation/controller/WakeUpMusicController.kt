@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.dormitory.music.presentation.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -10,7 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicRequest
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
@@ -33,14 +37,17 @@ class WakeUpMusicController(
 
     @Operation(
         summary = "기상음악 목록 조회",
-        description = "신청된 기상음악 목록을 조회합니다."
+        description = "날짜별로 신청된 기상음악 목록을 조회합니다."
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "기상음악 목록 조회 성공"),
     )
     @GetMapping
-    fun getWakeUpMusic(): CommonApiResponse<List<WakeUpMusicResponse>> {
-        return CommonApiResponse.success("OK", getWakeUpMusicService.execute())
+    fun getWakeUpMusic(
+        @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = false)
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?
+    ): CommonApiResponse<List<WakeUpMusicResponse>> {
+        return CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now()))
     }
 
     @Operation(
