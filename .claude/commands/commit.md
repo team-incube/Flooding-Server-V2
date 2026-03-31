@@ -1,4 +1,7 @@
-Analyze all local changes and create multiple commits split by logical unit. Do not commit everything in a single commit.
+---
+description: Analyze all local changes and create multiple commits split by logical unit.
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Read
+---
 
 Steps:
 1. Run `git status` and `git diff` to review all changes
@@ -26,5 +29,6 @@ Rules:
 - Keep the description concise and clear
 - Do not include a period at the end
 - Do not include local only files like ".env","settings.local.json"
+- Do not add Claude as a co-author
 
 Example: `add : userJpaEntity 추가`

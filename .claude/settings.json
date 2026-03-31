@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read"
+    ],
+    "deny": [
+      "Read(.env)"
+    ]
+  }
+}
