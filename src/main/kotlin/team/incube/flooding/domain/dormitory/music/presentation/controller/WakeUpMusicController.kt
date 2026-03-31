@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
@@ -43,10 +44,10 @@ class WakeUpMusicController(
     )
     @GetMapping
     fun getWakeUpMusic(
-        @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = true)
-        @RequestParam date: LocalDate
+        @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = false)
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?
     ): CommonApiResponse<List<WakeUpMusicResponse>> {
-        return CommonApiResponse.success("OK", getWakeUpMusicService.execute(date))
+        return CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now()))
     }
 
     @Operation(
