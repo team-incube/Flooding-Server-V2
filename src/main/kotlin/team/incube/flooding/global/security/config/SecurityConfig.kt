@@ -29,13 +29,13 @@ class SecurityConfig(
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
 
                 // study
-                it.requestMatchers(HttpMethod.POST, "/dormitory/study").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/study").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.POST, "/dormitory/study/ban/**").hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/studies/ban/**").hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 // massage
-                it.requestMatchers(HttpMethod.POST, "/dormitory/massage").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massage").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
 
                 // music
                 it.requestMatchers(HttpMethod.GET, "/dormitory/music").hasRole(Role.GENERAL_STUDENT.name)
@@ -43,9 +43,8 @@ class SecurityConfig(
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/{musicId}").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.POST, "/dormitory/music/{musicId}/like").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/{musicId}/like").hasRole(Role.GENERAL_STUDENT.name)
+
                 it.anyRequest().authenticated()
-
-
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()

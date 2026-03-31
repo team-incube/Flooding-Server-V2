@@ -3,7 +3,7 @@ package team.incube.flooding.domain.auth.service
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import team.incube.flooding.domain.auth.dto.response.SignInResDto
+import team.incube.flooding.domain.auth.dto.response.SignInResponse
 import team.incube.flooding.domain.user.repository.UserRepository
 import team.incube.flooding.global.auth.provider.JwtProvider
 import team.incube.flooding.domain.user.service.CreateUserService
@@ -18,7 +18,7 @@ class SignInService(
     private val createUserService: CreateUserService,
     private val jwtProvider: JwtProvider,
 ) {
-    fun execute(authCode: String): SignInResDto {
+    fun execute(authCode: String): SignInResponse {
         val tokenResponse = dataGsmClient.exchangeToken(authCode)
         val oauthUser = dataGsmClient.getUserInfo(tokenResponse.accessToken)
 
@@ -27,7 +27,7 @@ class SignInService(
         val student = oauthUser.student!!
         val user = userRepository.findById(student.id).orElse(createUserService.execute(oauthUser))
 
-        return SignInResDto(
+        return SignInResponse(
             accessToken = jwtProvider.generateAccessToken(user.id),
             refreshToken = jwtProvider.generateRefreshToken(user.id)
         )
