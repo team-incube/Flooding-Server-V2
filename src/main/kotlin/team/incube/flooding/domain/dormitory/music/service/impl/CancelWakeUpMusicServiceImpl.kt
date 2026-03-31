@@ -12,16 +12,16 @@ import team.themoment.sdk.exception.ExpectedException
 @Service
 class CancelWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
 ) : CancelWakeUpMusicService {
-
     @Transactional
     override fun execute(musicId: Long) {
         val user = currentUserProvider.getCurrentUser()
 
-        val music = wakeUpMusicRepository.findById(musicId).orElseThrow {
-            throw ExpectedException("기상음악 신청 내역이 없습니다.", HttpStatus.NOT_FOUND)
-        }
+        val music =
+            wakeUpMusicRepository.findById(musicId).orElseThrow {
+                throw ExpectedException("기상음악 신청 내역이 없습니다.", HttpStatus.NOT_FOUND)
+            }
 
         if (music.user.id != user.id && user.role != Role.DORMITORY_MANAGER && user.role != Role.ADMIN) {
             throw ExpectedException("본인의 신청만 취소할 수 있습니다.", HttpStatus.FORBIDDEN)

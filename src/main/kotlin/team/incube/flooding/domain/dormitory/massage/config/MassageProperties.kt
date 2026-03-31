@@ -8,6 +8,4 @@ class MassageProperties(
     val openTime: LocalTime,
     val maxCount: Int,
     val lockKey: String,
-) {
-
-}
+)

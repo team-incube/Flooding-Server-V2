@@ -11,7 +11,6 @@ import java.time.LocalDate
 class GetWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
 ) : GetWakeUpMusicService {
-
     @Transactional(readOnly = true)
     override fun execute(date: LocalDate): List<WakeUpMusicResponse> {
         val startOfDay = date.atStartOfDay()

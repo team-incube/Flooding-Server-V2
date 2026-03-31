@@ -4,9 +4,9 @@ import org.redisson.api.RedissonClient
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.config.StudyProperties
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
-import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.repository.StudyBanJpaRepository
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.incube.flooding.global.security.util.CurrentUserProvider
@@ -24,9 +24,7 @@ class StudyApplicationServiceImpl(
     private val studyProperties: StudyProperties,
     private val redissonClient: RedissonClient,
 ) : StudyApplicationService {
-
     override fun execute() {
-
         val user = currentUserProvider.getCurrentUser()
 
         val now = LocalTime.now()
@@ -36,7 +34,8 @@ class StudyApplicationServiceImpl(
         }
 
         if (studyRedisAdapter.getApplicationStatus(user.id) == StudyApplicationStatus.BANNED ||
-            studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())) {
+            studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())
+        ) {
             throw ExpectedException("자습 금지 상태입니다.", HttpStatus.FORBIDDEN)
         }
 

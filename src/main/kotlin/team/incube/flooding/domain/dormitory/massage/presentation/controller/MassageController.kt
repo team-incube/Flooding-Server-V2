@@ -15,14 +15,13 @@ import team.themoment.sdk.response.CommonApiResponse
 @Tag(name = "마사지", description = "마사지 신청 관련 API")
 @RestController
 @RequestMapping("/dormitory/massages")
-class MassageController (
+class MassageController(
     private val applyMassageService: ApplyMassageService,
-    private val cancelMassageService: CancelMassageService
+    private val cancelMassageService: CancelMassageService,
 ) {
-
     @Operation(
         summary = "마사지 신청",
-        description = "마사지 신청 시간 내에 마사지를 신청합니다. 이미 신청한 경우 신청할 수 없습니다."
+        description = "마사지 신청 시간 내에 마사지를 신청합니다. 이미 신청한 경우 신청할 수 없습니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "마사지 신청 성공"),
@@ -37,7 +36,7 @@ class MassageController (
 
     @Operation(
         summary = "마사지 취소",
-        description = "신청한 마사지를 취소합니다. 마사지를 신청한 상태에서만 취소할 수 있습니다."
+        description = "신청한 마사지를 취소합니다. 마사지를 신청한 상태에서만 취소할 수 있습니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "마사지 취소 성공"),
