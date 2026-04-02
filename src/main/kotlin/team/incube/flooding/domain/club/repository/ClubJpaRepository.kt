@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
 
 @Repository
-interface ClubJpaRepository : JpaRepository<ClubJpaEntity, Long> {
-}
+interface ClubJpaRepository : JpaRepository<ClubJpaEntity, Long>

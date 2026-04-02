@@ -5,6 +5,8 @@ import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
 
 interface ClubParticipantJpaRepository : JpaRepository<ClubParticipantJpaEntity, ClubParticipantId> {
-
-    fun existsByClubIdAndUserId(clubId: Long, userId: Long): Boolean
+    fun existsByClubIdAndUserId(
+        clubId: Long,
+        userId: Long,
+    ): Boolean
 }

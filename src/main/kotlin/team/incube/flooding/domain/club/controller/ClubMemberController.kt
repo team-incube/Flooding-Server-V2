@@ -7,17 +7,14 @@ import team.incube.flooding.domain.club.service.ClubMemberService
 @RestController
 @RequestMapping("/club")
 class ClubMemberController(
-    private val clubMemberService: ClubMemberService
+    private val clubMemberService: ClubMemberService,
 ) {
-
     @PostMapping("/{clubId}/member/{userId}")
     @ResponseStatus(HttpStatus.CREATED)
     fun inviteMember(
         @PathVariable clubId: Long,
-        @PathVariable userId: Long
+        @PathVariable userId: Long,
     ) {
         clubMemberService.inviteMember(clubId, userId)
     }
-
-
 }
