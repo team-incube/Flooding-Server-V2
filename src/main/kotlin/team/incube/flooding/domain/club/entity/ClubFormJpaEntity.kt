@@ -23,11 +23,11 @@ class ClubFormJpaEntity(
     @field:JoinColumn(name = "club_id", nullable = false)
     val club: ClubJpaEntity,
     @field:Column(name = "title", nullable = false)
-    val title: String,
+    var title: String,
     @field:Column(name = "description")
-    val description: String?,
+    var description: String?,
     @field:Column(name = "is_active", nullable = false)
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @field:Column(name = "created_at", nullable = false, updatable = false)
     @field:CreationTimestamp
     val createdAt: LocalDateTime = LocalDateTime.now(),

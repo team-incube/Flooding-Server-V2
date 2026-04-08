@@ -26,14 +26,14 @@ class ClubFormFieldJpaEntity(
     @field:JoinColumn(name = "form_id", nullable = false)
     val form: ClubFormJpaEntity,
     @field:Column(name = "label", nullable = false)
-    val label: String,
+    var label: String,
     @field:Column(name = "description")
-    val description: String?,
-    @field:Column(name = "field_type", nullable = false, length = 20)
+    var description: String?,
+    @field:Column(name = "field_type", nullable = false, length = 50)
     @field:Enumerated(EnumType.STRING)
-    val fieldType: ClubFormFieldType,
+    var fieldType: ClubFormFieldType,
     @field:Column(name = "field_order", nullable = false)
-    val fieldOrder: Int,
+    var fieldOrder: Int,
     @field:Column(name = "is_required", nullable = false)
-    val isRequired: Boolean,
+    var isRequired: Boolean,
 )

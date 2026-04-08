@@ -6,12 +6,16 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "tb_club_form_field_option")
+@Table(
+    name = "tb_club_form_field_option",
+    indexes = [Index(name = "idx_club_form_field_option_order", columnList = "field_id, option_order")],
+)
 class ClubFormFieldOptionJpaEntity(
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,9 +24,9 @@ class ClubFormFieldOptionJpaEntity(
     @field:JoinColumn(name = "field_id", nullable = false)
     val field: ClubFormFieldJpaEntity,
     @field:Column(name = "label", nullable = false)
-    val label: String,
+    var label: String,
     @field:Column(name = "value", nullable = false)
-    val value: String,
+    var value: String,
     @field:Column(name = "option_order", nullable = false)
-    val optionOrder: Int,
+    var optionOrder: Int,
 )
