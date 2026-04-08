@@ -33,7 +33,7 @@ class ClubJpaEntity(
     @field:Enumerated(EnumType.STRING)
     val status: ClubStatus,
     @field:Column(name = "description", length = 1000)
-    val description: String?,
+    var description: String?,
     @field:Column(name = "max_member")
-    val maxMember: Int?
+    var maxMember: Int?
 )
