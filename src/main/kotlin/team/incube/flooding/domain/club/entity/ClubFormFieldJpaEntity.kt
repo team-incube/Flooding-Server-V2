@@ -12,10 +12,12 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 
 @Entity
 @Table(
     name = "tb_club_form_field",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["form_id", "field_order"])],
     indexes = [Index(name = "idx_club_form_field_order", columnList = "form_id, field_order")],
 )
 class ClubFormFieldJpaEntity(
