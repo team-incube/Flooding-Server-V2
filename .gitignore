@@ -44,3 +44,6 @@ out/
 
 ### Local Claude ###
 .claude/settings.local.json
+
+### Local GitHub ###
+.github/PULL_REQUEST_TEMPLATE.md
