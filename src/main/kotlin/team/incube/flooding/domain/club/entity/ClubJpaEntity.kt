@@ -26,10 +26,14 @@ class ClubJpaEntity(
     val type: ClubType,
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "leader_id")
-    val leader: UserJpaEntity?,
+    var leader: UserJpaEntity?,
     @field:Column(name = "image_url")
     val imageUrl: String?,
     @field:Column(name = "status", nullable = false, length = 20)
     @field:Enumerated(EnumType.STRING)
     val status: ClubStatus,
+    @field:Column(name = "description", length = 1000)
+    val description: String?,
+    @field:Column(name = "max_member")
+    val maxMember: Int?
 )
