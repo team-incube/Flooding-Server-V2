@@ -53,6 +53,7 @@ dependencies {
     implementation("com.github.themoment-team:the-sdk:1.4")
 
     // Test
+    testImplementation("io.mockk:mockk:1.13.17")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
