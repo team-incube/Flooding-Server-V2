@@ -7,6 +7,18 @@ description: Generate PR title and body from commits since the base branch, then
 
 ```bash
 git branch --show-current
+```
+
+현재 브랜치가 `develop` 또는 `master`이면 즉시 중단:
+
+```
+현재 브랜치: develop
+feature 브랜치를 먼저 생성하세요 (/new-branch)
+```
+
+feature 브랜치가 맞으면 계속 진행:
+
+```bash
 git log origin/develop..HEAD --oneline
 git diff origin/develop...HEAD --stat
 git diff origin/develop...HEAD
@@ -16,7 +28,7 @@ git diff origin/develop...HEAD
 
 Format: `[type] 설명`
 
-- Type: `feat` / `fix` / `update` / `refactor` / `test` / `docs` / `style` / `perf`
+- Type: `feat` / `fix` / `update` / `add` / `test` / `docs` / `style` / `perf` / `refactor` / `merge`
 - Description: Korean, concise, no emojis, max 50 characters total
 - Generate 3 options and mark the best with `← 추천`
 
@@ -61,8 +73,18 @@ Ask the user which title to use. If no response, use the recommended option.
 
 ## Step 5 — Create PR
 
+Get the current GitHub username for assignee:
+
 ```bash
-gh pr create --title "<title>" --body "$(cat <<'EOF'
+gh api user --jq .login
+```
+
+```bash
+gh pr create \
+  --title "<title>" \
+  --assignee "<github-username>" \
+  --reviewer "team-incube/flooding-server" \
+  --body "$(cat <<'EOF'
 ## #️⃣연관된 이슈
 
 > #이슈번호

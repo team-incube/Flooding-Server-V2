@@ -24,7 +24,7 @@ Read each changed file.
 
 ### Naming
 - [ ] Entity: `{Domain}JpaEntity`? Table: `tb_` + singular snake_case?
-- [ ] DTO prefix correct? (`Get`, `Create`, `Patch`, `Delete`)
+- [ ] DTO prefix correct? (`Get`, `Search`, `Create`, `Patch`, `Delete`)
 - [ ] URL plural for collections (`/clubs`, `/forms`)?
 
 ### Kotlin Style
