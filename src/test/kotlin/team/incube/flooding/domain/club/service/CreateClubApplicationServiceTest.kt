@@ -1,139 +1,183 @@
 package team.incube.flooding.domain.club.service
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
+import team.incube.flooding.domain.club.entity.ClubFormAnswerJpaEntity
+import team.incube.flooding.domain.club.entity.ClubFormFieldJpaEntity
+import team.incube.flooding.domain.club.entity.ClubFormFieldType
+import team.incube.flooding.domain.club.entity.ClubFormJpaEntity
+import team.incube.flooding.domain.club.entity.ClubFormSubmissionJpaEntity
+import team.incube.flooding.domain.club.entity.ClubJpaEntity
+import team.incube.flooding.domain.club.entity.ClubStatus
+import team.incube.flooding.domain.club.entity.ClubType
+import team.incube.flooding.domain.club.presentation.data.request.CreateClubApplicationAnswerRequest
+import team.incube.flooding.domain.club.presentation.data.request.CreateClubApplicationRequest
+import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
+import team.incube.flooding.domain.club.repository.ClubFormFieldRepository
+import team.incube.flooding.domain.club.repository.ClubFormRepository
+import team.incube.flooding.domain.club.repository.ClubFormSubmissionRepository
+import team.incube.flooding.domain.club.service.impl.CreateClubApplicationServiceImpl
+import team.incube.flooding.domain.user.entity.Role
+import team.incube.flooding.domain.user.entity.Sex
+import team.incube.flooding.domain.user.entity.UserJpaEntity
+import team.incube.flooding.global.security.util.CurrentUserProvider
+import team.themoment.sdk.exception.ExpectedException
 
 class CreateClubApplicationServiceTest {
-    data class Field(val id: Long, val isRequired: Boolean)
-    data class Submission(val formId: Long, val userId: Long)
+    private val clubFormRepository = mockk<ClubFormRepository>()
+    private val clubFormFieldRepository = mockk<ClubFormFieldRepository>()
+    private val clubFormSubmissionRepository = mockk<ClubFormSubmissionRepository>()
+    private val clubFormAnswerRepository = mockk<ClubFormAnswerRepository>()
+    private val currentUserProvider = mockk<CurrentUserProvider>()
 
-    private val submissions = mutableListOf<Submission>()
-    private val answers = mutableMapOf<Long, MutableList<Pair<Long, String?>>>()
-    private var submissionIdSeq = 0L
+    private val service =
+        CreateClubApplicationServiceImpl(
+            clubFormRepository,
+            clubFormFieldRepository,
+            clubFormSubmissionRepository,
+            clubFormAnswerRepository,
+            currentUserProvider,
+        )
 
-    private val fields =
-        listOf(
-            Field(1L, isRequired = true),
-            Field(2L, isRequired = false),
-            Field(3L, isRequired = true),
+    private val user =
+        UserJpaEntity(
+            id = 1L,
+            name = "테스트",
+            sex = Sex.MAN,
+            email = "test@test.com",
+            studentNumber = 10101,
+            role = Role.GENERAL_STUDENT,
+            dormitoryRoom = 101,
+        )
+
+    private val club =
+        ClubJpaEntity(
+            id = 1L,
+            name = "테스트 동아리",
+            type = ClubType.MAJOR_CLUB,
+            leader = null,
+            imageUrl = null,
+            status = ClubStatus.MAINTAIN,
+        )
+
+    private val form = ClubFormJpaEntity(id = 10L, club = club, title = "신청 폼", description = null)
+
+    private val requiredField =
+        ClubFormFieldJpaEntity(
+            id = 1L,
+            form = form,
+            label = "자기소개",
+            description = null,
+            fieldType = ClubFormFieldType.TEXTAREA,
+            fieldOrder = 1,
+            isRequired = true,
+        )
+
+    private val optionalField =
+        ClubFormFieldJpaEntity(
+            id = 2L,
+            form = form,
+            label = "특기사항",
+            description = null,
+            fieldType = ClubFormFieldType.TEXT,
+            fieldOrder = 2,
+            isRequired = false,
         )
 
     @BeforeEach
     fun setUp() {
-        submissions.clear()
-        answers.clear()
-        submissionIdSeq = 0L
-    }
-
-    private fun applyLogic(
-        formId: Long,
-        userId: Long,
-        isActiveForm: Boolean,
-        answerMap: Map<Long, String?>,
-    ): Long {
-        if (!isActiveForm) {
-            throw RuntimeException("활성화된 신청 폼이 없습니다.")
-        }
-
-        if (submissions.any { it.formId == formId && it.userId == userId }) {
-            throw RuntimeException("이미 신청한 동아리입니다.")
-        }
-
-        fields.filter { it.isRequired }.forEach { field ->
-            val value = answerMap[field.id]
-            if (value.isNullOrBlank()) {
-                throw RuntimeException("'필드${field.id}' 항목은 필수입니다.")
-            }
-        }
-
-        val id = ++submissionIdSeq
-        submissions.add(Submission(formId, userId))
-        answers[id] = answerMap.entries.map { Pair(it.key, it.value) }.toMutableList()
-        return id
+        every { currentUserProvider.getCurrentUser() } returns user
     }
 
     @Test
-    fun `활성_폼이_없으면_예외가_발생한다`() {
-        val exception =
-            assertThrows(RuntimeException::class.java) {
-                applyLogic(1L, 1L, isActiveForm = false, answerMap = emptyMap())
-            }
-
-        assertEquals("활성화된 신청 폼이 없습니다.", exception.message)
-        assertEquals(0, submissions.size)
-    }
-
-    @Test
-    fun `중복_신청_시_예외가_발생한다`() {
-        val validAnswers = mapOf(1L to "답변1", 2L to null, 3L to "답변3")
-
-        applyLogic(1L, 1L, isActiveForm = true, answerMap = validAnswers)
+    fun `활성_폼이_없으면_NOT_FOUND_예외가_발생한다`() {
+        every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns null
 
         val exception =
-            assertThrows(RuntimeException::class.java) {
-                applyLogic(1L, 1L, isActiveForm = true, answerMap = validAnswers)
+            assertThrows(ExpectedException::class.java) {
+                service.execute(1L, CreateClubApplicationRequest(emptyList()))
             }
 
-        assertEquals("이미 신청한 동아리입니다.", exception.message)
-        assertEquals(1, submissions.size)
+        assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
     }
 
     @Test
-    fun `필수_항목_미입력_시_예외가_발생한다`() {
-        val missingRequired = mapOf(1L to "답변1", 2L to null, 3L to "")
+    fun `중복_신청_시_CONFLICT_예외가_발생한다`() {
+        every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+        every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns true
 
         val exception =
-            assertThrows(RuntimeException::class.java) {
-                applyLogic(1L, 1L, isActiveForm = true, answerMap = missingRequired)
+            assertThrows(ExpectedException::class.java) {
+                service.execute(1L, CreateClubApplicationRequest(emptyList()))
             }
 
-        assertEquals("'필드3' 항목은 필수입니다.", exception.message)
-        assertEquals(0, submissions.size)
+        assertEquals(HttpStatus.CONFLICT, exception.statusCode)
     }
 
     @Test
-    fun `필수_항목_미포함_시_예외가_발생한다`() {
-        val noRequired = mapOf(2L to "선택 답변")
+    fun `필수_항목_미입력_시_BAD_REQUEST_예외가_발생한다`() {
+        every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+        every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
+        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
+            listOf(requiredField, optionalField)
+
+        val request =
+            CreateClubApplicationRequest(answers = listOf(CreateClubApplicationAnswerRequest(fieldId = 1L, value = "")))
 
         val exception =
-            assertThrows(RuntimeException::class.java) {
-                applyLogic(1L, 1L, isActiveForm = true, answerMap = noRequired)
+            assertThrows(ExpectedException::class.java) {
+                service.execute(1L, request)
             }
 
-        assertEquals("'필드1' 항목은 필수입니다.", exception.message)
+        assertEquals(HttpStatus.BAD_REQUEST, exception.statusCode)
     }
 
     @Test
-    fun `정상_신청_시_submissionId가_반환된다`() {
-        val validAnswers = mapOf(1L to "답변1", 2L to null, 3L to "답변3")
+    fun `정상_신청_시_applicationId가_반환된다`() {
+        val submission = ClubFormSubmissionJpaEntity(id = 100L, form = form, user = user)
+        val answersSlot = slot<List<ClubFormAnswerJpaEntity>>()
 
-        val submissionId = applyLogic(1L, 1L, isActiveForm = true, answerMap = validAnswers)
+        every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+        every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
+        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
+            listOf(requiredField, optionalField)
+        every { clubFormSubmissionRepository.save(any()) } returns submission
+        every { clubFormAnswerRepository.saveAll(capture(answersSlot)) } returns emptyList()
 
-        assertEquals(1L, submissionId)
-        assertEquals(1, submissions.size)
+        val request =
+            CreateClubApplicationRequest(
+                answers =
+                    listOf(
+                        CreateClubApplicationAnswerRequest(fieldId = 1L, value = "열심히 하겠습니다"),
+                        CreateClubApplicationAnswerRequest(fieldId = 2L, value = null),
+                    ),
+            )
+
+        val response = service.execute(1L, request)
+
+        assertEquals(100L, response.applicationId)
+        verify { clubFormAnswerRepository.saveAll(any<List<ClubFormAnswerJpaEntity>>()) }
     }
 
     @Test
-    fun `서로_다른_유저는_같은_폼에_각각_신청할_수_있다`() {
-        val answers1 = mapOf(1L to "유저1 답변1", 3L to "유저1 답변3")
-        val answers2 = mapOf(1L to "유저2 답변1", 3L to "유저2 답변3")
+    fun `선택_항목만_있는_폼은_답변_없이도_신청_가능하다`() {
+        val submission = ClubFormSubmissionJpaEntity(id = 100L, form = form, user = user)
 
-        val id1 = applyLogic(1L, 1L, isActiveForm = true, answerMap = answers1)
-        val id2 = applyLogic(1L, 2L, isActiveForm = true, answerMap = answers2)
+        every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+        every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
+        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns listOf(optionalField)
+        every { clubFormSubmissionRepository.save(any()) } returns submission
+        every { clubFormAnswerRepository.saveAll(any<List<ClubFormAnswerJpaEntity>>()) } returns emptyList()
 
-        assertEquals(2, submissions.size)
-        assertEquals(1L, id1)
-        assertEquals(2L, id2)
-    }
+        val response = service.execute(1L, CreateClubApplicationRequest(emptyList()))
 
-    @Test
-    fun `선택_항목은_값이_없어도_신청_가능하다`() {
-        val onlyRequired = mapOf(1L to "답변1", 3L to "답변3")
-
-        val submissionId = applyLogic(1L, 1L, isActiveForm = true, answerMap = onlyRequired)
-
-        assertEquals(1L, submissionId)
+        assertEquals(100L, response.applicationId)
     }
 }
