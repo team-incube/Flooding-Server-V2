@@ -38,9 +38,9 @@ class CreateClubFormServiceImpl(
                 ),
             )
 
-        request.fields.forEach { fieldRequest ->
-            val field =
-                clubFormFieldRepository.save(
+        val savedFields =
+            clubFormFieldRepository.saveAll(
+                request.fields.map { fieldRequest ->
                     ClubFormFieldJpaEntity(
                         form = form,
                         label = fieldRequest.label,
@@ -48,20 +48,22 @@ class CreateClubFormServiceImpl(
                         fieldType = fieldRequest.fieldType,
                         fieldOrder = fieldRequest.order,
                         isRequired = fieldRequest.required,
-                    ),
-                )
+                    )
+                },
+            )
 
-            fieldRequest.options?.forEachIndexed { index, optionRequest ->
-                clubFormFieldOptionRepository.save(
+        clubFormFieldOptionRepository.saveAll(
+            savedFields.zip(request.fields).flatMap { (savedField, fieldRequest) ->
+                fieldRequest.options?.mapIndexed { index, optionRequest ->
                     ClubFormFieldOptionJpaEntity(
-                        field = field,
+                        field = savedField,
                         label = optionRequest.label,
                         value = optionRequest.value,
                         optionOrder = index,
-                    ),
-                )
-            }
-        }
+                    )
+                } ?: emptyList()
+            },
+        )
 
         return CreateClubFormResponse(formId = form.id)
     }

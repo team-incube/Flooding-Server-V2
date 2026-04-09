@@ -56,15 +56,15 @@ class CreateClubApplicationServiceImpl(
                 ),
             )
 
-        fields.forEach { field ->
-            clubFormAnswerRepository.save(
+        clubFormAnswerRepository.saveAll(
+            fields.map { field ->
                 ClubFormAnswerJpaEntity(
                     submission = submission,
                     field = field,
                     value = answersByFieldId[field.id]?.value,
-                ),
-            )
-        }
+                )
+            },
+        )
 
         return CreateClubApplicationResponse(applicationId = submission.id)
     }
