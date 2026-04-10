@@ -42,6 +42,8 @@ class GetClubFormServiceTest :
                 leader = null,
                 imageUrl = null,
                 status = ClubStatus.MAINTAIN,
+                description = null,
+                maxMember = null,
             )
 
         val form = ClubFormJpaEntity(id = 10L, club = club, title = "신청 폼", description = "설명")
