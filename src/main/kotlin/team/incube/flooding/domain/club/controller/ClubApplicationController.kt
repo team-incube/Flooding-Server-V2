@@ -10,12 +10,12 @@ import team.incube.flooding.domain.club.service.ClubApplicationService
 @RestController
 @RequestMapping("/club")
 class ClubApplicationController(
-    private val clubApplicationService: ClubApplicationService
+    private val clubApplicationService: ClubApplicationService,
 ) {
     @PatchMapping("/{clubId}/applications/{userId}")
     fun approveApplication(
         @PathVariable clubId: Long,
-        @PathVariable userId: Long
+        @PathVariable userId: Long,
     ): ResponseEntity<Unit> {
         clubApplicationService.approveApplication(clubId, userId)
         return ResponseEntity.noContent().build()

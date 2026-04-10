@@ -24,15 +24,16 @@ class ClubMemberService(
         clubId: Long,
         userId: Long,
     ) {
-
         if (clubParticipantJpaRepository.existsById(ClubParticipantId(clubId, userId))) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "이미 해당 동아리에 속해 있습니다.")
         }
 
-        val club = clubRepository.findById(clubId)
-            .orElseThrow {
-                ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${clubId}인 동아리를 찾을 수 없습니다.")
-            }
+        val club =
+            clubRepository
+                .findById(clubId)
+                .orElseThrow {
+                    ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${clubId}인 동아리를 찾을 수 없습니다.")
+                }
 
         val currentUser = currentUserProvider.getCurrentUser()
 
@@ -44,15 +45,18 @@ class ClubMemberService(
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "동아리 리더 또는 관리자만 초대할 수 있습니다.")
         }
 
-        val user = userRepository.findById(userId)
-            .orElseThrow {
-                ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${userId}인 사용자를 찾을 수 없습니다.")
-            }
+        val user =
+            userRepository
+                .findById(userId)
+                .orElseThrow {
+                    ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${userId}인 사용자를 찾을 수 없습니다.")
+                }
 
-        val newParticipant = ClubParticipantJpaEntity(
-            club = club,
-            user = user,
-        )
+        val newParticipant =
+            ClubParticipantJpaEntity(
+                club = club,
+                user = user,
+            )
 
         clubParticipantJpaRepository.save(newParticipant)
     }

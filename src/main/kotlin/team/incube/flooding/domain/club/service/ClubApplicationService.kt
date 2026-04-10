@@ -17,13 +17,17 @@ class ClubApplicationService(
     private val clubJpaRepository: ClubJpaRepository,
     private val userRepository: UserRepository,
     private val clubParticipantJpaRepository: ClubParticipantJpaRepository,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
 ) {
     @Transactional
-    fun approveApplication(clubId: Long, userId: Long) {
-
-        val club = clubJpaRepository.findById(clubId)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 동아리입니다") }
+    fun approveApplication(
+        clubId: Long,
+        userId: Long,
+    ) {
+        val club =
+            clubJpaRepository
+                .findById(clubId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 동아리입니다") }
 
         val currentUser = currentUserProvider.getCurrentUser()
 
@@ -35,13 +39,16 @@ class ClubApplicationService(
             throw ResponseStatusException(HttpStatus.CONFLICT, "이미 가입된 유저입니다")
         }
 
-        val user = userRepository.findById(userId)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다") }
+        val user =
+            userRepository
+                .findById(userId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다") }
 
-        val participant = ClubParticipantJpaEntity(
-            club = club,
-            user = user
-        )
+        val participant =
+            ClubParticipantJpaEntity(
+                club = club,
+                user = user,
+            )
         clubParticipantJpaRepository.save(participant)
     }
 }
