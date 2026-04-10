@@ -53,7 +53,7 @@ class CreateClubFormServiceImpl(
             )
 
         clubFormFieldOptionRepository.saveAll(
-            savedFields.zip(request.fields).flatMap { (savedField, fieldRequest) ->
+            savedFields.zip(request.fields).flatMapIndexed { _, (savedField, fieldRequest) ->
                 fieldRequest.options?.mapIndexed { index, optionRequest ->
                     ClubFormFieldOptionJpaEntity(
                         field = savedField,
