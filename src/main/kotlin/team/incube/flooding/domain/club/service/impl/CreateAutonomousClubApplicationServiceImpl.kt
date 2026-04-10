@@ -3,7 +3,7 @@ package team.incube.flooding.domain.club.service.impl
 import org.redisson.api.RedissonClient
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import team.incube.flooding.domain.club.entity.ClubAutonomousApplicationJpaEntity
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
@@ -15,12 +15,12 @@ import team.themoment.sdk.exception.ExpectedException
 import java.util.concurrent.TimeUnit
 
 @Service
-@Transactional
 class CreateAutonomousClubApplicationServiceImpl(
     private val clubRepository: ClubRepository,
     private val clubAutonomousApplicationRepository: ClubAutonomousApplicationRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val redissonClient: RedissonClient,
+    private val transactionTemplate: TransactionTemplate,
 ) : CreateAutonomousClubApplicationService {
     override fun execute(clubId: Long): CreateAutonomousClubApplicationResponse {
         val user = currentUserProvider.getCurrentUser()
@@ -35,31 +35,33 @@ class CreateAutonomousClubApplicationServiceImpl(
         }
 
         val lock = redissonClient.getLock("autonomous-club-application:$clubId")
-        val acquired = lock.tryLock(5, 3, TimeUnit.SECONDS)
+        val acquired = lock.tryLock(5, -1, TimeUnit.SECONDS)
 
         if (!acquired) {
             throw ExpectedException("잠시 후 다시 시도해주세요.", HttpStatus.TOO_MANY_REQUESTS)
         }
 
         try {
-            val maxMember =
-                club.maxMember
-                    ?: throw ExpectedException("정원이 설정되지 않은 동아리입니다.", HttpStatus.BAD_REQUEST)
+            return transactionTemplate.execute {
+                val maxMember =
+                    club.maxMember
+                        ?: throw ExpectedException("정원이 설정되지 않은 동아리입니다.", HttpStatus.BAD_REQUEST)
 
-            if (clubAutonomousApplicationRepository.existsByClubIdAndUserId(clubId, user.id)) {
-                throw ExpectedException("이미 신청한 동아리입니다.", HttpStatus.CONFLICT)
-            }
+                if (clubAutonomousApplicationRepository.existsByClubIdAndUserId(clubId, user.id)) {
+                    throw ExpectedException("이미 신청한 동아리입니다.", HttpStatus.CONFLICT)
+                }
 
-            if (clubAutonomousApplicationRepository.countByClubId(clubId) >= maxMember) {
-                throw ExpectedException("신청 정원이 마감되었습니다.", HttpStatus.CONFLICT)
-            }
+                if (clubAutonomousApplicationRepository.countByClubId(clubId) >= maxMember) {
+                    throw ExpectedException("신청 정원이 마감되었습니다.", HttpStatus.CONFLICT)
+                }
 
-            val application =
-                clubAutonomousApplicationRepository.save(
-                    ClubAutonomousApplicationJpaEntity(club = club, user = user),
-                )
+                val application =
+                    clubAutonomousApplicationRepository.save(
+                        ClubAutonomousApplicationJpaEntity(club = club, user = user),
+                    )
 
-            return CreateAutonomousClubApplicationResponse(applicationId = application.id)
+                CreateAutonomousClubApplicationResponse(applicationId = application.id)
+            }!!
         } finally {
             lock.unlock()
         }

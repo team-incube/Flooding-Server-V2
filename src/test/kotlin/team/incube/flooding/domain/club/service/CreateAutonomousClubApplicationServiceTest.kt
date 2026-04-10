@@ -9,6 +9,8 @@ import io.mockk.verify
 import org.redisson.api.RLock
 import org.redisson.api.RedissonClient
 import org.springframework.http.HttpStatus
+import org.springframework.transaction.support.TransactionCallback
+import org.springframework.transaction.support.TransactionTemplate
 import team.incube.flooding.domain.club.entity.ClubAutonomousApplicationJpaEntity
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
 import team.incube.flooding.domain.club.entity.ClubStatus
@@ -31,6 +33,11 @@ class CreateAutonomousClubApplicationServiceTest :
         val currentUserProvider = mockk<CurrentUserProvider>()
         val redissonClient = mockk<RedissonClient>()
         val lock = mockk<RLock>(relaxed = true)
+        val transactionTemplate = mockk<TransactionTemplate>()
+
+        every { transactionTemplate.execute<Any>(any()) } answers {
+            firstArg<TransactionCallback<Any>>().doInTransaction(mockk(relaxed = true))
+        }
 
         val service =
             CreateAutonomousClubApplicationServiceImpl(
@@ -38,6 +45,7 @@ class CreateAutonomousClubApplicationServiceTest :
                 clubAutonomousApplicationRepository,
                 currentUserProvider,
                 redissonClient,
+                transactionTemplate,
             )
 
         val user =
