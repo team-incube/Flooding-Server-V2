@@ -3,7 +3,6 @@ package team.incube.flooding.domain.club.presentation.data.request
 import team.incube.flooding.domain.club.entity.ClubFormFieldType
 
 data class CreateClubFormRequest(
-    val clubId: Long,
     val title: String,
     val description: String?,
     val fields: List<CreateClubFormFieldRequest>,

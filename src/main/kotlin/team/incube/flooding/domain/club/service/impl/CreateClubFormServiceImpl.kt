@@ -23,11 +23,18 @@ class CreateClubFormServiceImpl(
     private val clubFormFieldOptionRepository: ClubFormFieldOptionRepository,
 ) : CreateClubFormService {
     @Transactional
-    override fun execute(request: CreateClubFormRequest): CreateClubFormResponse {
+    override fun execute(
+        clubId: Long,
+        request: CreateClubFormRequest,
+    ): CreateClubFormResponse {
         val club =
-            clubRepository.findById(request.clubId).orElseThrow {
+            clubRepository.findById(clubId).orElseThrow {
                 ExpectedException("동아리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
             }
+
+        clubFormRepository.findByClubIdAndIsActiveTrue(clubId)?.let {
+            it.isActive = false
+        }
 
         val form =
             clubFormRepository.save(

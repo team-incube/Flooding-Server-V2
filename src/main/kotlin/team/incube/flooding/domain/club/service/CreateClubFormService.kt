@@ -4,5 +4,8 @@ import team.incube.flooding.domain.club.presentation.data.request.CreateClubForm
 import team.incube.flooding.domain.club.presentation.data.response.CreateClubFormResponse
 
 interface CreateClubFormService {
-    fun execute(request: CreateClubFormRequest): CreateClubFormResponse
+    fun execute(
+        clubId: Long,
+        request: CreateClubFormRequest,
+    ): CreateClubFormResponse
 }
