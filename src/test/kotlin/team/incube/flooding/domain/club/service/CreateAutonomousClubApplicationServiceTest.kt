@@ -104,6 +104,8 @@ class CreateAutonomousClubApplicationServiceTest :
                 then("BAD_REQUEST 예외가 발생한다") {
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { clubRepository.findById(1L) } returns Optional.of(autonomousClub(maxMember = null))
+                    every { redissonClient.getLock(any<String>()) } returns lock
+                    every { lock.tryLock(any<Long>(), any<Long>(), any<TimeUnit>()) } returns true
 
                     val exception = shouldThrow<ExpectedException> { service.execute(1L) }
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST

@@ -34,10 +34,6 @@ class CreateAutonomousClubApplicationServiceImpl(
             throw ExpectedException("자율 동아리만 선착순 신청이 가능합니다.", HttpStatus.BAD_REQUEST)
         }
 
-        val maxMember =
-            club.maxMember
-                ?: throw ExpectedException("정원이 설정되지 않은 동아리입니다.", HttpStatus.BAD_REQUEST)
-
         val lock = redissonClient.getLock("autonomous-club-application:$clubId")
         val acquired = lock.tryLock(5, 3, TimeUnit.SECONDS)
 
@@ -46,6 +42,10 @@ class CreateAutonomousClubApplicationServiceImpl(
         }
 
         try {
+            val maxMember =
+                club.maxMember
+                    ?: throw ExpectedException("정원이 설정되지 않은 동아리입니다.", HttpStatus.BAD_REQUEST)
+
             if (clubAutonomousApplicationRepository.existsByClubIdAndUserId(clubId, user.id)) {
                 throw ExpectedException("이미 신청한 동아리입니다.", HttpStatus.CONFLICT)
             }
