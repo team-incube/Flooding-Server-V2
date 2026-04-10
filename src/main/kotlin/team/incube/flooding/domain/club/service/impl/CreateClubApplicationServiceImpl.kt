@@ -41,11 +41,16 @@ class CreateClubApplicationServiceImpl(
         val fields = clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(form.id)
         val answersByFieldId = request.answers.associateBy { it.fieldId }
 
-        fields.filter { it.isRequired }.forEach { field ->
-            val answer = answersByFieldId[field.id]
-            if (answer?.value.isNullOrBlank()) {
-                throw ExpectedException("'${field.label}' 항목은 필수입니다.", HttpStatus.BAD_REQUEST)
-            }
+        val missingLabels = fields
+            .filter { it.isRequired }
+            .filter { field -> answersByFieldId[field.id]?.value.isNullOrBlank() }
+            .map { it.label }
+
+        if (missingLabels.isNotEmpty()) {
+            throw ExpectedException(
+                "${missingLabels.joinToString(", ")} 항목은 필수입니다.",
+                HttpStatus.BAD_REQUEST,
+            )
         }
 
         val submission =
