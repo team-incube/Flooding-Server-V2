@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubFormAnswerJpaEntity
 import team.incube.flooding.domain.club.entity.ClubFormSubmissionJpaEntity
+import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubApplicationRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateClubApplicationResponse
 import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
@@ -34,6 +35,10 @@ class CreateClubApplicationServiceImpl(
             clubFormRepository.findByClubIdAndIsActiveTrue(clubId)
                 ?: throw ExpectedException("활성화된 신청 폼이 없습니다.", HttpStatus.NOT_FOUND)
 
+        if (form.club.type != ClubType.MAJOR_CLUB) {
+            throw ExpectedException("전공 동아리만 폼으로 신청할 수 있습니다.", HttpStatus.BAD_REQUEST)
+        }
+
         if (clubFormSubmissionRepository.existsByFormIdAndUserId(form.id, user.id)) {
             throw ExpectedException("이미 신청한 동아리입니다.", HttpStatus.CONFLICT)
         }
@@ -41,10 +46,11 @@ class CreateClubApplicationServiceImpl(
         val fields = clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(form.id)
         val answersByFieldId = request.answers.associateBy { it.fieldId }
 
-        val missingLabels = fields
-            .filter { it.isRequired }
-            .filter { field -> answersByFieldId[field.id]?.value.isNullOrBlank() }
-            .map { it.label }
+        val missingLabels =
+            fields
+                .filter { it.isRequired }
+                .filter { field -> answersByFieldId[field.id]?.value.isNullOrBlank() }
+                .map { it.label }
 
         if (missingLabels.isNotEmpty()) {
             throw ExpectedException(
