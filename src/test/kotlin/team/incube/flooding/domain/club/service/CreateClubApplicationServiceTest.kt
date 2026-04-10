@@ -1,13 +1,13 @@
 package team.incube.flooding.domain.club.service
 
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import team.incube.flooding.domain.club.entity.ClubFormAnswerJpaEntity
 import team.incube.flooding.domain.club.entity.ClubFormFieldJpaEntity
@@ -30,144 +30,138 @@ import team.incube.flooding.domain.user.entity.UserJpaEntity
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
 
-class CreateClubApplicationServiceTest {
-    private val clubFormRepository = mockk<ClubFormRepository>()
-    private val clubFormFieldRepository = mockk<ClubFormFieldRepository>()
-    private val clubFormSubmissionRepository = mockk<ClubFormSubmissionRepository>()
-    private val clubFormAnswerRepository = mockk<ClubFormAnswerRepository>()
-    private val currentUserProvider = mockk<CurrentUserProvider>()
+class CreateClubApplicationServiceTest : BehaviorSpec({
+    val clubFormRepository = mockk<ClubFormRepository>()
+    val clubFormFieldRepository = mockk<ClubFormFieldRepository>()
+    val clubFormSubmissionRepository = mockk<ClubFormSubmissionRepository>()
+    val clubFormAnswerRepository = mockk<ClubFormAnswerRepository>()
+    val currentUserProvider = mockk<CurrentUserProvider>()
 
-    private val service =
-        CreateClubApplicationServiceImpl(
-            clubFormRepository,
-            clubFormFieldRepository,
-            clubFormSubmissionRepository,
-            clubFormAnswerRepository,
-            currentUserProvider,
-        )
+    val service = CreateClubApplicationServiceImpl(
+        clubFormRepository,
+        clubFormFieldRepository,
+        clubFormSubmissionRepository,
+        clubFormAnswerRepository,
+        currentUserProvider,
+    )
 
-    private val user =
-        UserJpaEntity(
-            id = 1L,
-            name = "테스트",
-            sex = Sex.MAN,
-            email = "test@test.com",
-            studentNumber = 10101,
-            role = Role.GENERAL_STUDENT,
-            dormitoryRoom = 101,
-        )
+    val user = UserJpaEntity(
+        id = 1L,
+        name = "테스트",
+        sex = Sex.MAN,
+        email = "test@test.com",
+        studentNumber = 10101,
+        role = Role.GENERAL_STUDENT,
+        dormitoryRoom = 101,
+    )
 
-    private val club =
-        ClubJpaEntity(
-            id = 1L,
-            name = "테스트 동아리",
-            type = ClubType.MAJOR_CLUB,
-            leader = null,
-            imageUrl = null,
-            status = ClubStatus.MAINTAIN,
-        )
+    val club = ClubJpaEntity(
+        id = 1L,
+        name = "테스트 동아리",
+        type = ClubType.MAJOR_CLUB,
+        leader = null,
+        imageUrl = null,
+        status = ClubStatus.MAINTAIN,
+    )
 
-    private val form = ClubFormJpaEntity(id = 10L, club = club, title = "신청 폼", description = null)
+    val form = ClubFormJpaEntity(id = 10L, club = club, title = "신청 폼", description = null)
 
-    private val requiredField =
-        ClubFormFieldJpaEntity(
-            id = 1L,
-            form = form,
-            label = "자기소개",
-            description = null,
-            fieldType = ClubFormFieldType.TEXTAREA,
-            fieldOrder = 1,
-            isRequired = true,
-        )
+    val requiredField = ClubFormFieldJpaEntity(
+        id = 1L,
+        form = form,
+        label = "자기소개",
+        description = null,
+        fieldType = ClubFormFieldType.TEXTAREA,
+        fieldOrder = 1,
+        isRequired = true,
+    )
 
-    private val optionalField =
-        ClubFormFieldJpaEntity(
-            id = 2L,
-            form = form,
-            label = "특기사항",
-            description = null,
-            fieldType = ClubFormFieldType.TEXT,
-            fieldOrder = 2,
-            isRequired = false,
-        )
+    val optionalField = ClubFormFieldJpaEntity(
+        id = 2L,
+        form = form,
+        label = "특기사항",
+        description = null,
+        fieldType = ClubFormFieldType.TEXT,
+        fieldOrder = 2,
+        isRequired = false,
+    )
 
-    @BeforeEach
-    fun setUp() {
+    beforeTest {
+        clearMocks(clubFormRepository, clubFormFieldRepository, clubFormSubmissionRepository, clubFormAnswerRepository, currentUserProvider)
         every { currentUserProvider.getCurrentUser() } returns user
     }
 
-    @Test
-    fun `활성_폼이_없으면_NOT_FOUND_예외가_발생한다`() {
+    given("활성 폼이 없을 때") {
         every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns null
 
-        val exception =
-            assertThrows(ExpectedException::class.java) {
-                service.execute(1L, CreateClubApplicationRequest(emptyList()))
+        `when`("execute를 호출하면") {
+            then("NOT_FOUND 예외가 발생한다") {
+                val exception = shouldThrow<ExpectedException> {
+                    service.execute(1L, CreateClubApplicationRequest(emptyList()))
+                }
+                exception.statusCode shouldBe HttpStatus.NOT_FOUND
             }
-
-        assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
+        }
     }
 
-    @Test
-    fun `중복_신청_시_CONFLICT_예외가_발생한다`() {
+    given("이미 신청한 사용자가") {
         every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
         every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns true
 
-        val exception =
-            assertThrows(ExpectedException::class.java) {
-                service.execute(1L, CreateClubApplicationRequest(emptyList()))
+        `when`("다시 신청하면") {
+            then("CONFLICT 예외가 발생한다") {
+                val exception = shouldThrow<ExpectedException> {
+                    service.execute(1L, CreateClubApplicationRequest(emptyList()))
+                }
+                exception.statusCode shouldBe HttpStatus.CONFLICT
             }
-
-        assertEquals(HttpStatus.CONFLICT, exception.statusCode)
+        }
     }
 
-    @Test
-    fun `필수_항목_미입력_시_BAD_REQUEST_예외가_발생한다`() {
+    given("필수 항목에 빈 값을 입력했을 때") {
         every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
         every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
-        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
-            listOf(requiredField, optionalField)
+        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns listOf(requiredField, optionalField)
 
-        val request =
-            CreateClubApplicationRequest(answers = listOf(CreateClubApplicationAnswerRequest(fieldId = 1L, value = "")))
-
-        val exception =
-            assertThrows(ExpectedException::class.java) {
-                service.execute(1L, request)
+        `when`("execute를 호출하면") {
+            then("BAD_REQUEST 예외가 발생한다") {
+                val request = CreateClubApplicationRequest(
+                    answers = listOf(CreateClubApplicationAnswerRequest(fieldId = 1L, value = "")),
+                )
+                val exception = shouldThrow<ExpectedException> {
+                    service.execute(1L, request)
+                }
+                exception.statusCode shouldBe HttpStatus.BAD_REQUEST
             }
-
-        assertEquals(HttpStatus.BAD_REQUEST, exception.statusCode)
+        }
     }
 
-    @Test
-    fun `정상_신청_시_applicationId가_반환된다`() {
+    given("정상적인 신청 요청이 올 때") {
         val submission = ClubFormSubmissionJpaEntity(id = 100L, form = form, user = user)
         val answersSlot = slot<List<ClubFormAnswerJpaEntity>>()
 
         every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
         every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
-        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
-            listOf(requiredField, optionalField)
+        every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns listOf(requiredField, optionalField)
         every { clubFormSubmissionRepository.save(any()) } returns submission
         every { clubFormAnswerRepository.saveAll(capture(answersSlot)) } returns emptyList()
 
-        val request =
-            CreateClubApplicationRequest(
-                answers =
-                    listOf(
+        `when`("execute를 호출하면") {
+            then("applicationId가 반환되고 saveAll이 호출된다") {
+                val request = CreateClubApplicationRequest(
+                    answers = listOf(
                         CreateClubApplicationAnswerRequest(fieldId = 1L, value = "열심히 하겠습니다"),
                         CreateClubApplicationAnswerRequest(fieldId = 2L, value = null),
                     ),
-            )
-
-        val response = service.execute(1L, request)
-
-        assertEquals(100L, response.applicationId)
-        verify { clubFormAnswerRepository.saveAll(any<List<ClubFormAnswerJpaEntity>>()) }
+                )
+                val response = service.execute(1L, request)
+                response.applicationId shouldBe 100L
+                verify { clubFormAnswerRepository.saveAll(any<List<ClubFormAnswerJpaEntity>>()) }
+            }
+        }
     }
 
-    @Test
-    fun `선택_항목만_있는_폼은_답변_없이도_신청_가능하다`() {
+    given("선택 항목만 있는 폼에") {
         val submission = ClubFormSubmissionJpaEntity(id = 100L, form = form, user = user)
 
         every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
@@ -176,8 +170,11 @@ class CreateClubApplicationServiceTest {
         every { clubFormSubmissionRepository.save(any()) } returns submission
         every { clubFormAnswerRepository.saveAll(any<List<ClubFormAnswerJpaEntity>>()) } returns emptyList()
 
-        val response = service.execute(1L, CreateClubApplicationRequest(emptyList()))
-
-        assertEquals(100L, response.applicationId)
+        `when`("답변 없이 신청하면") {
+            then("정상 처리된다") {
+                val response = service.execute(1L, CreateClubApplicationRequest(emptyList()))
+                response.applicationId shouldBe 100L
+            }
+        }
     }
-}
+})
