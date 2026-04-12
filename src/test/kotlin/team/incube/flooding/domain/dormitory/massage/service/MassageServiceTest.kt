@@ -1,9 +1,6 @@
 package team.incube.flooding.domain.dormitory.massage.service
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalTime
 import java.util.concurrent.CopyOnWriteArrayList
@@ -20,8 +17,8 @@ import java.util.concurrent.locks.ReentrantLock
  * 인메모리로 시뮬레이션하여 검증합니다.
  */
 class MassageServiceTest {
-    private val maxCount = 5
-    private val openTime = LocalTime.of(20, 20)
+    private val MAX_COUNT = 5
+    private val OPEN_TIME = LocalTime.of(20, 20)
 
     // ApplyMassageServiceImpl 핵심 로직 시뮬레이션
     private fun applyLogic(
@@ -31,7 +28,7 @@ class MassageServiceTest {
         lock: ReentrantLock,
         successCount: AtomicInteger,
     ) {
-        if (now.isBefore(openTime)) {
+        if (now.isBefore(OPEN_TIME)) {
             throw RuntimeException("안마의자 신청 시간이 아닙니다.")
         }
 
@@ -41,7 +38,7 @@ class MassageServiceTest {
         }
 
         try {
-            if (queue.size >= maxCount) {
+            if (queue.size >= MAX_COUNT) {
                 throw RuntimeException("신청 인원이 마감되었습니다.")
             }
             if (queue.contains(userId)) {
@@ -72,7 +69,7 @@ class MassageServiceTest {
         val queue = mutableListOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
-        val beforeOpenTime = openTime.minusMinutes(1)
+        val beforeOpenTime = OPEN_TIME.minusMinutes(1)
 
         val exception =
             assertThrows(RuntimeException::class.java) {
@@ -88,7 +85,7 @@ class MassageServiceTest {
         val queue = mutableListOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
-        val afterOpenTime = openTime.plusMinutes(1)
+        val afterOpenTime = OPEN_TIME.plusMinutes(1)
 
         applyLogic(1L, afterOpenTime, queue, lock, successCount)
 
@@ -102,21 +99,21 @@ class MassageServiceTest {
         val queue = mutableListOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
-        val now = openTime.plusMinutes(1)
+        val now = OPEN_TIME.plusMinutes(1)
 
-        // maxCount만큼 먼저 채움
-        (1L..maxCount.toLong()).forEach { id ->
+        // MAX_COUNT만큼 먼저 채움
+        (1L..MAX_COUNT.toLong()).forEach { id ->
             applyLogic(id, now, queue, lock, successCount)
         }
-        assertEquals(maxCount, queue.size)
+        assertEquals(MAX_COUNT, queue.size)
 
         val exception =
             assertThrows(RuntimeException::class.java) {
-                applyLogic(maxCount + 1L, now, queue, lock, successCount)
+                applyLogic(MAX_COUNT + 1L, now, queue, lock, successCount)
             }
 
         assertEquals("신청 인원이 마감되었습니다.", exception.message)
-        assertEquals(maxCount, queue.size)
+        assertEquals(MAX_COUNT, queue.size)
     }
 
     @Test
@@ -124,7 +121,7 @@ class MassageServiceTest {
         val queue = mutableListOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
-        val now = openTime.plusMinutes(1)
+        val now = OPEN_TIME.plusMinutes(1)
 
         applyLogic(1L, now, queue, lock, successCount)
 
@@ -166,7 +163,7 @@ class MassageServiceTest {
         val queue = mutableListOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
-        val now = openTime.plusMinutes(1)
+        val now = OPEN_TIME.plusMinutes(1)
 
         applyLogic(1L, now, queue, lock, successCount)
         cancelLogic(1L, queue)
@@ -181,17 +178,17 @@ class MassageServiceTest {
 
     @Test
     fun `동시_요청에서_lock으로_인해_maxCount를_초과하지_않는다`() {
-        val threadCount = 50
+        val THREAD_COUNT = 50
 
         repeat(10) { attempt ->
             val queue = CopyOnWriteArrayList<Long>()
             val lock = ReentrantLock()
             val successCount = AtomicInteger(0)
-            val now = openTime.plusMinutes(1)
+            val now = OPEN_TIME.plusMinutes(1)
             val latch = CountDownLatch(1)
-            val executor = Executors.newFixedThreadPool(threadCount)
+            val executor = Executors.newFixedThreadPool(THREAD_COUNT)
 
-            (1L..threadCount.toLong()).forEach { userId ->
+            (1L..THREAD_COUNT.toLong()).forEach { userId ->
                 executor.submit {
                     latch.await()
                     try {
@@ -205,29 +202,29 @@ class MassageServiceTest {
             executor.shutdown()
             executor.awaitTermination(10, TimeUnit.SECONDS)
 
-            println("[동시성] 시도 ${attempt + 1}: queue=${queue.size}, 성공=${successCount.get()}, MAX=$maxCount")
-            assertTrue(queue.size <= maxCount, "queue.size=${queue.size} > maxCount=$maxCount")
-            assertTrue(successCount.get() <= maxCount, "successCount=${successCount.get()} > maxCount=$maxCount")
+            println("[동시성] 시도 ${attempt + 1}: queue=${queue.size}, 성공=${successCount.get()}, MAX=$MAX_COUNT")
+            assertTrue(queue.size <= MAX_COUNT, "queue.size=${queue.size} > MAX_COUNT=$MAX_COUNT")
+            assertTrue(successCount.get() <= MAX_COUNT, "successCount=${successCount.get()} > MAX_COUNT=$MAX_COUNT")
         }
     }
 
     @Test
     fun `동일_유저_동시_요청에서_중복_신청이_방지된다`() {
-        val sameUserId = 1L
-        val concurrentRequests = 30
+        val SAME_USER_ID = 1L
+        val CONCURRENT_REQUESTS = 30
 
         val queue = CopyOnWriteArrayList<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
-        val now = openTime.plusMinutes(1)
+        val now = OPEN_TIME.plusMinutes(1)
         val latch = CountDownLatch(1)
-        val executor = Executors.newFixedThreadPool(concurrentRequests)
+        val executor = Executors.newFixedThreadPool(CONCURRENT_REQUESTS)
 
-        repeat(concurrentRequests) {
+        repeat(CONCURRENT_REQUESTS) {
             executor.submit {
                 latch.await()
                 try {
-                    applyLogic(sameUserId, now, queue, lock, successCount)
+                    applyLogic(SAME_USER_ID, now, queue, lock, successCount)
                 } catch (_: Exception) {
                 }
             }
