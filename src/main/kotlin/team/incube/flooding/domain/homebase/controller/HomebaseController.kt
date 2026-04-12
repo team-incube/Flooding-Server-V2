@@ -17,13 +17,14 @@ class HomebaseController(
     private val createService: CreateHomebaseReservationService,
     private val patchService: PatchHomebaseReservationService,
     private val deleteService: DeleteHomebaseReservationService,
-    private val getService: GetHomebaseReservationService,
+    private val getService: GetHomebaseReservationService
 ) {
+
     @Operation(summary = "홈베이스 예약 생성")
     @PostMapping("/{homebaseId}")
     fun createReservation(
         @PathVariable homebaseId: Long,
-        @RequestBody @Valid request: CreateHomebaseRequest,
+        @RequestBody @Valid request: CreateHomebaseRequest
     ): CommonApiResponse<Nothing> {
         createService.createReservation(homebaseId, request)
         return CommonApiResponse.success("OK")
@@ -49,7 +50,7 @@ class HomebaseController(
     @PatchMapping("/{reservationId}")
     fun updateReservation(
         @PathVariable reservationId: Long,
-        @RequestBody @Valid request: UpdateHomebaseMembersRequest,
+        @RequestBody @Valid request: UpdateHomebaseMembersRequest
     ): CommonApiResponse<Nothing> {
         patchService.patchReservation(reservationId, request)
         return CommonApiResponse.success("OK")

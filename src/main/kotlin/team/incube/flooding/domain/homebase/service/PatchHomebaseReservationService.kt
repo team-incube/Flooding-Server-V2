@@ -8,36 +8,25 @@ import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersReq
 import team.incube.flooding.domain.homebase.repository.HomebaseReservationRepository
 
 @Service
-class PatchHomebaseReservationService(
-    private val reservationRepository: HomebaseReservationRepository,
-    private val memberService: HomebaseMemberService,
-) {
+class PatchHomebaseReservationService(private val reservationRepository: HomebaseReservationRepository, private val memberService: HomebaseMemberService) {
     @Transactional
-    fun patchReservation(
-        reservationId: Long,
-        request: UpdateHomebaseMembersRequest,
-    ) {
-        val reservation =
-            reservationRepository
-                .findById(reservationId)
-                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.") }
+    fun patchReservation(reservationId: Long, request: UpdateHomebaseMembersRequest) {
+        val reservation = reservationRepository.findById(reservationId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.") }
 
         validateCapacity(reservation.homebase.capacity, request.members.size)
         memberService.validateStudentDuplicate(
             reservation.startPeriod,
             reservation.endPeriod,
             request.members,
-            reservationId,
+            reservationId
         )
 
         memberService.deleteByReservationId(reservationId)
         memberService.saveAllMembers(reservation, request.members)
     }
 
-    private fun validateCapacity(
-        capacity: Int,
-        memberCount: Int,
-    ) {
+    private fun validateCapacity(capacity: Int, memberCount: Int) {
         if (memberCount > capacity) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "정원을 초과했습니다.")
         }

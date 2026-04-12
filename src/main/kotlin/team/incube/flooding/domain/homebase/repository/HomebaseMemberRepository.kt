@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 
-interface HomebaseMemberRepository : JpaRepository<HomebaseMemberJpaEntity, Long> {
+interface HomebaseMemberRepository :
+    JpaRepository<HomebaseMemberJpaEntity, Long> {
+
     fun findByReservationId(reservationId: Long): List<HomebaseMemberJpaEntity>
 
     fun deleteByReservationId(reservationId: Long)
@@ -17,28 +19,26 @@ interface HomebaseMemberRepository : JpaRepository<HomebaseMemberJpaEntity, Long
         WHERE m.studentNumber = :studentNumber
         AND m.reservation.startPeriod <= :endPeriod
         AND m.reservation.endPeriod >= :startPeriod
-        """,
+        """
     )
     fun existsStudentReservationOverlap(
         @Param("studentNumber") studentNumber: String,
         @Param("startPeriod") startPeriod: Int,
-        @Param("endPeriod") endPeriod: Int,
+        @Param("endPeriod") endPeriod: Int
     ): Boolean
 
-    @Query(
-        """
+    @Query("""
     SELECT m.studentNumber 
     FROM HomebaseMemberJpaEntity m 
     WHERE m.studentNumber IN :studentNumbers 
     AND m.reservation.startPeriod = :startPeriod
     AND m.reservation.endPeriod = :endPeriod
     AND (:reservationId IS NULL OR m.reservation.id != :reservationId)
-""",
-    )
+""")
     fun findExistingStudentNumbersInPeriod(
         @Param("studentNumbers") studentNumbers: List<String>,
         @Param("startPeriod") startPeriod: Int,
         @Param("endPeriod") endPeriod: Int,
-        @Param("reservationId") reservationId: Long?,
+        @Param("reservationId") reservationId: Long?
     ): List<String>
 }
