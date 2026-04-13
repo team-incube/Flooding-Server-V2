@@ -1,6 +1,7 @@
 ---
 name: review-pr
 description: Check PR review comments, reflect valid feedback into code, commit, push, then reply to each comment with the resolving commit hash.
+allowed-tools: Bash(gh:*), Bash(git push:*), Bash(git log:*)
 ---
 
 ## Step 1 — Collect PR Comments
@@ -25,9 +26,10 @@ Run `./gradlew ktlintFormat` after edits.
 ## Step 4 — Commit & Push
 
 Only after the user says to commit:
+
+1. Use the **commit skill** to stage and commit changes — it enforces project conventions (type prefix, Korean description, SPA).
+2. After the commit skill completes, push:
 ```bash
-git add <files>
-git commit -m "update : 리뷰 반영 - <설명>"
 git push
 ```
 

@@ -1,6 +1,7 @@
 ---
 name: commit
 description: Create Git commits following Flooding project conventions. Splits changes into logical units with correct type prefix and Korean description.
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Read
 ---
 
 ## Commit Message Rules
