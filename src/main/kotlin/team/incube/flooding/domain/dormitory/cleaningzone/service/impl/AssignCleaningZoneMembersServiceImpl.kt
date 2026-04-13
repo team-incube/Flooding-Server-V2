@@ -24,12 +24,7 @@ class AssignCleaningZoneMembersServiceImpl(
                 ExpectedException("존재하지 않는 청소 구역입니다.", HttpStatus.NOT_FOUND)
             }
 
-        val currentMembers =
-            userRepository.findAllById(
-                zone.members.map { it.id },
-            )
-        currentMembers.forEach { it.cleaningZone = null }
-        userRepository.saveAll(currentMembers)
+        zone.members.forEach { it.cleaningZone = null }
 
         val newMembers = userRepository.findAllById(request.userIds)
         newMembers.forEach { it.cleaningZone = zone }
