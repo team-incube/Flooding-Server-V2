@@ -8,13 +8,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 
 @Configuration
 class RedisConfig {
-
     @Bean
-    fun redisTemplate(connectionFactory: RedisConnectionFactory): RedisTemplate<String, String> {
-        return RedisTemplate<String, String>().apply {
+    fun redisTemplate(connectionFactory: RedisConnectionFactory): RedisTemplate<String, String> =
+        RedisTemplate<String, String>().apply {
             setConnectionFactory(connectionFactory)
             keySerializer = StringRedisSerializer()
             valueSerializer = StringRedisSerializer()
         }
-    }
 }

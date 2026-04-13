@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * 현재 구현의 "check-then-act" 패턴이 레이스 컨디션을 유발한다.
  */
 class StudyApplicationConcurrencyTest {
-
     private val MAX_COUNT = 5
     private val THREAD_COUNT = 50
 
@@ -34,8 +33,9 @@ class StudyApplicationConcurrencyTest {
     ) {
         val status = statusMap[userId]
         if (status == StudyApplicationStatus.BANNED) throw RuntimeException("banned")
-        if (status == StudyApplicationStatus.APPROVED || status == StudyApplicationStatus.CANCELLED)
+        if (status == StudyApplicationStatus.APPROVED || status == StudyApplicationStatus.CANCELLED) {
             throw RuntimeException("이미 신청함")
+        }
 
         if (count.get() >= MAX_COUNT) throw RuntimeException("마감")
 
@@ -57,8 +57,9 @@ class StudyApplicationConcurrencyTest {
     ) {
         val status = statusMap[userId]
         if (status == StudyApplicationStatus.BANNED) throw RuntimeException("banned")
-        if (status == StudyApplicationStatus.APPROVED || status == StudyApplicationStatus.CANCELLED)
+        if (status == StudyApplicationStatus.APPROVED || status == StudyApplicationStatus.CANCELLED) {
             throw RuntimeException("이미 신청함")
+        }
 
         val newCount = count.incrementAndGet()
         if (newCount > MAX_COUNT) {
@@ -93,7 +94,8 @@ class StudyApplicationConcurrencyTest {
                     latch.await()
                     try {
                         buggyApply(userId, count, statusMap, successCount)
-                    } catch (_: Exception) {}
+                    } catch (_: Exception) {
+                    }
                 }
             }
 
@@ -127,7 +129,8 @@ class StudyApplicationConcurrencyTest {
                     latch.await()
                     try {
                         fixedApply(userId, count, statusMap, successCount)
-                    } catch (_: Exception) {}
+                    } catch (_: Exception) {
+                    }
                 }
             }
 
@@ -157,7 +160,8 @@ class StudyApplicationConcurrencyTest {
                 latch.await()
                 try {
                     fixedApply(SAME_USER_ID, count, statusMap, successCount)
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                }
             }
         }
 

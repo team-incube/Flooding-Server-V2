@@ -9,19 +9,18 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import team.incube.flooding.global.auth.provider.JwtProvider
 import team.incube.flooding.domain.user.repository.UserRepository
+import team.incube.flooding.global.auth.provider.JwtProvider
 
 @Component
 class JwtAuthenticationFilter(
     private val jwtProvider: JwtProvider,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         val token = extractToken(request)
 
@@ -44,6 +43,8 @@ class JwtAuthenticationFilter(
         val bearerToken = request.getHeader("Authorization")
         return if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             bearerToken.substring(7)
-        } else null
+        } else {
+            null
+        }
     }
 }
