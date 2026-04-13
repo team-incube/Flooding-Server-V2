@@ -13,6 +13,7 @@ import team.incube.flooding.domain.club.repository.ClubFormFieldRepository
 import team.incube.flooding.domain.club.repository.ClubFormRepository
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.CreateClubFormService
+import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
 
 @Service
@@ -21,18 +22,25 @@ class CreateClubFormServiceImpl(
     private val clubFormRepository: ClubFormRepository,
     private val clubFormFieldRepository: ClubFormFieldRepository,
     private val clubFormFieldOptionRepository: ClubFormFieldOptionRepository,
+    private val currentUserProvider: CurrentUserProvider,
 ) : CreateClubFormService {
     @Transactional
     override fun execute(
         clubId: Long,
         request: CreateClubFormRequest,
     ): CreateClubFormResponse {
+        val currentUser = currentUserProvider.getCurrentUser()
+
         val club =
             clubRepository.findById(clubId).orElseThrow {
                 ExpectedException("동아리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
             }
 
-        clubFormRepository.findByClubIdAndIsActiveTrue(clubId)?.let {
+        if (club.leader?.id != currentUser.id) {
+            throw ExpectedException("해당 동아리의 관리자만 폼을 생성할 수 있습니다.", HttpStatus.FORBIDDEN)
+        }
+
+        clubFormRepository.findAllByClubIdAndIsActiveTrue(clubId).forEach {
             it.isActive = false
         }
 

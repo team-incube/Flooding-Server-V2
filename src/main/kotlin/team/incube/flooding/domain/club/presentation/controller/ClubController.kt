@@ -14,7 +14,7 @@ import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "동아리", description = "동아리 관련 API")
 @RestController
-@RequestMapping("/club")
+@RequestMapping("/clubs")
 class ClubController(
     private val createAutonomousClubApplicationService: CreateAutonomousClubApplicationService,
 ) {

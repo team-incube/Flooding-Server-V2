@@ -5,4 +5,6 @@ import team.incube.flooding.domain.club.entity.ClubFormJpaEntity
 
 interface ClubFormRepository : JpaRepository<ClubFormJpaEntity, Long> {
     fun findByClubIdAndIsActiveTrue(clubId: Long): ClubFormJpaEntity?
+
+    fun findAllByClubIdAndIsActiveTrue(clubId: Long): List<ClubFormJpaEntity>
 }

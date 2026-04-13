@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,7 +20,7 @@ import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "동아리 폼", description = "동아리 신청 폼 관련 API")
 @RestController
-@RequestMapping("/club")
+@RequestMapping("/clubs")
 class ClubFormController(
     private val createClubFormService: CreateClubFormService,
     private val getClubFormService: GetClubFormService,
@@ -32,7 +33,7 @@ class ClubFormController(
     @PostMapping("/{clubId}/forms")
     fun createClubForm(
         @PathVariable clubId: Long,
-        @RequestBody request: CreateClubFormRequest,
+        @Valid @RequestBody request: CreateClubFormRequest,
     ): CommonApiResponse<CreateClubFormResponse> =
         CommonApiResponse.success("OK", createClubFormService.execute(clubId, request))
 
