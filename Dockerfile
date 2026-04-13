@@ -10,9 +10,10 @@ COPY gradlew gradlew.bat* ./
 COPY gradle/ gradle/
 RUN chmod +x gradlew
 
-COPY build.gradle.kts settings.gradle.kts .editorconfig ./
+COPY build.gradle.kts settings.gradle.kts ./
 RUN ./gradlew dependencies --no-daemon || true
 
+COPY .editorconfig ./
 COPY src/ src/
 RUN ./gradlew build -x test --no-daemon
 
