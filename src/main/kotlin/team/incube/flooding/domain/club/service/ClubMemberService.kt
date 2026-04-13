@@ -14,7 +14,7 @@ import team.incube.flooding.global.security.util.CurrentUserProvider
 
 @Service
 class ClubMemberService(
-    private val clubRepository: ClubJpaRepository,
+    private val clubJpaRepository: ClubJpaRepository,
     private val userRepository: UserRepository,
     private val clubParticipantJpaRepository: ClubParticipantJpaRepository,
     private val currentUserProvider: CurrentUserProvider,
@@ -29,7 +29,7 @@ class ClubMemberService(
         }
 
         val club =
-            clubRepository
+            clubJpaRepository
                 .findById(clubId)
                 .orElseThrow {
                     ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${clubId}인 동아리를 찾을 수 없습니다.")
@@ -59,5 +59,39 @@ class ClubMemberService(
             )
 
         clubParticipantJpaRepository.save(newParticipant)
+    }
+
+    @Transactional
+    fun transferOwnerShip(
+        clubId: Long,
+        targetUserId: Long,
+    ) {
+        val currentUser = currentUserProvider.getCurrentUser()
+
+        val club =
+            clubJpaRepository
+                .findById(clubId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "동아리 없음") }
+
+        if (club.leader?.id != currentUser.id) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "권한 없음")
+        }
+
+        val isMember =
+            clubParticipantJpaRepository.existsById(
+                ClubParticipantId(club = clubId, user = targetUserId),
+            )
+        if (!isMember) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "멤버 아님")
+
+        val targetUser =
+            userRepository
+                .findById(targetUserId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "대상 없음") }
+
+        if (club.leader?.id == targetUserId) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 유저가 동아리 방장입니다.")
+        }
+
+        club.leader = targetUser
     }
 }

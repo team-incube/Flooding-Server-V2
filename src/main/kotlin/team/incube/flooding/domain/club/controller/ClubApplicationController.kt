@@ -15,7 +15,6 @@ import team.incube.flooding.domain.club.service.ClubApplicationService
 class ClubApplicationController(
     private val clubApplicationService: ClubApplicationService,
 ) {
-
     @Operation(summary = "가입 신청 승인", description = "동아리에 가입 신청한 사용자를 승인하여 멤버로 추가합니다")
     @PatchMapping("/{clubId}/applications/{userId}")
     fun approveApplication(
