@@ -13,8 +13,8 @@ interface ClubRepository : JpaRepository<ClubJpaEntity, Long> {
         SELECT c FROM ClubJpaEntity c
         LEFT JOIN c.leader l
         WHERE c.type = :type
-        AND (c.name ILIKE CONCAT('%', :keyword, '%')
-             OR l.name ILIKE CONCAT('%', :keyword, '%'))
+        AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+             OR LOWER(l.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
         """,
     )
     fun findAllByTypeAndKeyword(

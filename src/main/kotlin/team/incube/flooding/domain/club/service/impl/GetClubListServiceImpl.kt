@@ -24,6 +24,9 @@ class GetClubListServiceImpl(
             } else {
                 clubRepository.findAllByTypeAndKeyword(type, name)
             }
+        if (clubs.isEmpty()) {
+            return GetClubListResponse(clubs = emptyList())
+        }
         val countMap =
             clubParticipantRepository
                 .countGroupByClubIdIn(clubs.map { it.id })
