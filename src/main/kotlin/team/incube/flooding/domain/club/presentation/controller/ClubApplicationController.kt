@@ -24,12 +24,14 @@ class ClubApplicationController(
     private val queryClubApplicationService: QueryClubApplicationService,
 ) {
     @Operation(summary = "동아리 신청", description = "해당 동아리의 활성 폼에 신청합니다.")
-    @ApiResponses(value = [
-        ApiResponse(responseCode = "200", description = "신청 성공"),
-        ApiResponse(responseCode = "400", description = "필수 항목 미입력"),
-        ApiResponse(responseCode = "404", description = "활성화된 폼 없음"),
-        ApiResponse(responseCode = "409", description = "이미 신청한 동아리")
-    ])
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "신청 성공"),
+            ApiResponse(responseCode = "400", description = "필수 항목 미입력"),
+            ApiResponse(responseCode = "404", description = "활성화된 폼 없음"),
+            ApiResponse(responseCode = "409", description = "이미 신청한 동아리"),
+        ],
+    )
     @PostMapping("/{clubId}/applications")
     fun createClubApplication(
         @PathVariable clubId: Long,
