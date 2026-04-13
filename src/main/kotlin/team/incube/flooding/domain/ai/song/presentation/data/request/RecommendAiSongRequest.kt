@@ -1,0 +1,10 @@
+package team.incube.flooding.domain.ai.song.presentation.data.request
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.Size
+
+data class RecommendAiSongRequest(
+    @JsonProperty("recent_songs")
+    @field:Size(max = 5)
+    val recentSongs: List<SongRequest>,
+)
