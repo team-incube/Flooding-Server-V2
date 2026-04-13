@@ -35,5 +35,5 @@ class ClubJpaEntity(
     @field:Column(name = "description", length = 1000)
     var description: String?,
     @field:Column(name = "max_member")
-    var maxMember: Int?
+    var maxMember: Int?,
 )
