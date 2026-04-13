@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,7 +29,7 @@ class AiSongController(
     )
     @PostMapping("/song")
     fun recommendAiSong(
-        @RequestBody request: RecommendAiSongRequest,
+        @RequestBody @Valid request: RecommendAiSongRequest,
     ): CommonApiResponse<RecommendAiSongResponse> =
         CommonApiResponse.success("OK", recommendAiSongService.execute(request))
 }

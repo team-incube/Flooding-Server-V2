@@ -22,5 +22,5 @@ class RecommendAiSongServiceImpl(
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .retrieve()
-            .body(RecommendAiSongResponse::class.java)!!
+            .body(RecommendAiSongResponse::class.java) ?: throw RuntimeException("AI 서버로부터 응답을 받지 못했습니다.")
 }
