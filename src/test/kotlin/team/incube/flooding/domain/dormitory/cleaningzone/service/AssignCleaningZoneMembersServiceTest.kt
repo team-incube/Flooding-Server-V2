@@ -1,98 +1,113 @@
 package team.incube.flooding.domain.dormitory.cleaningzone.service
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Test
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
+import org.springframework.http.HttpStatus
+import team.incube.flooding.domain.dormitory.cleaningzone.entity.CleaningZoneJpaEntity
+import team.incube.flooding.domain.dormitory.cleaningzone.presentation.data.request.AssignCleaningZoneMembersRequest
+import team.incube.flooding.domain.dormitory.cleaningzone.repository.CleaningZoneRepository
+import team.incube.flooding.domain.dormitory.cleaningzone.service.impl.AssignCleaningZoneMembersServiceImpl
+import team.incube.flooding.domain.user.entity.Role
+import team.incube.flooding.domain.user.entity.Sex
+import team.incube.flooding.domain.user.entity.UserJpaEntity
+import team.incube.flooding.domain.user.repository.UserRepository
+import team.themoment.sdk.exception.ExpectedException
+import java.util.Optional
 
-/**
- * 기숙사 청소 구역 인원 배정 서비스 로직 테스트
- *
- * AssignCleaningZoneMembersServiceImpl의 핵심 로직을 인메모리로 시뮬레이션하여 검증합니다.
- */
-class AssignCleaningZoneMembersServiceTest {
-    private data class Zone(
-        val id: Long,
-        val members: MutableList<SimUser> = mutableListOf(),
-    )
+class AssignCleaningZoneMembersServiceTest :
+    BehaviorSpec({
+        val cleaningZoneRepository = mockk<CleaningZoneRepository>()
+        val userRepository = mockk<UserRepository>()
 
-    private data class SimUser(
-        val id: Long,
-        var zoneId: Long? = null,
-    )
+        val service = AssignCleaningZoneMembersServiceImpl(cleaningZoneRepository, userRepository)
 
-    private fun assignMembersLogic(
-        zones: Map<Long, Zone>,
-        allUsers: Map<Long, SimUser>,
-        zoneId: Long,
-        newMemberIds: List<Long>,
-    ) {
-        val zone = zones[zoneId] ?: throw RuntimeException("존재하지 않는 청소 구역입니다.")
-
-        zone.members.forEach { it.zoneId = null }
-        zone.members.clear()
-
-        newMemberIds.mapNotNull { allUsers[it] }.forEach { user ->
-            user.zoneId = zoneId
-            zone.members.add(user)
+        beforeTest {
+            clearMocks(cleaningZoneRepository, userRepository)
         }
-    }
 
-    @Test
-    fun `존재하지 않는 구역에 인원 배정 시 예외가 발생한다`() {
-        val zones = mapOf<Long, Zone>()
-        val users = mapOf<Long, SimUser>()
+        fun zone(id: Long) = CleaningZoneJpaEntity(id = id, name = "구역$id", description = "설명$id")
 
-        assertThrows(RuntimeException::class.java) {
-            assignMembersLogic(zones, users, 999L, listOf(1L))
+        fun user(id: Long) =
+            UserJpaEntity(
+                id = id,
+                name = "유저$id",
+                sex = Sex.MAN,
+                email = "user$id@test.com",
+                studentNumber = 1101,
+                role = Role.GENERAL_STUDENT,
+                dormitoryRoom = 101,
+            )
+
+        given("존재하지 않는 구역 ID로 요청할 때") {
+            `when`("인원 배정을 시도하면") {
+                then("NOT_FOUND 예외가 발생한다") {
+                    every { cleaningZoneRepository.findById(999L) } returns Optional.empty()
+
+                    val exception =
+                        shouldThrow<ExpectedException> {
+                            service.execute(999L, AssignCleaningZoneMembersRequest(userIds = listOf(1L)))
+                        }
+                    exception.statusCode shouldBe HttpStatus.NOT_FOUND
+                }
+            }
         }
-    }
 
-    @Test
-    fun `기존 멤버가 제거되고 새 멤버가 배정된다`() {
-        val user1 = SimUser(id = 1L, zoneId = 1L)
-        val user2 = SimUser(id = 2L, zoneId = 1L)
-        val user3 = SimUser(id = 3L, zoneId = null)
-        val zone = Zone(id = 1L, members = mutableListOf(user1, user2))
-        val zones = mapOf(1L to zone)
-        val users = mapOf(1L to user1, 2L to user2, 3L to user3)
+        given("존재하지 않는 유저 ID가 포함된 요청일 때") {
+            `when`("인원 배정을 시도하면") {
+                then("NOT_FOUND 예외가 발생한다") {
+                    val zone = zone(1L)
+                    every { cleaningZoneRepository.findById(1L) } returns Optional.of(zone)
+                    justRun { userRepository.clearCleaningZoneByZoneId(1L) }
+                    every { userRepository.findAllById(listOf(1L, 2L)) } returns listOf(user(1L))
 
-        assignMembersLogic(zones, users, 1L, listOf(3L))
+                    val exception =
+                        shouldThrow<ExpectedException> {
+                            service.execute(1L, AssignCleaningZoneMembersRequest(userIds = listOf(1L, 2L)))
+                        }
+                    exception.statusCode shouldBe HttpStatus.NOT_FOUND
+                }
+            }
+        }
 
-        assertNull(user1.zoneId)
-        assertNull(user2.zoneId)
-        assertEquals(1L, user3.zoneId)
-        assertEquals(1, zone.members.size)
-        assertEquals(3L, zone.members[0].id)
-    }
+        given("유효한 구역과 유저 목록으로 요청할 때") {
+            `when`("인원 배정을 하면") {
+                then("기존 멤버가 벌크 해제되고 새 멤버가 저장된다") {
+                    val zone = zone(1L)
+                    val newMembers = listOf(user(3L), user(4L))
+                    every { cleaningZoneRepository.findById(1L) } returns Optional.of(zone)
+                    justRun { userRepository.clearCleaningZoneByZoneId(1L) }
+                    every { userRepository.findAllById(listOf(3L, 4L)) } returns newMembers
+                    every { userRepository.saveAll(newMembers) } returns newMembers
 
-    @Test
-    fun `빈 목록으로 배정하면 기존 멤버가 모두 제거된다`() {
-        val user1 = SimUser(id = 1L, zoneId = 1L)
-        val zone = Zone(id = 1L, members = mutableListOf(user1))
-        val zones = mapOf(1L to zone)
-        val users = mapOf(1L to user1)
+                    service.execute(1L, AssignCleaningZoneMembersRequest(userIds = listOf(3L, 4L)))
 
-        assignMembersLogic(zones, users, 1L, emptyList())
+                    verify(exactly = 1) { userRepository.clearCleaningZoneByZoneId(1L) }
+                    verify(exactly = 1) { userRepository.saveAll(newMembers) }
+                    newMembers.forEach { it.cleaningZone shouldBe zone }
+                }
+            }
+        }
 
-        assertNull(user1.zoneId)
-        assertEquals(0, zone.members.size)
-    }
+        given("빈 유저 목록으로 요청할 때") {
+            `when`("인원 배정을 하면") {
+                then("기존 멤버가 벌크 해제되고 새 멤버 저장은 빈 목록으로 호출된다") {
+                    val zone = zone(1L)
+                    every { cleaningZoneRepository.findById(1L) } returns Optional.of(zone)
+                    justRun { userRepository.clearCleaningZoneByZoneId(1L) }
+                    every { userRepository.findAllById(emptyList()) } returns emptyList()
+                    every { userRepository.saveAll(emptyList<UserJpaEntity>()) } returns emptyList()
 
-    @Test
-    fun `여러 명을 한 번에 배정할 수 있다`() {
-        val user1 = SimUser(id = 1L)
-        val user2 = SimUser(id = 2L)
-        val user3 = SimUser(id = 3L)
-        val zone = Zone(id = 1L)
-        val zones = mapOf(1L to zone)
-        val users = mapOf(1L to user1, 2L to user2, 3L to user3)
+                    service.execute(1L, AssignCleaningZoneMembersRequest(userIds = emptyList()))
 
-        assignMembersLogic(zones, users, 1L, listOf(1L, 2L, 3L))
-
-        assertEquals(1L, user1.zoneId)
-        assertEquals(1L, user2.zoneId)
-        assertEquals(1L, user3.zoneId)
-        assertEquals(3, zone.members.size)
-    }
-}
+                    verify(exactly = 1) { userRepository.clearCleaningZoneByZoneId(1L) }
+                    verify(exactly = 1) { userRepository.saveAll(emptyList<UserJpaEntity>()) }
+                }
+            }
+        }
+    })
