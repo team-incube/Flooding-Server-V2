@@ -28,7 +28,7 @@ class GetCleaningZoneServiceImpl(
     @Transactional(readOnly = true)
     override fun executeOne(zoneId: Long): GetCleaningZoneDetailResponse {
         val zone =
-            cleaningZoneRepository.findById(zoneId).orElseThrow {
+            cleaningZoneRepository.findByIdWithMembers(zoneId).orElseThrow {
                 ExpectedException("존재하지 않는 청소 구역입니다.", HttpStatus.NOT_FOUND)
             }
         return GetCleaningZoneDetailResponse(

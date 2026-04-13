@@ -24,7 +24,7 @@ class AssignCleaningZoneMembersServiceImpl(
                 ExpectedException("존재하지 않는 청소 구역입니다.", HttpStatus.NOT_FOUND)
             }
 
-        zone.members.forEach { it.cleaningZone = null }
+        userRepository.clearCleaningZoneByZoneId(zoneId)
 
         val newMembers = userRepository.findAllById(request.userIds)
         if (newMembers.size != request.userIds.distinct().size) {
