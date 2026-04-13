@@ -42,7 +42,7 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
-    implementation ("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
