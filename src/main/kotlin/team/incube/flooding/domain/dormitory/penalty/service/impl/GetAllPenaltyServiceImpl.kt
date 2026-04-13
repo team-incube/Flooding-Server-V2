@@ -15,7 +15,7 @@ class GetAllPenaltyServiceImpl(
     @Transactional(readOnly = true)
     override fun execute(pageable: Pageable): Page<GetPenaltyResponse> =
         userRepository
-            .findAllByOrderByPenaltyScoreDescStudentNumberAsc(pageable)
+            .findAll(pageable)
             .map { user ->
                 GetPenaltyResponse(
                     userId = user.id,

@@ -27,6 +27,9 @@ class AssignCleaningZoneMembersServiceImpl(
         zone.members.forEach { it.cleaningZone = null }
 
         val newMembers = userRepository.findAllById(request.userIds)
+        if (newMembers.size != request.userIds.distinct().size) {
+            throw ExpectedException("존재하지 않는 유저가 포함되어 있습니다.", HttpStatus.NOT_FOUND)
+        }
         newMembers.forEach { it.cleaningZone = zone }
         userRepository.saveAll(newMembers)
     }

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -54,7 +53,7 @@ class DormitoryPenaltyController(
     @GetMapping
     fun getAllPenalties(
         @Parameter(description = "페이지 정보 (page, size)")
-        @PageableDefault(size = 20, sort = ["penaltyScore"], direction = Sort.Direction.DESC)
+        @PageableDefault(size = 20, sort = ["penaltyScore,desc", "studentNumber,asc"])
         pageable: Pageable,
     ): CommonApiResponse<Page<GetPenaltyResponse>> =
         CommonApiResponse.success("OK", getAllPenaltyService.execute(pageable))
