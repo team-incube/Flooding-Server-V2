@@ -29,7 +29,7 @@ class GetClubListServiceImpl(
                 .countGroupByClubIdIn(clubs.map { it.id })
                 .associate { it.clubId to it.count }
         return GetClubListResponse(
-            club =
+            clubs =
                 clubs.map { club ->
                     GetClubListResponse.ClubSummary(
                         id = club.id,
