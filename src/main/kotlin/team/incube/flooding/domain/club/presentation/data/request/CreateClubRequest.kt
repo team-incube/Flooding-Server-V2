@@ -7,6 +7,5 @@ data class CreateClubRequest(
     val type: ClubType,
     val description: String,
     val imageUrl: String?,
-    val leaderId: Long,
     val maxMember: Int?,
 )
