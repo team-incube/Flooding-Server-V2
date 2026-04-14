@@ -28,6 +28,13 @@ class SecurityConfig(
                 it.requestMatchers("/v2/auth/**").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
 
+                // club
+                it
+                    .requestMatchers(
+                        HttpMethod.PATCH,
+                        "/clubs/*/approval",
+                    ).hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+
                 // study
                 it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
