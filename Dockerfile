@@ -22,7 +22,8 @@ RUN ./gradlew build -x test --no-daemon
 FROM eclipse-temurin:24-jre-alpine AS runtime
 
 # Non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1000
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1000 && \
+    apk upgrade --no-cache
 
 WORKDIR /app
 
