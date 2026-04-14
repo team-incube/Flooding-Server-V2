@@ -10,7 +10,7 @@ COPY gradlew gradlew.bat* ./
 COPY gradle/ gradle/
 RUN chmod +x gradlew
 
-COPY build.gradle.kts settings.gradle.kts ./
+COPY build.gradle.kts settings.gradle.kts .editorconfig ./
 RUN ./gradlew dependencies --no-daemon || true
 
 COPY src/ src/
