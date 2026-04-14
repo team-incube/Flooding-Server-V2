@@ -33,7 +33,7 @@ class CreateClubServiceTest :
                 name = "리더",
                 sex = Sex.MAN,
                 email = "leader@test.com",
-                studentNumber = 10101,
+                studentNumber = 1101,
                 role = Role.GENERAL_STUDENT,
                 dormitoryRoom = 101,
             )
