@@ -3,7 +3,6 @@ package team.incube.flooding.domain.club.service.impl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
-import team.incube.flooding.domain.club.entity.ClubStatus
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.CreateClubService
@@ -24,7 +23,7 @@ class CreateClubServiceImpl(
                 type = request.type,
                 leader = leader,
                 imageUrl = request.imageUrl,
-                status = ClubStatus.NEW,
+                status = request.status,
                 description = request.description,
                 maxMember = request.maxMember,
             ),
