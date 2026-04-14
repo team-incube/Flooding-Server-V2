@@ -16,6 +16,10 @@ ext {
     set("spring-security.version", "7.0.4")
 }
 
+configurations.all {
+    resolutionStrategy.force("tools.jackson.core:jackson-core:3.1.1")
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(24)
