@@ -3,7 +3,7 @@ package team.incube.flooding.domain.club.service.impl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import team.incube.flooding.domain.club.entity.ClubStatus
+import team.incube.flooding.domain.club.entity.ClubApprovalStatus
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
 import team.incube.flooding.domain.club.repository.ClubRepository
@@ -24,13 +24,13 @@ class PatchClubApprovalServiceImpl(
                 ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
             }
 
-        if (club.status != ClubStatus.NEW) {
+        if (club.approvalStatus != ClubApprovalStatus.PENDING) {
             throw ExpectedException("승인 대기 중인 동아리가 아닙니다.", HttpStatus.BAD_REQUEST)
         }
 
-        val newStatus = if (request.approved) ClubStatus.APPROVED else ClubStatus.REJECTED
-        clubRepository.updateStatus(clubId, newStatus)
+        val newApprovalStatus = if (request.approved) ClubApprovalStatus.APPROVED else ClubApprovalStatus.REJECTED
+        clubRepository.updateApprovalStatus(clubId, newApprovalStatus)
 
-        return PatchClubApprovalResponse(clubId = clubId, status = newStatus)
+        return PatchClubApprovalResponse(clubId = clubId, status = newApprovalStatus)
     }
 }
