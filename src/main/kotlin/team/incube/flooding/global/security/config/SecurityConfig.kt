@@ -42,6 +42,9 @@ class SecurityConfig(
                 it.requestMatchers(HttpMethod.POST, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
 
+                // ai song
+                it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
+
                 // music
                 it
                     .requestMatchers(
