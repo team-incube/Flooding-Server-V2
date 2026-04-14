@@ -26,14 +26,14 @@ class ClubMemberServiceImpl(
         userId: Long,
     ) {
         if (clubParticipantJpaRepository.existsById(ClubParticipantId(clubId, userId))) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "이미 해당 동아리에 속해 있습니다.")
+            throw ResponseStatusException(HttpStatus.CONFLICT, "이미 해당 동아리에 속해 있습니다")
         }
 
         val club =
             clubJpaRepository
                 .findById(clubId)
                 .orElseThrow {
-                    ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${clubId}인 동아리를 찾을 수 없습니다.")
+                    ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${clubId}인 동아리를 찾을 수 없습니다")
                 }
 
         val currentUser = currentUserProvider.getCurrentUser()
@@ -41,14 +41,14 @@ class ClubMemberServiceImpl(
         val isClubLeader = club.leader?.id == currentUser.id
 
         if (!(isAdmin || isClubLeader)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "동아리 리더 또는 관리자만 초대할 수 있습니다.")
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "동아리 리더 또는 관리자만 초대할 수 있습니다")
         }
 
         val user =
             userRepository
                 .findById(userId)
                 .orElseThrow {
-                    ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${userId}인 사용자를 찾을 수 없습니다.")
+                    ResponseStatusException(HttpStatus.NOT_FOUND, "ID가 ${userId}인 사용자를 찾을 수 없습니다")
                 }
 
         val newParticipant =
@@ -88,9 +88,37 @@ class ClubMemberServiceImpl(
                 .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "대상 없음") }
 
         if (club.leader?.id == targetUserId) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 유저가 동아리 방장입니다.")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 유저가 동아리 방장입니다")
         }
 
         club.leader = targetUser
+    }
+
+    @Transactional
+    override fun exileMember(
+        clubId: Long,
+        userId: Long,
+    ) {
+        val currentUser = currentUserProvider.getCurrentUser()
+
+        if (currentUser.role != Role.ADMIN) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "관리자만 구성원을 추방할 수 있습니다")
+        }
+
+        val club =
+            clubJpaRepository
+                .findById(clubId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "동아리를 찾을 수 없습니다") }
+
+        if (club.leader?.id == userId) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "동아리 방장은 추방할 수 없습니다")
+        }
+
+        val participantId = ClubParticipantId(club = clubId, user = userId)
+        if (!clubParticipantJpaRepository.existsById(participantId)) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "해당 동아리에 소속된 유저가 아닙니다")
+        }
+
+        clubParticipantJpaRepository.deleteById(participantId)
     }
 }

@@ -10,4 +10,9 @@ interface ClubMemberService {
         clubId: Long,
         targetUserId: Long,
     )
+
+    fun exileMember(
+        clubId: Long,
+        userId: Long,
+    )
 }

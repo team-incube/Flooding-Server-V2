@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -35,6 +36,16 @@ class ClubMemberController(
         @PathVariable targetUserId: Long,
     ): ResponseEntity<Void> {
         clubMemberService.transferOwnerShip(clubId, targetUserId)
+        return ResponseEntity.noContent().build()
+    }
+
+    @Operation(summary = "구성원 추방하기", description = "관리자 권한으로 특정 멤버를 동아리에서 추방합니다 ")
+    @DeleteMapping("/{clubId}/member/exile/{userId}")
+    fun exileMember(
+        @PathVariable clubId: Long,
+        @PathVariable userId: Long,
+    ): ResponseEntity<Unit> {
+        clubMemberService.exileMember(clubId, userId)
         return ResponseEntity.noContent().build()
     }
 }
