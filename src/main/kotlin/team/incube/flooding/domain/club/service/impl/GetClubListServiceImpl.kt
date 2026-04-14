@@ -22,7 +22,7 @@ class GetClubListServiceImpl(
             if (name.isNullOrBlank()) {
                 clubRepository.findAllByType(type)
             } else {
-                clubRepository.findAllByTypeAndKeyword(type, name)
+                clubRepository.findAllByTypeAndKeyword(type, name.trim())
             }
         if (clubs.isEmpty()) {
             return GetClubListResponse(clubs = emptyList())
