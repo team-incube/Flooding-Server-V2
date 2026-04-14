@@ -2,6 +2,7 @@ package team.incube.flooding.domain.club.service
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -24,6 +25,8 @@ class CreateClubServiceTest :
 
         val service = CreateClubServiceImpl(clubRepository, currentUserProvider)
 
+        beforeEach { clearAllMocks() }
+
         val leader =
             UserJpaEntity(
                 id = 1L,
@@ -35,18 +38,18 @@ class CreateClubServiceTest :
                 dormitoryRoom = 101,
             )
 
-        val request =
-            CreateClubRequest(
-                name = "테스트 동아리",
-                type = ClubType.MAJOR_CLUB,
-                description = "테스트 설명",
-                imageUrl = null,
-                maxMember = 20,
-            )
-
-        given("유효한 요청이 올 때") {
+        given("status=NEW로 요청이 올 때") {
             `when`("개설 신청하면") {
                 then("status가 NEW인 동아리가 저장된다") {
+                    val request =
+                        CreateClubRequest(
+                            name = "테스트 동아리",
+                            type = ClubType.MAJOR_CLUB,
+                            status = ClubStatus.NEW,
+                            description = "테스트 설명",
+                            imageUrl = null,
+                            maxMember = 20,
+                        )
                     val slot = slot<ClubJpaEntity>()
                     every { currentUserProvider.getCurrentUser() } returns leader
                     every { clubRepository.save(capture(slot)) } answers { slot.captured }
@@ -59,6 +62,31 @@ class CreateClubServiceTest :
                     saved.status shouldBe ClubStatus.NEW
                     saved.leader shouldBe leader
                     saved.maxMember shouldBe 20
+                    verify(exactly = 1) { clubRepository.save(any()) }
+                }
+            }
+        }
+
+        given("status=MAINTAIN으로 요청이 올 때") {
+            `when`("개설 신청하면") {
+                then("status가 MAINTAIN인 동아리가 저장된다") {
+                    val request =
+                        CreateClubRequest(
+                            name = "테스트 동아리",
+                            type = ClubType.MAJOR_CLUB,
+                            status = ClubStatus.MAINTAIN,
+                            description = "테스트 설명",
+                            imageUrl = null,
+                            maxMember = 20,
+                        )
+                    val slot = slot<ClubJpaEntity>()
+                    every { currentUserProvider.getCurrentUser() } returns leader
+                    every { clubRepository.save(capture(slot)) } answers { slot.captured }
+
+                    service.execute(request)
+
+                    val saved = slot.captured
+                    saved.status shouldBe ClubStatus.MAINTAIN
                     verify(exactly = 1) { clubRepository.save(any()) }
                 }
             }
