@@ -11,7 +11,7 @@ import team.incube.flooding.domain.ai.presentation.data.response.SendAiChatRespo
 import team.themoment.sdk.exception.ExpectedException
 
 @Component
-open class AiChatbotAdapter(
+class AiChatbotAdapter(
     @Value("\${ai.chatbot.base-url}") baseUrl: String,
 ) {
     private val restClient =
@@ -25,13 +25,15 @@ open class AiChatbotAdapter(
                 },
             ).build()
 
-    open fun chat(request: SendAiChatRequest): SendAiChatResponse =
+    fun chat(request: SendAiChatRequest): SendAiChatResponse =
         restClient
             .post()
             .uri("/ai/chat")
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .retrieve()
-            .body(SendAiChatResponse::class.java)
+            .onStatus({ it.isError }) { _, _ ->
+                throw ExpectedException("AI 챗봇 서버와 통신 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY)
+            }.body(SendAiChatResponse::class.java)
             ?: throw ExpectedException("AI 챗봇 서버로부터 응답을 받지 못했습니다.", HttpStatus.BAD_GATEWAY)
 }
