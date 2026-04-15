@@ -13,10 +13,10 @@ import team.themoment.sdk.exception.ExpectedException
 @Component
 class AiSongAdapter(
     @Value("\${ai.song.base-url}") baseUrl: String,
+    restClientBuilder: RestClient.Builder,
 ) {
     private val restClient =
-        RestClient
-            .builder()
+        restClientBuilder
             .baseUrl(baseUrl)
             .requestFactory(
                 SimpleClientHttpRequestFactory().apply {
