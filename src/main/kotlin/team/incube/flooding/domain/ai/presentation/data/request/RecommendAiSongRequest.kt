@@ -1,4 +1,4 @@
-package team.incube.flooding.domain.ai.song.presentation.data.request
+package team.incube.flooding.domain.ai.presentation.data.request
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Size
