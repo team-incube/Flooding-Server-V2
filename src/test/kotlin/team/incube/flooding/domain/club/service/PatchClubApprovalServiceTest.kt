@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import org.springframework.http.HttpStatus
 import team.incube.flooding.domain.club.entity.ClubApprovalStatus
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
@@ -66,27 +65,27 @@ class PatchClubApprovalServiceTest :
         given("PENDING 상태의 동아리에") {
             `when`("approved=true로 요청하면") {
                 then("APPROVED 상태로 변경된다") {
-                    every { clubRepository.findById(1L) } returns Optional.of(club(ClubApprovalStatus.PENDING))
-                    every { clubRepository.updateApprovalStatus(1L, ClubApprovalStatus.APPROVED) } returns Unit
+                    val pendingClub = club(ClubApprovalStatus.PENDING)
+                    every { clubRepository.findById(1L) } returns Optional.of(pendingClub)
 
                     val response = service.execute(1L, PatchClubApprovalRequest(approved = true, reason = "승인"))
 
+                    pendingClub.approvalStatus shouldBe ClubApprovalStatus.APPROVED
                     response.clubId shouldBe 1L
                     response.status shouldBe ClubApprovalStatus.APPROVED
-                    verify(exactly = 1) { clubRepository.updateApprovalStatus(1L, ClubApprovalStatus.APPROVED) }
                 }
             }
 
             `when`("approved=false로 요청하면") {
                 then("REJECTED 상태로 변경된다") {
-                    every { clubRepository.findById(1L) } returns Optional.of(club(ClubApprovalStatus.PENDING))
-                    every { clubRepository.updateApprovalStatus(1L, ClubApprovalStatus.REJECTED) } returns Unit
+                    val pendingClub = club(ClubApprovalStatus.PENDING)
+                    every { clubRepository.findById(1L) } returns Optional.of(pendingClub)
 
                     val response = service.execute(1L, PatchClubApprovalRequest(approved = false, reason = "부적합"))
 
+                    pendingClub.approvalStatus shouldBe ClubApprovalStatus.REJECTED
                     response.clubId shouldBe 1L
                     response.status shouldBe ClubApprovalStatus.REJECTED
-                    verify(exactly = 1) { clubRepository.updateApprovalStatus(1L, ClubApprovalStatus.REJECTED) }
                 }
             }
         }

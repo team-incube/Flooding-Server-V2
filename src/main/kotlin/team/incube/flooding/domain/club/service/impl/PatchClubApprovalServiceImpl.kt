@@ -29,7 +29,7 @@ class PatchClubApprovalServiceImpl(
         }
 
         val newApprovalStatus = if (request.approved) ClubApprovalStatus.APPROVED else ClubApprovalStatus.REJECTED
-        clubRepository.updateApprovalStatus(clubId, newApprovalStatus)
+        club.approvalStatus = newApprovalStatus
 
         return PatchClubApprovalResponse(clubId = clubId, status = newApprovalStatus)
     }
