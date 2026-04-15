@@ -70,8 +70,8 @@ oauth:
   client-secret: ${OAUTH_CLIENT_SECRET}
 
 ai:
-  server:
-    url: ${AI_SERVER_URL}
+  chatbot:
+    base-url: ${AI_CHATBOT_URL:http://localhost:8081}
 
 jwt:
   secret: ${JWT_SECRET}
