@@ -14,7 +14,6 @@ class DgMealsClient(
 ) {
     private val restClient = RestClient.create()
 
-    @Suppress("UNUSED_PARAMETER")
     fun getMeals(
         officeCode: String,
         schoolCode: String,
@@ -28,6 +27,8 @@ class DgMealsClient(
                         .scheme("https")
                         .host(dgMealsProperties.baseUrl.removePrefix("https://").removePrefix("http://"))
                         .path(dgMealsProperties.path)
+                        .queryParam("officeCode", officeCode)
+                        .queryParam("schoolCode", schoolCode)
                         .queryParam("date", date)
                         .build()
                 }.header("X-API-KEY", dgMealsProperties.apiKey)
