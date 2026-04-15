@@ -1,4 +1,4 @@
-package team.incube.flooding.domain.ai.song.presentation.data.response
+package team.incube.flooding.domain.ai.presentation.data.response
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

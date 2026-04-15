@@ -72,6 +72,8 @@ oauth:
 ai:
   chatbot:
     base-url: ${AI_CHATBOT_URL:http://localhost:8081}
+  song:
+    base-url: ${AI_SONG_URL:http://localhost:8082}
 
 jwt:
   secret: ${JWT_SECRET}
