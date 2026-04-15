@@ -11,8 +11,9 @@ import team.themoment.sdk.exception.ExpectedException
 @Component
 class NeisTimetableClient(
     private val neisTimetableProperties: NeisTimetableProperties,
+    restClientBuilder: RestClient.Builder,
 ) {
-    private val restClient = RestClient.create()
+    private val restClient = restClientBuilder.build()
 
     fun getTimetables(
         officeCode: String,

@@ -11,8 +11,9 @@ import team.themoment.sdk.exception.ExpectedException
 @Component
 class DgMealsClient(
     private val dgMealsProperties: DgMealsProperties,
+    restClientBuilder: RestClient.Builder,
 ) {
-    private val restClient = RestClient.create()
+    private val restClient = restClientBuilder.build()
 
     fun getMeals(
         officeCode: String,
