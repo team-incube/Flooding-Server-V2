@@ -14,13 +14,11 @@ class GetNeisMealsService(
         schoolCode: String,
         date: String,
     ): GetNeisMealsResponse {
-        val response = dgMealsClient.getMeals(officeCode = officeCode, schoolCode = schoolCode, date = date)
-
-            dgMealsClient.getMeals(
-                officeCode = officeCode,
-                schoolCode = schoolCode,
-                date = date,
-            )
+        val response = dgMealsClient.getMeals(
+            officeCode = officeCode,
+            schoolCode = schoolCode,
+            date = date,
+        )
         return GetNeisMealsResponse(
             date = date,
             meals = extractMeals(response),
