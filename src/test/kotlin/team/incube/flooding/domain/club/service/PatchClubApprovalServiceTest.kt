@@ -41,7 +41,7 @@ class PatchClubApprovalServiceTest :
 
                     val exception =
                         shouldThrow<ExpectedException> {
-                            service.execute(99L, PatchClubApprovalRequest(approved = true, reason = "승인"))
+                            service.execute(99L, PatchClubApprovalRequest(approved = true))
                         }
                     exception.statusCode shouldBe HttpStatus.NOT_FOUND
                 }
@@ -55,7 +55,7 @@ class PatchClubApprovalServiceTest :
 
                     val exception =
                         shouldThrow<ExpectedException> {
-                            service.execute(1L, PatchClubApprovalRequest(approved = true, reason = "승인"))
+                            service.execute(1L, PatchClubApprovalRequest(approved = true))
                         }
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
                 }
@@ -68,7 +68,7 @@ class PatchClubApprovalServiceTest :
                     val pendingClub = club(ClubApprovalStatus.PENDING)
                     every { clubRepository.findById(1L) } returns Optional.of(pendingClub)
 
-                    val response = service.execute(1L, PatchClubApprovalRequest(approved = true, reason = "승인"))
+                    val response = service.execute(1L, PatchClubApprovalRequest(approved = true))
 
                     pendingClub.approvalStatus shouldBe ClubApprovalStatus.APPROVED
                     response.clubId shouldBe 1L
@@ -81,7 +81,7 @@ class PatchClubApprovalServiceTest :
                     val pendingClub = club(ClubApprovalStatus.PENDING)
                     every { clubRepository.findById(1L) } returns Optional.of(pendingClub)
 
-                    val response = service.execute(1L, PatchClubApprovalRequest(approved = false, reason = "부적합"))
+                    val response = service.execute(1L, PatchClubApprovalRequest(approved = false))
 
                     pendingClub.approvalStatus shouldBe ClubApprovalStatus.REJECTED
                     response.clubId shouldBe 1L
