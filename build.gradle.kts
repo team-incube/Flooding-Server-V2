@@ -11,6 +11,17 @@ group = "team.incube"
 version = "0.0.1-SNAPSHOT"
 description = "flooding-server-v2"
 
+ext {
+    set("tomcat.version", "11.0.20")
+    set("spring-security.version", "7.0.4")
+}
+
+dependencyManagement {
+    dependencies {
+        dependency("tools.jackson.core:jackson-core:3.1.1")
+    }
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(24)

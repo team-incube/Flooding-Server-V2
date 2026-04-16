@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * 현재 구현의 "check-then-act" 패턴이 레이스 컨디션을 유발한다.
  */
 class StudyApplicationConcurrencyTest {
-    private val MAX_COUNT = 5
-    private val THREAD_COUNT = 50
+    private val maxCount = 5
+    private val threadCount = 50
 
     /**
      * 현재 구현 시뮬레이션:
@@ -37,7 +37,7 @@ class StudyApplicationConcurrencyTest {
             throw RuntimeException("이미 신청함")
         }
 
-        if (count.get() >= MAX_COUNT) throw RuntimeException("마감")
+        if (count.get() >= maxCount) throw RuntimeException("마감")
 
         // count 확인 후 save/increment 사이에 다른 스레드가 통과할 수 있음
         statusMap[userId] = StudyApplicationStatus.APPROVED
@@ -62,7 +62,7 @@ class StudyApplicationConcurrencyTest {
         }
 
         val newCount = count.incrementAndGet()
-        if (newCount > MAX_COUNT) {
+        if (newCount > maxCount) {
             count.decrementAndGet()
             throw RuntimeException("마감")
         }
@@ -87,9 +87,9 @@ class StudyApplicationConcurrencyTest {
             val statusMap = ConcurrentHashMap<Long, StudyApplicationStatus>()
             val successCount = AtomicInteger(0)
             val latch = CountDownLatch(1)
-            val executor = Executors.newFixedThreadPool(THREAD_COUNT)
+            val executor = Executors.newFixedThreadPool(threadCount)
 
-            (1L..THREAD_COUNT.toLong()).forEach { userId ->
+            (1L..threadCount.toLong()).forEach { userId ->
                 executor.submit {
                     latch.await()
                     try {
@@ -103,8 +103,8 @@ class StudyApplicationConcurrencyTest {
             executor.shutdown()
             executor.awaitTermination(5, TimeUnit.SECONDS)
 
-            if (count.get() > MAX_COUNT) {
-                println("[버그 재현] 시도 ${it + 1}: count=${count.get()}, 성공=${successCount.get()}, MAX=$MAX_COUNT")
+            if (count.get() > maxCount) {
+                println("[버그 재현] 시도 ${it + 1}: count=${count.get()}, 성공=${successCount.get()}, MAX=$maxCount")
                 bugged = true
                 return@repeat
             }
@@ -112,7 +112,7 @@ class StudyApplicationConcurrencyTest {
 
         // 재현에 실패해도 경고만 출력 (타이밍 의존적인 테스트의 한계)
         if (!bugged) println("[경고] 20회 시도에서 버그가 재현되지 않았습니다. 테스트 환경에 따라 다를 수 있습니다.")
-        assertTrue(bugged, "동시성 버그가 재현되어야 합니다. THREAD_COUNT를 늘려서 재시도하세요.")
+        assertTrue(bugged, "동시성 버그가 재현되어야 합니다. threadCount를 늘려서 재시도하세요.")
     }
 
     @Test
@@ -122,9 +122,9 @@ class StudyApplicationConcurrencyTest {
             val statusMap = ConcurrentHashMap<Long, StudyApplicationStatus>()
             val successCount = AtomicInteger(0)
             val latch = CountDownLatch(1)
-            val executor = Executors.newFixedThreadPool(THREAD_COUNT)
+            val executor = Executors.newFixedThreadPool(threadCount)
 
-            (1L..THREAD_COUNT.toLong()).forEach { userId ->
+            (1L..threadCount.toLong()).forEach { userId ->
                 executor.submit {
                     latch.await()
                     try {
@@ -138,28 +138,28 @@ class StudyApplicationConcurrencyTest {
             executor.shutdown()
             executor.awaitTermination(5, TimeUnit.SECONDS)
 
-            println("[수정 후] 시도 ${it + 1}: count=${count.get()}, 성공=${successCount.get()}, MAX=$MAX_COUNT")
-            assertTrue(count.get() <= MAX_COUNT, "count=${count.get()} > maxCount=$MAX_COUNT")
-            assertTrue(successCount.get() <= MAX_COUNT, "successCount=${successCount.get()} > maxCount=$MAX_COUNT")
+            println("[수정 후] 시도 ${it + 1}: count=${count.get()}, 성공=${successCount.get()}, MAX=$maxCount")
+            assertTrue(count.get() <= maxCount, "count=${count.get()} > maxCount=$maxCount")
+            assertTrue(successCount.get() <= maxCount, "successCount=${successCount.get()} > maxCount=$maxCount")
         }
     }
 
     @Test
     fun `수정안_동일유저_동시요청시_중복신청이_방지된다`() {
-        val SAME_USER_ID = 1L
-        val CONCURRENT_REQUESTS = 20
+        val sameUserId = 1L
+        val concurrentRequests = 20
 
         val count = AtomicInteger(0)
         val statusMap = ConcurrentHashMap<Long, StudyApplicationStatus>()
         val successCount = AtomicInteger(0)
         val latch = CountDownLatch(1)
-        val executor = Executors.newFixedThreadPool(CONCURRENT_REQUESTS)
+        val executor = Executors.newFixedThreadPool(concurrentRequests)
 
-        repeat(CONCURRENT_REQUESTS) {
+        repeat(concurrentRequests) {
             executor.submit {
                 latch.await()
                 try {
-                    fixedApply(SAME_USER_ID, count, statusMap, successCount)
+                    fixedApply(sameUserId, count, statusMap, successCount)
                 } catch (_: Exception) {
                 }
             }

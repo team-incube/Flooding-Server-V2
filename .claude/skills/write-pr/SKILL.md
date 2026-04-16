@@ -97,6 +97,7 @@ gh api user --jq .login
 ```bash
 gh pr create \
   --title "<title>" \
+  --base develop \
   --assignee "<github-username>" \
   --reviewer "team-incube/flooding-server" \
   --label "<Type 라벨>" \
