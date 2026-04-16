@@ -45,7 +45,7 @@ class ClubApplicationController(
         @PathVariable clubId: Long,
         @PathVariable userId: Long,
     ): ResponseEntity<Unit> {
-        clubApplicationService.approveApplication(clubId, userId)
+        clubApplicationService.execute(clubId, userId)
         return ResponseEntity.noContent().build()
     }
 
