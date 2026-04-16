@@ -20,15 +20,12 @@ class QueryClubApplicationServiceImpl(
     @Transactional(readOnly = true)
     override fun execute(): ClubApplicationListResponse {
         val user = currentUserProvider.getCurrentUser()
+
         if (user.role != Role.ADMIN) {
             throw ExpectedException("동아리 개설 신청 목록을 조회할 권한이 없습니다.", HttpStatus.FORBIDDEN)
         }
 
         val clubs = clubJpaRepository.findAllByStatus(ClubStatus.NEW)
-
-        if (clubs.isEmpty()) {
-            throw ExpectedException("현재 신청된 동아리 내역이 존재하지 않습니다.", HttpStatus.NOT_FOUND)
-        }
 
         return ClubApplicationListResponse(
             clubs =

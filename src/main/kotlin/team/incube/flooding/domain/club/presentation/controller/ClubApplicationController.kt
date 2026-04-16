@@ -15,7 +15,7 @@ import team.incube.flooding.domain.club.service.CreateClubApplicationService
 import team.incube.flooding.domain.club.service.QueryClubApplicationService
 import team.themoment.sdk.response.CommonApiResponse
 
-@Tag(name = "동아리 신청", description = "동아리 개설 및 가입 신청 관리 API")
+@Tag(name = "동아리 신청", description = "동아리 신청 관련 API")
 @RestController
 @RequestMapping("/clubs")
 class ClubApplicationController(
@@ -50,7 +50,7 @@ class ClubApplicationController(
     }
 
     @Operation(summary = "동아리 개설 신청 목록 조회", description = "Status가 NEW인 동아리 개설 신청 목록을 조회합니다")
-    @GetMapping
+    @GetMapping("/opening/requests")
     fun queryClubApplications(): ResponseEntity<ClubApplicationListResponse> {
         val response = queryClubApplicationService.execute()
         return ResponseEntity.ok(response)

@@ -1,7 +1,7 @@
 package team.incube.flooding.domain.club.service
 
 interface ClubApplicationService {
-    fun approveApplication(
+    fun execute(
         clubId: Long,
         userId: Long,
     )
