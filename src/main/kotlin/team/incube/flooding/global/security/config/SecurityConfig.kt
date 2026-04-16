@@ -31,6 +31,13 @@ class SecurityConfig(
                 it.requestMatchers(HttpMethod.POST, "/ai/chat").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
 
+                // club
+                it
+                    .requestMatchers(
+                        HttpMethod.PATCH,
+                        "/clubs/*/approval",
+                    ).hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+
                 // study
                 it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
