@@ -4,9 +4,13 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Transient
+import team.incube.flooding.domain.dormitory.cleaningzone.entity.CleaningZoneJpaEntity
 
 @Entity
 @Table(name = "tb_user")
@@ -28,6 +32,11 @@ class UserJpaEntity(
     var role: Role,
     @field:Column(name = "dormitory_room", nullable = false)
     var dormitoryRoom: Int,
+    @field:Column(name = "penalty_score", nullable = false)
+    var penaltyScore: Int = 0,
+    @field:ManyToOne(fetch = FetchType.LAZY)
+    @field:JoinColumn(name = "cleaning_zone_id", nullable = true)
+    var cleaningZone: CleaningZoneJpaEntity? = null,
 ) {
     @get:Transient
     val grade: Int

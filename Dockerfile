@@ -10,10 +10,9 @@ COPY gradlew gradlew.bat* ./
 COPY gradle/ gradle/
 RUN chmod +x gradlew
 
-COPY build.gradle.kts settings.gradle.kts ./
+COPY build.gradle.kts settings.gradle.kts .editorconfig ./
 RUN ./gradlew dependencies --no-daemon || true
 
-COPY .editorconfig ./
 COPY src/ src/
 RUN ./gradlew build -x test --no-daemon
 
@@ -23,7 +22,8 @@ RUN ./gradlew build -x test --no-daemon
 FROM eclipse-temurin:24-jre-alpine AS runtime
 
 # Non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1000
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1000 && \
+    apk upgrade --no-cache
 
 WORKDIR /app
 
