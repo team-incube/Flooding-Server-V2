@@ -36,4 +36,7 @@ class ClubJpaEntity(
     var description: String?,
     @field:Column(name = "max_member")
     var maxMember: Int?,
+    @field:Column(name = "approval_status", nullable = false, length = 20)
+    @field:Enumerated(EnumType.STRING)
+    var approvalStatus: ClubApprovalStatus = ClubApprovalStatus.PENDING,
 )
