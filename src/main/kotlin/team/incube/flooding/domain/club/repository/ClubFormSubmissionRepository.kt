@@ -8,4 +8,6 @@ interface ClubFormSubmissionRepository : JpaRepository<ClubFormSubmissionJpaEnti
         formId: Long,
         userId: Long,
     ): Boolean
+
+    fun findAllByFormClubId(clubId: Long): List<ClubFormSubmissionJpaEntity>
 }
