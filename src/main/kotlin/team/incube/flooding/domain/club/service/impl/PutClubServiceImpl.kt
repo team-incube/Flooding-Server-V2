@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.presentation.data.request.PutClubRequest
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.PutClubService
-import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
 
@@ -26,10 +25,8 @@ class PutClubServiceImpl(
             }
 
         val currentUser = currentUserProvider.getCurrentUser()
-        val isAdminOrCouncil = currentUser.role == Role.ADMIN || currentUser.role == Role.STUDENT_COUNCIL
-        val isLeader = club.leader?.id == currentUser.id
 
-        if (!isAdminOrCouncil && !isLeader) {
+        if (!club.isModifiableBy(currentUser)) {
             throw ExpectedException("동아리를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN)
         }
 

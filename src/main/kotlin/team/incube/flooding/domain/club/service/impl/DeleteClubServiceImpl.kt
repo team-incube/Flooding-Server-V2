@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.DeleteClubService
-import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
 
@@ -22,10 +21,8 @@ class DeleteClubServiceImpl(
             }
 
         val currentUser = currentUserProvider.getCurrentUser()
-        val isAdminOrCouncil = currentUser.role == Role.ADMIN || currentUser.role == Role.STUDENT_COUNCIL
-        val isLeader = club.leader?.id == currentUser.id
 
-        if (!isAdminOrCouncil && !isLeader) {
+        if (!club.isModifiableBy(currentUser)) {
             throw ExpectedException("동아리를 삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN)
         }
 
