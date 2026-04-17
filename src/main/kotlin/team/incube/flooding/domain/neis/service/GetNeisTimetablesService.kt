@@ -3,32 +3,29 @@ package team.incube.flooding.domain.neis.service
 import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.neis.client.NeisTimetableClient
+import team.incube.flooding.domain.neis.client.dto.GetTimetablesRequest
+import team.incube.flooding.domain.neis.presentation.data.request.GetNeisTimetablesRequest
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisTimetablesResponse
 
 @Service
 class GetNeisTimetablesService(
     private val neisTimetableClient: NeisTimetableClient,
 ) {
-    fun execute(
-        officeCode: String,
-        schoolCode: String,
-        grade: Int,
-        classNumber: Int,
-        date: String,
-    ): GetNeisTimetablesResponse {
-        val response =
-            neisTimetableClient.getTimetables(
-                officeCode = officeCode,
-                schoolCode = schoolCode,
-                grade = grade,
-                classNumber = classNumber,
-                date = date,
+    fun execute(request: GetNeisTimetablesRequest): GetNeisTimetablesResponse {
+        val response = neisTimetableClient.getTimetables(
+            GetTimetablesRequest(
+                officeCode = request.officeCode,
+                schoolCode = request.schoolCode,
+                grade = request.grade,
+                classNumber = request.classNumber,
+                date = request.date,
             )
+        )
 
         return GetNeisTimetablesResponse(
-            date = date,
-            grade = grade,
-            classNumber = classNumber,
+            date = request.date,
+            grade = request.grade,
+            classNumber = request.classNumber,
             periods = extractPeriods(response),
         )
     }

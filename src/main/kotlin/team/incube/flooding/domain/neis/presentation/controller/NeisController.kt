@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import team.incube.flooding.domain.neis.presentation.data.request.GetNeisMealsRequest
+import team.incube.flooding.domain.neis.presentation.data.request.GetNeisTimetablesRequest
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisMealsResponse
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisTimetablesResponse
 import team.incube.flooding.domain.neis.service.GetNeisMealsService
@@ -33,11 +35,8 @@ class NeisController(
     )
     @GetMapping("/meals")
     fun getMeals(
-        @Parameter(description = "시도교육청 코드")
         @RequestParam officeCode: String,
-        @Parameter(description = "학교 코드")
         @RequestParam schoolCode: String,
-        @Parameter(description = "조회 날짜(yyyy-MM-dd)")
         @RequestParam
         @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "date는 yyyy-MM-dd 형식이어야 합니다.")
         date: String,
@@ -45,9 +44,11 @@ class NeisController(
         CommonApiResponse.success(
             "OK",
             getNeisMealsService.execute(
-                officeCode = officeCode,
-                schoolCode = schoolCode,
-                date = date,
+                GetNeisMealsRequest(
+                    officeCode = officeCode,
+                    schoolCode = schoolCode,
+                    date = date,
+                )
             ),
         )
 
@@ -78,11 +79,13 @@ class NeisController(
         CommonApiResponse.success(
             "OK",
             getNeisTimetablesService.execute(
-                officeCode = officeCode,
-                schoolCode = schoolCode,
-                grade = grade,
-                classNumber = classNumber,
-                date = date,
+                GetNeisTimetablesRequest(
+                    officeCode = officeCode,
+                    schoolCode = schoolCode,
+                    grade = grade,
+                    classNumber = classNumber,
+                    date = date,
+                )
             ),
         )
 }

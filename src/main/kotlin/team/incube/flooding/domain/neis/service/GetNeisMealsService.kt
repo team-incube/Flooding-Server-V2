@@ -3,24 +3,24 @@ package team.incube.flooding.domain.neis.service
 import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.neis.client.DgMealsClient
+import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
+import team.incube.flooding.domain.neis.presentation.data.request.GetNeisMealsRequest
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisMealsResponse
 
 @Service
 class GetNeisMealsService(
     private val dgMealsClient: DgMealsClient,
 ) {
-    fun execute(
-        officeCode: String,
-        schoolCode: String,
-        date: String,
-    ): GetNeisMealsResponse {
+    fun execute(request: GetNeisMealsRequest): GetNeisMealsResponse {
         val response = dgMealsClient.getMeals(
-            officeCode = officeCode,
-            schoolCode = schoolCode,
-            date = date,
+            GetMealsRequest(
+                officeCode = request.officeCode,
+                schoolCode = request.schoolCode,
+                date = request.date,
+            )
         )
         return GetNeisMealsResponse(
-            date = date,
+            date = request.date,
             meals = extractMeals(response),
         )
     }

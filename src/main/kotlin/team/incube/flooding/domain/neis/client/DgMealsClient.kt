@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
+import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
 import team.incube.flooding.domain.neis.config.DgMealsProperties
 import team.themoment.sdk.exception.ExpectedException
 
@@ -15,11 +16,7 @@ class DgMealsClient(
 ) {
     private val restClient = restClientBuilder.build()
 
-    fun getMeals(
-        officeCode: String,
-        schoolCode: String,
-        date: String,
-    ): JsonNode =
+    fun getMeals(request: GetMealsRequest): JsonNode =
         try {
             restClient
                 .get()
@@ -28,9 +25,9 @@ class DgMealsClient(
                         .scheme("https")
                         .host(dgMealsProperties.baseUrl.removePrefix("https://").removePrefix("http://"))
                         .path(dgMealsProperties.path)
-                        .queryParam("officeCode", officeCode)
-                        .queryParam("schoolCode", schoolCode)
-                        .queryParam("date", date)
+                        .queryParam("officeCode", request.officeCode)
+                        .queryParam("schoolCode", request.schoolCode)
+                        .queryParam("date", request.date)
                         .build()
                 }.header("X-API-KEY", dgMealsProperties.apiKey)
                 .retrieve()

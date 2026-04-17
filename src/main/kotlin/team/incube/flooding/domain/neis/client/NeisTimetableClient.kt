@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
+import team.incube.flooding.domain.neis.client.dto.GetTimetablesRequest
 import team.incube.flooding.domain.neis.config.NeisTimetableProperties
 import team.themoment.sdk.exception.ExpectedException
 
@@ -15,13 +16,7 @@ class NeisTimetableClient(
 ) {
     private val restClient = restClientBuilder.build()
 
-    fun getTimetables(
-        officeCode: String,
-        schoolCode: String,
-        grade: Int,
-        classNumber: Int,
-        date: String,
-    ): JsonNode =
+    fun getTimetables(request: GetTimetablesRequest): JsonNode =
         try {
             restClient
                 .get()
@@ -34,11 +29,11 @@ class NeisTimetableClient(
                         .queryParam("Type", neisTimetableProperties.dataType)
                         .queryParam("pIndex", 1)
                         .queryParam("pSize", neisTimetableProperties.pageSize)
-                        .queryParam("ATPT_OFCDC_SC_CODE", officeCode)
-                        .queryParam("SD_SCHUL_CODE", schoolCode)
-                        .queryParam("GRADE", grade)
-                        .queryParam("CLASS_NM", classNumber)
-                        .queryParam("ALL_TI_YMD", date.replace("-", ""))
+                        .queryParam("ATPT_OFCDC_SC_CODE", request.officeCode)
+                        .queryParam("SD_SCHUL_CODE", request.schoolCode)
+                        .queryParam("GRADE", request.grade)
+                        .queryParam("CLASS_NM", request.classNumber)
+                        .queryParam("ALL_TI_YMD", request.date.replace("-", ""))
                         .build()
                 }.retrieve()
                 .body(JsonNode::class.java)
