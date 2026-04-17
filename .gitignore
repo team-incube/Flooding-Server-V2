@@ -44,3 +44,4 @@ out/
 
 ### Local Claude ###
 .claude/settings.local.json
+.claude/worktrees/

@@ -4,8 +4,6 @@
 #             master  → updates values.yaml       → prod (flooding ns)
 #             develop → updates values-dev.yaml   → dev  (flooding-dev ns)
 # Secrets   : INFRA_REPO_TOKEN
-# Effect    : Clones Flooding-DevOps-V2, updates image.tag,
-#             commits & pushes → ArgoCD auto-syncs
 # ─────────────────────────────────────────────────────────────────
 name: CD
 

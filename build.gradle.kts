@@ -11,6 +11,17 @@ group = "team.incube"
 version = "0.0.1-SNAPSHOT"
 description = "flooding-server-v2"
 
+ext {
+    set("tomcat.version", "11.0.20")
+    set("spring-security.version", "7.0.4")
+}
+
+dependencyManagement {
+    dependencies {
+        dependency("tools.jackson.core:jackson-core:3.1.1")
+    }
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(24)
@@ -48,6 +59,9 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     // External SDK
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.0.0")

@@ -27,6 +27,16 @@ class SecurityConfig(
                 it.requestMatchers("/actuator/**").permitAll()
                 it.requestMatchers("/v2/auth/**").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                // ai
+                it.requestMatchers(HttpMethod.POST, "/ai/chat").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
+
+                // club
+                it
+                    .requestMatchers(
+                        HttpMethod.PATCH,
+                        "/clubs/*/approval",
+                    ).hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
 
                 // study
                 it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
@@ -40,9 +50,6 @@ class SecurityConfig(
                 // massage
                 it.requestMatchers(HttpMethod.POST, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
-
-                // ai song
-                it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
 
                 // music
                 it
@@ -66,6 +73,22 @@ class SecurityConfig(
                         HttpMethod.DELETE,
                         "/dormitory/music/{musicId}/like",
                     ).hasRole(Role.GENERAL_STUDENT.name)
+
+                // penalty
+                it
+                    .requestMatchers(HttpMethod.GET, "/dormitory/penalties")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
+                    .requestMatchers(HttpMethod.PUT, "/dormitory/penalties/*")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+
+                // cleaning-zones
+                it
+                    .requestMatchers(HttpMethod.POST, "/dormitory/cleaning-zones")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
+                    .requestMatchers(HttpMethod.PATCH, "/dormitory/cleaning-zones/*/members")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 it.anyRequest().authenticated()
             }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

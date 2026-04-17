@@ -56,7 +56,7 @@ jobs:
           name: test-report
           path: build/reports/tests/
 
-  # ── 2. Build → Scan → Push ───────────────────────────────────
+  # ── 2. Build → Push ──────────────────────────────────────────
   build:
     name: Build & Push
     runs-on: [self-hosted, flooding]

@@ -9,4 +9,3 @@ class RestClientConfig {
     @Bean
     fun restClientBuilder(): RestClient.Builder = RestClient.builder()
 }
-
