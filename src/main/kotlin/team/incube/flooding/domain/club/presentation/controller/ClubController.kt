@@ -94,7 +94,7 @@ class ClubController(
         ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
     )
     @GetMapping("/{clubId}")
-    fun getClub(
+    suspend fun getClub(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
 }

@@ -2,7 +2,7 @@ package team.incube.flooding.domain.club.service.impl
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.coroutineScope
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
@@ -18,12 +18,12 @@ class GetClubServiceImpl(
     private val clubParticipantRepository: ClubParticipantRepository,
     private val dataGsmProjectClient: DataGsmProjectClient,
 ) : GetClubService {
-    override fun execute(clubId: Long): GetClubResponse {
-        val club =
-            clubRepository.findByIdWithLeader(clubId)
-                ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
+    override suspend fun execute(clubId: Long): GetClubResponse =
+        coroutineScope {
+            val club =
+                clubRepository.findByIdWithLeader(clubId)
+                    ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
 
-        return runBlocking {
             val membersDeferred =
                 async(Dispatchers.IO) {
                     clubParticipantRepository.findAllByClubId(clubId).map { p ->
@@ -52,9 +52,8 @@ class GetClubServiceImpl(
                         imageUrl = club.imageUrl,
                         maxMember = club.maxMember,
                     ),
-                member = membersDeferred.await(),
-                project = projectsDeferred.await(),
+                members = membersDeferred.await(),
+                projects = projectsDeferred.await(),
             )
         }
-    }
 }

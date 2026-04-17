@@ -13,6 +13,7 @@ import java.time.Duration
 class DataGsmProjectClient(
     private val redisTemplate: RedisTemplate<String, String>,
     private val objectMapper: ObjectMapper,
+    private val restClientBuilder: RestClient.Builder,
     @Value("\${datagsm.open-api-key}") private val apiKey: String,
 ) {
     companion object {
@@ -21,8 +22,7 @@ class DataGsmProjectClient(
     }
 
     private val restClient: RestClient by lazy {
-        RestClient
-            .builder()
+        restClientBuilder
             .baseUrl("https://api.datagsm.com")
             .defaultHeader("X-API-KEY", apiKey)
             .build()

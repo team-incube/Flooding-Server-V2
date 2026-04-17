@@ -2,8 +2,8 @@ package team.incube.flooding.domain.club.presentation.data.response
 
 data class GetClubResponse(
     val club: ClubDetail,
-    val member: List<MemberSummary>,
-    val project: List<ProjectSummary>,
+    val members: List<MemberSummary>,
+    val projects: List<ProjectSummary>,
 ) {
     data class ClubDetail(
         val id: Long,
