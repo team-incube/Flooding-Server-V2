@@ -86,11 +86,11 @@ class DeleteClubServiceTest :
                     val leader = user(1L, Role.GENERAL_STUDENT)
                     every { clubRepository.findById(1L) } returns Optional.of(club(leader))
                     every { currentUserProvider.getCurrentUser() } returns leader
-                    justRun { clubRepository.deleteById(1L) }
+                    justRun { clubRepository.delete(any()) }
 
                     service.execute(1L)
 
-                    verify(exactly = 1) { clubRepository.deleteById(1L) }
+                    verify(exactly = 1) { clubRepository.delete(any()) }
                 }
             }
         }
@@ -101,11 +101,11 @@ class DeleteClubServiceTest :
                     val admin = user(1L, Role.ADMIN)
                     every { clubRepository.findById(1L) } returns Optional.of(club(null))
                     every { currentUserProvider.getCurrentUser() } returns admin
-                    justRun { clubRepository.deleteById(1L) }
+                    justRun { clubRepository.delete(any()) }
 
                     service.execute(1L)
 
-                    verify(exactly = 1) { clubRepository.deleteById(1L) }
+                    verify(exactly = 1) { clubRepository.delete(any()) }
                 }
             }
         }
@@ -116,11 +116,11 @@ class DeleteClubServiceTest :
                     val council = user(1L, Role.STUDENT_COUNCIL)
                     every { clubRepository.findById(1L) } returns Optional.of(club(null))
                     every { currentUserProvider.getCurrentUser() } returns council
-                    justRun { clubRepository.deleteById(1L) }
+                    justRun { clubRepository.delete(any()) }
 
                     service.execute(1L)
 
-                    verify(exactly = 1) { clubRepository.deleteById(1L) }
+                    verify(exactly = 1) { clubRepository.delete(any()) }
                 }
             }
         }
