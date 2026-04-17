@@ -82,9 +82,8 @@ class ClubController(
     @DeleteMapping("/{clubId}")
     fun deleteClub(
         @PathVariable clubId: Long,
-    ): CommonApiResponse<Nothing> {
+    ) {
         deleteClubService.execute(clubId)
-        return CommonApiResponse.success("OK")
     }
 
     @Operation(

@@ -29,6 +29,6 @@ class DeleteClubServiceImpl(
             throw ExpectedException("동아리를 삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN)
         }
 
-        clubRepository.deleteById(clubId)
+        clubRepository.delete(club)
     }
 }
