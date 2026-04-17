@@ -17,8 +17,8 @@ import team.incube.flooding.domain.neis.presentation.data.request.GetNeisMealsRe
 import team.incube.flooding.domain.neis.presentation.data.request.GetNeisTimetablesRequest
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisMealsResponse
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisTimetablesResponse
-import team.incube.flooding.domain.neis.service.GetNeisMealsService
-import team.incube.flooding.domain.neis.service.GetNeisTimetablesService
+import team.incube.flooding.domain.neis.service.impl.GetNeisMealsServiceImpl
+import team.incube.flooding.domain.neis.service.impl.GetNeisTimetablesServiceImpl
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "NEIS", description = "급식/시간표 조회 API")
@@ -26,8 +26,8 @@ import team.themoment.sdk.response.CommonApiResponse
 @RestController
 @RequestMapping("/v2/neis")
 class NeisController(
-    private val getNeisMealsService: GetNeisMealsService,
-    private val getNeisTimetablesService: GetNeisTimetablesService,
+    private val getNeisMealsService: GetNeisMealsServiceImpl,
+    private val getNeisTimetablesService: GetNeisTimetablesServiceImpl,
 ) {
     @Operation(summary = "급식 조회", description = "지정한 학교의 날짜별 급식 정보를 조회합니다.")
     @ApiResponses(
