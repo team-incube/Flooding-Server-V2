@@ -24,7 +24,7 @@ class HomebaseReservationJpaEntity(
     @field:Column(nullable = false)
     val endPeriod: Int,
     @field:Column(nullable = false, length = 300)
-    var reason: String = "",
+    val reason: String = "",
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "homebase_id", nullable = false)
     val homebase: HomebaseJpaEntity,
