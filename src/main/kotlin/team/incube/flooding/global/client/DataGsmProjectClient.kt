@@ -1,12 +1,11 @@
 package team.incube.flooding.global.client
-
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.time.Duration
 
 @Component
