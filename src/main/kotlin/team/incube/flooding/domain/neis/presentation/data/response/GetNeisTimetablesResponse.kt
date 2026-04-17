@@ -13,4 +13,3 @@ data class GetNeisTimetablesResponse(
         val classroom: String?,
     )
 }
-

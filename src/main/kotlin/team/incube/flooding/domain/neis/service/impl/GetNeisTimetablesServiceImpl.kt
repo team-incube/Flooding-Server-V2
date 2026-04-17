@@ -13,15 +13,16 @@ class GetNeisTimetablesServiceImpl(
     private val neisTimetableClient: NeisTimetableClient,
 ) : GetNeisTimetablesService {
     override fun execute(request: GetNeisTimetablesRequest): GetNeisTimetablesResponse {
-        val response = neisTimetableClient.getTimetables(
-            GetTimetablesRequest(
-                officeCode = request.officeCode,
-                schoolCode = request.schoolCode,
-                grade = request.grade,
-                classNumber = request.classNumber,
-                date = request.date,
+        val response =
+            neisTimetableClient.getTimetables(
+                GetTimetablesRequest(
+                    officeCode = request.officeCode,
+                    schoolCode = request.schoolCode,
+                    grade = request.grade,
+                    classNumber = request.classNumber,
+                    date = request.date,
+                ),
             )
-        )
         return GetNeisTimetablesResponse(
             date = request.date,
             grade = request.grade,
@@ -31,10 +32,11 @@ class GetNeisTimetablesServiceImpl(
     }
 
     private fun extractPeriods(response: JsonNode): List<GetNeisTimetablesResponse.Period> {
-        val neisRows = response
-            .path("hisTimetable")
-            .find { node -> node.path("row").isArray }
-            ?.path("row")
+        val neisRows =
+            response
+                .path("hisTimetable")
+                .find { node -> node.path("row").isArray }
+                ?.path("row")
         if (neisRows != null && neisRows.isArray) {
             return neisRows.mapIndexed { index, periodNode ->
                 GetNeisTimetablesResponse.Period(
@@ -46,21 +48,23 @@ class GetNeisTimetablesServiceImpl(
             }
         }
 
-        val targets = listOf(
-            response.path("data"),
-            response.path("timetables"),
-            response,
-        )
+        val targets =
+            listOf(
+                response.path("data"),
+                response.path("timetables"),
+                response,
+            )
 
-        val periodNodes = targets.firstNotNullOfOrNull { node ->
-            when {
-                node.isArray -> node
-                node.path("periods").isArray -> node.path("periods")
-                node.path("timetables").isArray -> node.path("timetables")
-                node.path("data").isArray -> node.path("data")
-                else -> null
-            }
-        } ?: return emptyList()
+        val periodNodes =
+            targets.firstNotNullOfOrNull { node ->
+                when {
+                    node.isArray -> node
+                    node.path("periods").isArray -> node.path("periods")
+                    node.path("timetables").isArray -> node.path("timetables")
+                    node.path("data").isArray -> node.path("data")
+                    else -> null
+                }
+            } ?: return emptyList()
 
         return periodNodes.mapIndexed { index, periodNode ->
             GetNeisTimetablesResponse.Period(
@@ -72,7 +76,10 @@ class GetNeisTimetablesServiceImpl(
         }
     }
 
-    private fun valueOf(node: JsonNode, vararg keys: String): String? {
+    private fun valueOf(
+        node: JsonNode,
+        vararg keys: String,
+    ): String? {
         keys.forEach { key ->
             val value = node.path(key)
             if (!value.isMissingNode && !value.isNull) return value.asText()

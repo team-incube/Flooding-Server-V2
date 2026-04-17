@@ -10,4 +10,3 @@ data class NeisTimetableProperties(
     val dataType: String = "json",
     val pageSize: Int = 100,
 )
-

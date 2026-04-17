@@ -10,4 +10,3 @@ data class GetNeisMealsResponse(
         val calories: String?,
     )
 }
-

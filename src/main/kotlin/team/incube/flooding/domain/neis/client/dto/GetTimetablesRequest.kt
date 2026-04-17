@@ -1,6 +1,6 @@
-package team.incube.flooding.domain.neis.presentation.data.request
+package team.incube.flooding.domain.neis.client.dto
 
-data class GetNeisTimetablesRequest(
+data class GetTimetablesRequest(
     val officeCode: String,
     val schoolCode: String,
     val grade: Int,

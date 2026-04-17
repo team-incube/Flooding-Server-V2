@@ -8,4 +8,3 @@ data class DgMealsProperties(
     val apiKey: String,
     val path: String = "/v1/neis/meals",
 )
-

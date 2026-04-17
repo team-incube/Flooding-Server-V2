@@ -13,13 +13,14 @@ class GetNeisMealsServiceImpl(
     private val dgMealsClient: DgMealsClient,
 ) : GetNeisMealsService {
     override fun execute(request: GetNeisMealsRequest): GetNeisMealsResponse {
-        val response = dgMealsClient.getMeals(
-            GetMealsRequest(
-                officeCode = request.officeCode,
-                schoolCode = request.schoolCode,
-                date = request.date,
+        val response =
+            dgMealsClient.getMeals(
+                GetMealsRequest(
+                    officeCode = request.officeCode,
+                    schoolCode = request.schoolCode,
+                    date = request.date,
+                ),
             )
-        )
         return GetNeisMealsResponse(
             date = request.date,
             meals = extractMeals(response),
@@ -27,20 +28,22 @@ class GetNeisMealsServiceImpl(
     }
 
     private fun extractMeals(response: JsonNode): List<GetNeisMealsResponse.Meal> {
-        val targets = listOf(
-            response.path("data"),
-            response.path("meals"),
-            response,
-        )
+        val targets =
+            listOf(
+                response.path("data"),
+                response.path("meals"),
+                response,
+            )
 
-        val mealNodes = targets.firstNotNullOfOrNull { node ->
-            when {
-                node.isArray -> node
-                node.path("meals").isArray -> node.path("meals")
-                node.path("data").isArray -> node.path("data")
-                else -> null
-            }
-        } ?: return emptyList()
+        val mealNodes =
+            targets.firstNotNullOfOrNull { node ->
+                when {
+                    node.isArray -> node
+                    node.path("meals").isArray -> node.path("meals")
+                    node.path("data").isArray -> node.path("data")
+                    else -> null
+                }
+            } ?: return emptyList()
 
         return mealNodes.map { mealNode ->
             val menuText = valueOf(mealNode, "menu", "menus", "DDISH_NM")
@@ -62,7 +65,10 @@ class GetNeisMealsServiceImpl(
             .filter { it.isNotBlank() }
     }
 
-    private fun valueOf(node: JsonNode, vararg keys: String): String? {
+    private fun valueOf(
+        node: JsonNode,
+        vararg keys: String,
+    ): String? {
         keys.forEach { key ->
             val value = node.path(key)
             if (!value.isMissingNode && !value.isNull) return value.asText()

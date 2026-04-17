@@ -48,7 +48,7 @@ class NeisController(
                     officeCode = officeCode,
                     schoolCode = schoolCode,
                     date = date,
-                )
+                ),
             ),
         )
 
@@ -85,7 +85,7 @@ class NeisController(
                     grade = grade,
                     classNumber = classNumber,
                     date = date,
-                )
+                ),
             ),
         )
 }
