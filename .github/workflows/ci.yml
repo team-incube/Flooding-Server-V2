@@ -121,14 +121,15 @@ jobs:
             --insecure-registry \
             "${{ steps.meta.outputs.full }}"
 
-  # ── 3. Trigger CD (master only) ──────────────────────────────
+  # ── 3. Trigger CD (master → prod, develop → dev) ─────────────
   trigger-cd:
     name: Trigger CD
     needs: build
-    if: github.ref_name == 'master'
+    if: github.ref_name == 'master' || github.ref_name == 'develop'
     uses: ./.github/workflows/cd.yml
     with:
       image_tag: ${{ needs.build.outputs.image_tag }}
+      environment: ${{ github.ref_name == 'master' && 'prod' || 'dev' }}
     secrets: inherit
 
   # ── 4. Slack notification ────────────────────────────────────
