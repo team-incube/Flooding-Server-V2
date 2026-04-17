@@ -74,16 +74,16 @@ class ClubController(
         description = "동아리를 삭제합니다. ADMIN, STUDENT_COUNCIL은 모든 동아리를 삭제할 수 있으며, 동아리 리더는 본인 동아리만 삭제할 수 있습니다.",
     )
     @ApiResponses(
-        ApiResponse(responseCode = "204", description = "삭제 성공"),
+        ApiResponse(responseCode = "200", description = "삭제 성공"),
         ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
         ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
     )
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{clubId}")
     fun deleteClub(
         @PathVariable clubId: Long,
-    ) {
+    ): CommonApiResponse<Nothing> {
         deleteClubService.execute(clubId)
+        return CommonApiResponse.success("OK")
     }
 
     @Operation(
