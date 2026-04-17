@@ -5,8 +5,8 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
-import tools.jackson.core.type.TypeReference
-import tools.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import java.time.Duration
 
 @Component
