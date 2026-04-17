@@ -20,10 +20,7 @@ class GetClubServiceImpl(
 ) : GetClubService {
     override suspend fun execute(clubId: Long): GetClubResponse =
         coroutineScope {
-            val club =
-                clubRepository.findByIdWithLeader(clubId)
-                    ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
-
+            val clubDeferred = async(Dispatchers.IO) { clubRepository.findByIdWithLeader(clubId) }
             val membersDeferred =
                 async(Dispatchers.IO) {
                     clubParticipantRepository.findAllByClubId(clubId).map { p ->
@@ -40,6 +37,10 @@ class GetClubServiceImpl(
                 async(Dispatchers.IO) {
                     dataGsmProjectClient.getProjectsByClubId(clubId)
                 }
+
+            val club =
+                clubDeferred.await()
+                    ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
 
             GetClubResponse(
                 club =

@@ -39,15 +39,16 @@ class DataGsmProjectClient(
     }
 
     private fun fetchFromApi(clubId: Long): List<GetClubResponse.ProjectSummary> =
-        restClient
-            .get()
-            .uri("/v1/projects?clubId=$clubId")
-            .retrieve()
-            .body(DataGsmResponse::class.java)
-            ?.data
-            ?.projects
-            ?.map { it.toSummary() }
-            ?: emptyList()
+        runCatching {
+            restClient
+                .get()
+                .uri("/v1/projects?clubId=$clubId")
+                .retrieve()
+                .body(DataGsmResponse::class.java)
+                ?.data
+                ?.projects
+                ?.map { it.toSummary() }
+        }.getOrNull() ?: emptyList()
 
     data class DataGsmResponse(
         val data: ProjectData,

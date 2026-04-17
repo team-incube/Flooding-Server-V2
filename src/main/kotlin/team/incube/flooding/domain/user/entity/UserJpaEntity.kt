@@ -32,7 +32,7 @@ class UserJpaEntity(
     var role: Role,
     @field:Column(name = "dormitory_room", nullable = false)
     var dormitoryRoom: Int,
-    @field:Column(name = "specialty", length = 30)
+    @field:Column(name = "specialty", length = 100)
     var specialty: String? = null,
     @field:Column(name = "penalty_score", nullable = false)
     var penaltyScore: Int = 0,
