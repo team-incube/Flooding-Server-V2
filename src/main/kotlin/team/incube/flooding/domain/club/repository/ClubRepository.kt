@@ -6,6 +6,9 @@ import team.incube.flooding.domain.club.entity.ClubJpaEntity
 import team.incube.flooding.domain.club.entity.ClubType
 
 interface ClubRepository : JpaRepository<ClubJpaEntity, Long> {
+    @Query("SELECT c FROM ClubJpaEntity c LEFT JOIN FETCH c.leader WHERE c.id = :id")
+    fun findByIdWithLeader(id: Long): ClubJpaEntity?
+
     fun findAllByType(type: ClubType): List<ClubJpaEntity>
 
     @Query(

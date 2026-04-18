@@ -69,6 +69,9 @@ oauth:
   client-id: ${OAUTH_CLIENT_ID}
   client-secret: ${OAUTH_CLIENT_SECRET}
 
+datagsm:
+  open-api-key: ${DATAGSM_OPEN_API_KEY}
+
 ai:
   chatbot:
     base-url: ${AI_CHATBOT_URL:http://localhost:8081}

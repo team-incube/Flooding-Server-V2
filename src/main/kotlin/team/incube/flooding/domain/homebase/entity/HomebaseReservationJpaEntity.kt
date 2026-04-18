@@ -23,6 +23,8 @@ class HomebaseReservationJpaEntity(
     val startPeriod: Int,
     @field:Column(nullable = false)
     val endPeriod: Int,
+    @field:Column(nullable = false, length = 300)
+    val reason: String = "",
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "homebase_id", nullable = false)
     val homebase: HomebaseJpaEntity,
@@ -34,6 +36,7 @@ class HomebaseReservationJpaEntity(
             id = id,
             startPeriod = startPeriod,
             endPeriod = endPeriod,
+            reason = reason,
             homebaseId = homebase.id,
             members = members.map { MemberDto(it.studentNumber, it.name) },
         )

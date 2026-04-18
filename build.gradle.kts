@@ -60,6 +60,9 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
     // External SDK
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.0.0")
     implementation("com.github.themoment-team:the-sdk:1.4")
