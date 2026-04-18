@@ -15,4 +15,7 @@ interface ClubParticipantRepository : JpaRepository<ClubParticipantJpaEntity, Cl
         "SELECT p.club.id as clubId, COUNT(p) as count FROM ClubParticipantJpaEntity p WHERE p.club.id IN :clubIds GROUP BY p.club.id",
     )
     fun countGroupByClubIdIn(clubIds: List<Long>): List<ClubMemberCountProjection>
+
+    @Query("SELECT p FROM ClubParticipantJpaEntity p JOIN FETCH p.user WHERE p.club.id = :clubId")
+    fun findAllByClubId(clubId: Long): List<ClubParticipantJpaEntity>
 }

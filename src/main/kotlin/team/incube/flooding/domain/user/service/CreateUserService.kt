@@ -37,6 +37,7 @@ class CreateUserService(
                         StudentRole.DORMITORY_MANAGER -> Role.DORMITORY_MANAGER
                     },
                 dormitoryRoom = student.dormitoryRoom,
+                specialty = student.major?.name,
             )
 
         userRepository.save(user)

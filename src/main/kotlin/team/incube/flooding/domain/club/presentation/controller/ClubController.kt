@@ -23,11 +23,13 @@ import team.incube.flooding.domain.club.presentation.data.request.PatchClubAppro
 import team.incube.flooding.domain.club.presentation.data.request.PutClubRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
+import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
 import team.incube.flooding.domain.club.service.CreateAutonomousClubApplicationService
 import team.incube.flooding.domain.club.service.CreateClubService
 import team.incube.flooding.domain.club.service.DeleteClubService
 import team.incube.flooding.domain.club.service.GetClubListService
+import team.incube.flooding.domain.club.service.GetClubService
 import team.incube.flooding.domain.club.service.PatchClubApprovalService
 import team.incube.flooding.domain.club.service.PutClubService
 import team.themoment.sdk.response.CommonApiResponse
@@ -42,6 +44,7 @@ class ClubController(
     private val getClubListService: GetClubListService,
     private val deleteClubService: DeleteClubService,
     private val putClubService: PutClubService,
+    private val getClubService: GetClubService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다. 신청 후 status는 NEW로 설정되며 관리자 승인이 필요합니다.")
     @ApiResponses(
@@ -126,4 +129,14 @@ class ClubController(
         @RequestParam type: ClubType,
         @RequestParam(required = false) name: String?,
     ): CommonApiResponse<GetClubListResponse> = CommonApiResponse.success("OK", getClubListService.execute(type, name))
+
+    @Operation(summary = "동아리 단건 조회", description = "동아리 ID로 상세 정보 + 멤버 + 프로젝트를 조회합니다.")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "조회 성공"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
+    )
+    @GetMapping("/{clubId}")
+    suspend fun getClub(
+        @PathVariable clubId: Long,
+    ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
 }

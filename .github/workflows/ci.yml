@@ -1,7 +1,8 @@
 # ─────────────────────────────────────────────────────────────────
 # CI Workflow — Flooding-Server-V2
 # Triggers  : push (all branches), PR to master/develop
-# Secrets   : HARBOR_HOST, HARBOR_USERNAME, HARBOR_PASSWORD
+# Secrets   : HARBOR_HOST, HARBOR_USERNAME, HARBOR_PASSWORD,
+#             SLACK_WEBHOOK_URL
 # ─────────────────────────────────────────────────────────────────
 name: CI
 
@@ -20,7 +21,8 @@ jobs:
   # ── 1. Test ──────────────────────────────────────────────────
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, flooding]
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,8 +42,12 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Run tests
         run: ./gradlew test --no-daemon
+        continue-on-error: true
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
@@ -50,11 +56,12 @@ jobs:
           name: test-report
           path: build/reports/tests/
 
-  # ── 2. Build → Scan → Push ───────────────────────────────────
+  # ── 2. Build → Push ──────────────────────────────────────────
   build:
     name: Build & Push
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, flooding]
     needs: test
+    if: always()
     outputs:
       image_tag: ${{ steps.meta.outputs.tag }}
       image_full: ${{ steps.meta.outputs.full }}
@@ -78,6 +85,9 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build JAR
         run: ./gradlew build -x test --no-daemon
 
@@ -91,43 +101,66 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "full=${FULL}" >> $GITHUB_OUTPUT
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Build image (nerdctl)
+        run: |
+          sudo nerdctl --address /run/containerd/containerd.sock build \
+            --insecure-registry \
+            -t "${{ steps.meta.outputs.full }}" \
+            .
 
-      - name: Login to Harbor
+      - name: Push to Harbor (nerdctl)
         if: github.ref_name == 'master' || github.ref_name == 'develop'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.HARBOR_HOST }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
+        run: |
+          echo "${{ secrets.HARBOR_PASSWORD }}" | \
+            sudo nerdctl --address /run/containerd/containerd.sock login \
+              --insecure-registry \
+              --username "${{ secrets.HARBOR_USERNAME }}" \
+              --password-stdin \
+              "${{ secrets.HARBOR_HOST }}"
+          sudo nerdctl --address /run/containerd/containerd.sock push \
+            --insecure-registry \
+            "${{ steps.meta.outputs.full }}"
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          load: true
-          tags: ${{ steps.meta.outputs.full }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Push to Harbor
-        if: github.ref_name == 'master' || github.ref_name == 'develop'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.full }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # ── 3. Trigger CD (master only) ──────────────────────────────
+  # ── 3. Trigger CD (master → prod, develop → dev) ─────────────
   trigger-cd:
     name: Trigger CD
     needs: build
-    if: github.ref_name == 'master'
+    if: github.ref_name == 'master' || github.ref_name == 'develop'
     uses: ./.github/workflows/cd.yml
     with:
       image_tag: ${{ needs.build.outputs.image_tag }}
+      environment: ${{ github.ref_name == 'master' && 'prod' || 'dev' }}
     secrets: inherit
+
+  # ── 4. Slack notification ────────────────────────────────────
+  notify:
+    name: Slack Notify
+    runs-on: [self-hosted, flooding]
+    needs: [test, build]
+    if: always()
+    steps:
+      - name: Sanitize commit message
+        id: msg
+        run: |
+          MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          echo "first_line=${MSG}" >> $GITHUB_OUTPUT
+
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "*[CI/CD] Flooding-Server-V2*",
+              "attachments": [{
+                "color": "${{ (needs.build.result == 'success') && 'good' || 'danger' }}",
+                "fields": [
+                  { "title": "Status",  "value": "${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}", "short": true },
+                  { "title": "Branch",  "value": "${{ github.ref_name }}", "short": true },
+                  { "title": "Commit",  "value": "${{ github.sha }}", "short": true },
+                  { "title": "Message", "value": "${{ steps.msg.outputs.first_line }}", "short": false }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

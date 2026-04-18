@@ -1,10 +1,9 @@
 # ─────────────────────────────────────────────────────────────────
 # CD Workflow — Flooding-Server-V2
-# Triggers  : workflow_call from ci.yml (master branch only)
+# Triggers  : workflow_call from ci.yml
+#             master  → updates values.yaml       → prod (flooding ns)
+#             develop → updates values-dev.yaml   → dev  (flooding-dev ns)
 # Secrets   : INFRA_REPO_TOKEN
-# Effect    : Clones Flooding-DevOps-V2, updates image.tag in
-#             helm/flooding-server/values.yaml, commits & pushes
-#             → ArgoCD auto-syncs from DevOps repo
 # ─────────────────────────────────────────────────────────────────
 name: CD
 
@@ -14,6 +13,9 @@ on:
       image_tag:
         required: true
         type: string
+      environment:
+        required: true
+        type: string   # 'prod' | 'dev'
 
 jobs:
   deploy:
@@ -28,19 +30,32 @@ jobs:
           token: ${{ secrets.INFRA_REPO_TOKEN }}
           fetch-depth: 0
 
-      - name: Update image tag in values.yaml
+      - name: Update image tag (prod → values.yaml, dev → values-dev.yaml)
         run: |
-          sed -i "s|^  tag:.*|  tag: \"${{ inputs.image_tag }}\"|" \
-            helm/flooding-server/values.yaml
-          echo "Updated image.tag to: ${{ inputs.image_tag }}"
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            VALUES_FILE="helm/flooding-server/values.yaml"
+          else
+            VALUES_FILE="helm/flooding-server/values-dev.yaml"
+          fi
+          sed -i "s|^  tag:.*|  tag: \"${{ inputs.image_tag }}\"|" "${VALUES_FILE}"
+          echo "Updated ${VALUES_FILE} image.tag to: ${{ inputs.image_tag }}"
 
       - name: Verify change
-        run: grep "tag:" helm/flooding-server/values.yaml
+        run: |
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            grep "tag:" helm/flooding-server/values.yaml
+          else
+            grep "tag:" helm/flooding-server/values-dev.yaml
+          fi
 
       - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add helm/flooding-server/values.yaml
-          git commit -m "chore: update image tag to ${{ inputs.image_tag }} [skip ci]"
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            git add helm/flooding-server/values.yaml
+          else
+            git add helm/flooding-server/values-dev.yaml
+          fi
+          git commit -m "chore: update ${{ inputs.environment }} image tag to ${{ inputs.image_tag }} [skip ci]"
           git push
