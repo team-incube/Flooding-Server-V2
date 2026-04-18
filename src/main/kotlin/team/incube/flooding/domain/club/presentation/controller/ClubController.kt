@@ -6,10 +6,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -18,15 +20,18 @@ import org.springframework.web.bind.annotation.RestController
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
+import team.incube.flooding.domain.club.presentation.data.request.PutClubRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
 import team.incube.flooding.domain.club.service.CreateAutonomousClubApplicationService
 import team.incube.flooding.domain.club.service.CreateClubService
+import team.incube.flooding.domain.club.service.DeleteClubService
 import team.incube.flooding.domain.club.service.GetClubListService
 import team.incube.flooding.domain.club.service.GetClubService
 import team.incube.flooding.domain.club.service.PatchClubApprovalService
+import team.incube.flooding.domain.club.service.PutClubService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "동아리", description = "동아리 관련 API")
@@ -34,10 +39,12 @@ import team.themoment.sdk.response.CommonApiResponse
 @RequestMapping("/clubs")
 class ClubController(
     private val createAutonomousClubApplicationService: CreateAutonomousClubApplicationService,
+    private val createClubService: CreateClubService,
     private val patchClubApprovalService: PatchClubApprovalService,
     private val getClubListService: GetClubListService,
+    private val deleteClubService: DeleteClubService,
+    private val putClubService: PutClubService,
     private val getClubService: GetClubService,
-    private val createClubService: CreateClubService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다. 신청 후 status는 NEW로 설정되며 관리자 승인이 필요합니다.")
     @ApiResponses(
@@ -64,6 +71,41 @@ class ClubController(
         @Valid @RequestBody request: PatchClubApprovalRequest,
     ): CommonApiResponse<PatchClubApprovalResponse> =
         CommonApiResponse.success("OK", patchClubApprovalService.execute(clubId, request))
+
+    @Operation(
+        summary = "동아리 삭제",
+        description = "동아리를 삭제합니다. ADMIN, STUDENT_COUNCIL은 모든 동아리를 삭제할 수 있으며, 동아리 리더는 본인 동아리만 삭제할 수 있습니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "삭제 성공"),
+        ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
+    )
+    @DeleteMapping("/{clubId}")
+    fun deleteClub(
+        @PathVariable clubId: Long,
+    ): CommonApiResponse<Nothing> {
+        deleteClubService.execute(clubId)
+        return CommonApiResponse.success("OK")
+    }
+
+    @Operation(
+        summary = "동아리 수정",
+        description = "동아리 정보를 수정합니다. ADMIN, STUDENT_COUNCIL은 모든 동아리를 수정할 수 있으며, 동아리 리더는 본인 동아리만 수정할 수 있습니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "수정 성공"),
+        ApiResponse(responseCode = "403", description = "수정 권한 없음"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
+    )
+    @PutMapping("/{clubId}")
+    fun putClub(
+        @PathVariable clubId: Long,
+        @Valid @RequestBody request: PutClubRequest,
+    ): CommonApiResponse<Nothing> {
+        putClubService.execute(clubId, request)
+        return CommonApiResponse.success("OK")
+    }
 
     @Operation(summary = "자율 동아리 선착순 신청", description = "자율 동아리에 선착순으로 신청합니다.")
     @ApiResponses(
