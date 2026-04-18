@@ -74,6 +74,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation(kotlin("test"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Excel
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 }
 
 kotlin {

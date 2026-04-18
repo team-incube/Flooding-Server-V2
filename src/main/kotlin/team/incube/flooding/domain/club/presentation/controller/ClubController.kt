@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,9 +18,11 @@ import team.incube.flooding.domain.club.presentation.data.response.CreateAutonom
 import team.incube.flooding.domain.club.presentation.data.response.GetClubApplicationResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
 import team.incube.flooding.domain.club.service.CreateAutonomousClubApplicationService
+import team.incube.flooding.domain.club.service.DownloadClubExcelService
 import team.incube.flooding.domain.club.service.GetClubApplicationService
 import team.incube.flooding.domain.club.service.GetClubListService
 import team.themoment.sdk.response.CommonApiResponse
+import java.net.URLEncoder
 
 @Tag(name = "동아리", description = "동아리 관련 API")
 @RestController
@@ -27,6 +31,7 @@ class ClubController(
     private val createAutonomousClubApplicationService: CreateAutonomousClubApplicationService,
     private val getClubListService: GetClubListService,
     private val getClubApplicationService: GetClubApplicationService,
+    private val downloadClubExcelService: DownloadClubExcelService,
 ) {
     @Operation(summary = "자율 동아리 선착순 신청", description = "자율 동아리에 선착순으로 신청합니다.")
     @ApiResponses(
@@ -63,5 +68,23 @@ class ClubController(
     ): ResponseEntity<GetClubApplicationResponse> {
         val response = getClubApplicationService.execute(clubId)
         return ResponseEntity.ok(response)
+    }
+
+    @Operation(
+        summary = "전공동아리 전체 명단 엑셀 조회",
+        description = "모든 전공동아리의 학년별 명단 및 활동실 정보를 엑셀로 내보냅니다.",
+    )
+    @GetMapping("/export")
+    fun exportAllMajorClubExcel(): ResponseEntity<ByteArray> {
+        val fileBytes = downloadClubExcelService.execute()
+
+        val fileName = "전공동아리_전체_명단.xlsx"
+        val encodedFileName = URLEncoder.encode(fileName, "UTF-8").replace("+", "%20")
+
+        return ResponseEntity
+            .ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$encodedFileName\"")
+            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .body(fileBytes)
     }
 }

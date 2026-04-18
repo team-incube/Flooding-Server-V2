@@ -39,4 +39,7 @@ class ClubJpaEntity(
     @field:Column(name = "approval_status", nullable = false, length = 20)
     @field:Enumerated(EnumType.STRING)
     var approvalStatus: ClubApprovalStatus = ClubApprovalStatus.PENDING,
+    @field:ManyToOne(fetch = FetchType.LAZY)
+    @field:JoinColumn(name = "club_room_id")
+    var clubRoom: ClubRoomJpaEntity? = null,
 )
