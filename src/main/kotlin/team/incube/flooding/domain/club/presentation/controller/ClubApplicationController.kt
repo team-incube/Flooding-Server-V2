@@ -42,6 +42,7 @@ class ClubApplicationController(
     @Operation(summary = "동아리 신청 목록 조회", description = "정규 동아리의 폼 신청 목록을 조회합니다. 리더 또는 ADMIN/STUDENT_COUNCIL만 호출 가능합니다.")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "조회 성공"),
+        ApiResponse(responseCode = "400", description = "정규 동아리가 아님"),
         ApiResponse(responseCode = "403", description = "권한 없음"),
         ApiResponse(responseCode = "404", description = "존재하지 않는 동아리 또는 생성된 폼 없음"),
     )
