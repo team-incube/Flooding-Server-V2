@@ -10,6 +10,8 @@ interface ClubFormSubmissionRepository : JpaRepository<ClubFormSubmissionJpaEnti
         userId: Long,
     ): Boolean
 
-    @Query("SELECT s FROM ClubFormSubmissionJpaEntity s JOIN FETCH s.user WHERE s.form.id = :formId")
+    @Query(
+        "SELECT s FROM ClubFormSubmissionJpaEntity s JOIN FETCH s.user WHERE s.form.id = :formId ORDER BY s.submittedAt DESC",
+    )
     fun findAllByFormIdWithUser(formId: Long): List<ClubFormSubmissionJpaEntity>
 }

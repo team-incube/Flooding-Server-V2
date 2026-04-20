@@ -3,6 +3,7 @@ package team.incube.flooding.domain.club.service.impl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.response.GetClubApplicationListResponse
 import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
 import team.incube.flooding.domain.club.repository.ClubFormRepository
@@ -32,6 +33,10 @@ class GetClubApplicationListServiceImpl(
         val isPrivileged = currentUser.role in listOf(Role.ADMIN, Role.STUDENT_COUNCIL)
         if (!isLeader && !isPrivileged) {
             throw ExpectedException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN)
+        }
+
+        if (club.type != ClubType.MAJOR_CLUB) {
+            throw ExpectedException("정규 동아리가 아닙니다.", HttpStatus.BAD_REQUEST)
         }
 
         val form =
