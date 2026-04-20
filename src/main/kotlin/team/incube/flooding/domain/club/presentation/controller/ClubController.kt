@@ -13,7 +13,6 @@ import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequ
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
 import team.incube.flooding.domain.club.presentation.data.request.PutClubRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
-import team.incube.flooding.domain.club.presentation.data.response.GetClubApplicationResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
@@ -32,7 +31,6 @@ class ClubController(
     private val deleteClubService: DeleteClubService,
     private val putClubService: PutClubService,
     private val getClubService: GetClubService,
-    private val getClubApplicationService: GetClubApplicationService,
     private val downloadClubExcelService: DownloadClubExcelService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다.")
@@ -91,15 +89,6 @@ class ClubController(
     suspend fun getClub(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
-
-    @Operation(summary = "동아리 신청서 전체 조회", description = "제출된 모든 신청서와 답변 목록을 조회합니다.")
-    @GetMapping("/{clubId}/applications")
-    fun getClubApplication(
-        @PathVariable clubId: Long,
-    ): ResponseEntity<GetClubApplicationResponse> {
-        val response = getClubApplicationService.execute(clubId)
-        return ResponseEntity.ok(response)
-    }
 
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")
