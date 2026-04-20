@@ -4,12 +4,16 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import team.incube.flooding.domain.auth.dto.request.ReissueTokenRequest
 import team.incube.flooding.domain.auth.dto.request.SignInRequest
+import team.incube.flooding.domain.auth.dto.response.ReissueTokenResponse
 import team.incube.flooding.domain.auth.dto.response.SignInResponse
+import team.incube.flooding.domain.auth.service.ReissueTokenService
 import team.incube.flooding.domain.auth.service.SignInService
 
 @Tag(name = "인증", description = "인증 관련 API")
@@ -17,6 +21,7 @@ import team.incube.flooding.domain.auth.service.SignInService
 @RequestMapping("/auth")
 class AuthController(
     private val signInService: SignInService,
+    private val reissueTokenService: ReissueTokenService,
 ) {
     @Operation(
         summary = "로그인",
@@ -30,4 +35,17 @@ class AuthController(
     fun signIn(
         @RequestBody request: SignInRequest,
     ): SignInResponse = signInService.execute(request.authCode)
+
+    @Operation(
+        summary = "토큰 재발급",
+        description = "Refresh Token으로 새로운 Access Token과 Refresh Token을 발급합니다. 기존 Refresh Token은 즉시 무효화됩니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "토큰 재발급 성공"),
+        ApiResponse(responseCode = "401", description = "유효하지 않은 리프레시 토큰"),
+    )
+    @PostMapping("/reissue")
+    fun reissueToken(
+        @Valid @RequestBody request: ReissueTokenRequest,
+    ): ReissueTokenResponse = reissueTokenService.execute(request.refreshToken)
 }
