@@ -10,7 +10,7 @@ import java.time.LocalTime
 
 @Component
 class StudyRedisAdapter(
-    private val redisTemplate: RedisTemplate<String, String>
+    private val redisTemplate: RedisTemplate<String, String>,
 ) {
     companion object {
         private const val APPLICATION_KEY = "study:application"
@@ -22,7 +22,10 @@ class StudyRedisAdapter(
         return Duration.between(LocalDateTime.now(), midnight)
     }
 
-    fun saveApplication(userId: Long, status: StudyApplicationStatus) {
+    fun saveApplication(
+        userId: Long,
+        status: StudyApplicationStatus,
+    ) {
         redisTemplate.opsForValue().set(
             "$APPLICATION_KEY:$userId",
             status.name,
@@ -45,6 +48,5 @@ class StudyRedisAdapter(
         return count
     }
 
-    fun getCount(): Long =
-        redisTemplate.opsForValue().get(COUNT_KEY)?.toLong() ?: 0
+    fun getCount(): Long = redisTemplate.opsForValue().get(COUNT_KEY)?.toLong() ?: 0
 }

@@ -4,11 +4,23 @@ plugins {
     id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.2.21"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
 group = "team.incube"
 version = "0.0.1-SNAPSHOT"
 description = "flooding-server-v2"
+
+ext {
+    set("tomcat.version", "11.0.20")
+    set("spring-security.version", "7.0.4")
+}
+
+dependencyManagement {
+    dependencies {
+        dependency("tools.jackson.core:jackson-core:3.1.1")
+    }
+}
 
 java {
     toolchain {
@@ -41,23 +53,33 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
     // External SDK
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.0.0")
     implementation("com.github.themoment-team:the-sdk:1.4")
 
     // Test
+    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testImplementation("io.mockk:mockk:1.13.17")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation(kotlin("test"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Excel
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 }
 
 kotlin {
@@ -74,4 +96,8 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+ktlint {
+    version.set("1.8.0")
 }

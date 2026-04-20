@@ -14,17 +14,16 @@ import java.time.LocalDateTime
 @Transactional
 class BanStudyServiceImpl(
     private val userRepository: UserRepository,
-    private val studyBanJpaRepository: StudyBanJpaRepository
+    private val studyBanJpaRepository: StudyBanJpaRepository,
 ) : BanStudyService {
-
     override fun execute(targetUserId: Long) {
-
-        val targetUser = userRepository.findById(targetUserId).orElseThrow {
-            ExpectedException("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND)
-        }
+        val targetUser =
+            userRepository.findById(targetUserId).orElseThrow {
+                ExpectedException("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND)
+            }
 
         val now = LocalDateTime.now()
-        if(studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(targetUserId, now)) {
+        if (studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(targetUserId, now)) {
             throw ExpectedException("이미 자습 금지 상태입니다.", HttpStatus.CONFLICT)
         }
 
@@ -32,8 +31,8 @@ class BanStudyServiceImpl(
             StudyBanJpaEntity(
                 user = targetUser,
                 bannedAt = now,
-                bannedUntil = now.plusWeeks(1)
-            )
+                bannedUntil = now.plusWeeks(1),
+            ),
         )
     }
 }

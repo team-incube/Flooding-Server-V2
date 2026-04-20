@@ -17,16 +17,15 @@ import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "자습", description = "자습 신청 관련 API")
 @RestController
-@RequestMapping("dormitory/study")
+@RequestMapping("dormitory/studies")
 class StudyController(
     private val studyApplicationService: StudyApplicationService,
     private val cancelStudyService: CancelStudyService,
-    private val banStudyService: BanStudyService
+    private val banStudyService: BanStudyService,
 ) {
-
     @Operation(
         summary = "자습 신청",
-        description = "자습 신청 시간 내에 자습을 신청합니다. 금지 상태이거나 이미 신청한 경우 신청할 수 없습니다."
+        description = "자습 신청 시간 내에 자습을 신청합니다. 금지 상태이거나 이미 신청한 경우 신청할 수 없습니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "자습 신청 성공"),
@@ -42,7 +41,7 @@ class StudyController(
 
     @Operation(
         summary = "자습 취소",
-        description = "신청한 자습을 취소합니다. 자습을 신청한 상태에서만 취소할 수 있습니다."
+        description = "신청한 자습을 취소합니다. 자습을 신청한 상태에서만 취소할 수 있습니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "자습 취소 성공"),
@@ -56,7 +55,7 @@ class StudyController(
 
     @Operation(
         summary = "자습 금지",
-        description = "특정 학생의 자습을 1주일간 금지합니다. 관리자 또는 기자위 권한이 필요합니다."
+        description = "특정 학생의 자습을 1주일간 금지합니다. 관리자 또는 기자위 권한이 필요합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "자습 금지 성공"),
@@ -65,7 +64,7 @@ class StudyController(
     )
     @PostMapping("/ban/{userId}")
     fun ban(
-        @Parameter(description = "금지할 학생의 ID") @PathVariable userId: Long
+        @Parameter(description = "금지할 학생의 ID") @PathVariable userId: Long,
     ): CommonApiResponse<Nothing> {
         banStudyService.execute(userId)
         return CommonApiResponse.success("OK")

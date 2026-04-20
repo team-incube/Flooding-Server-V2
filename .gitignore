@@ -41,3 +41,7 @@ out/
 
 ### Local env ###
 .env
+
+### Local Claude ###
+.claude/settings.local.json
+.claude/worktrees/

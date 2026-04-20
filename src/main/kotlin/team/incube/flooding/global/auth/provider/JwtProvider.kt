@@ -12,7 +12,7 @@ import javax.crypto.SecretKey
 class JwtProvider(
     @Value("\${jwt.secret}") secret: String,
     @Value("\${jwt.access-token-expiration}") private val accessTokenExpiration: Long,
-    @Value("\${jwt.refresh-token-expiration}") private val refreshTokenExpiration: Long
+    @Value("\${jwt.refresh-token-expiration}") private val refreshTokenExpiration: Long,
 ) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
@@ -21,7 +21,8 @@ class JwtProvider(
     fun generateRefreshToken(userId: Long): String = buildToken(userId, refreshTokenExpiration)
 
     fun getUserId(token: String): Long =
-        Jwts.parser()
+        Jwts
+            .parser()
             .verifyWith(secretKey)
             .build()
             .parseSignedClaims(token)
@@ -29,16 +30,31 @@ class JwtProvider(
             .subject
             .toLong()
 
+    fun getUserIdOrNull(token: String): Long? =
+        try {
+            getUserId(token)
+        } catch (e: JwtException) {
+            null
+        }
+
     fun isValid(token: String): Boolean =
         try {
-            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token)
+            Jwts
+                .parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
             true
         } catch (e: JwtException) {
             false
         }
 
-    private fun buildToken(userId: Long, expiration: Long): String =
-        Jwts.builder()
+    private fun buildToken(
+        userId: Long,
+        expiration: Long,
+    ): String =
+        Jwts
+            .builder()
             .subject(userId.toString())
             .issuedAt(Date())
             .expiration(Date(System.currentTimeMillis() + expiration))
