@@ -43,7 +43,7 @@ class ClubApplicationController(
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "조회 성공"),
         ApiResponse(responseCode = "403", description = "권한 없음"),
-        ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 동아리 또는 생성된 폼 없음"),
     )
     @GetMapping("/{clubId}/applications")
     fun getClubApplicationList(
