@@ -1,16 +1,6 @@
 package team.incube.flooding.domain.club.entity
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 
@@ -40,6 +30,9 @@ class ClubJpaEntity(
     @field:Column(name = "approval_status", nullable = false, length = 20)
     @field:Enumerated(EnumType.STRING)
     var approvalStatus: ClubApprovalStatus = ClubApprovalStatus.PENDING,
+    @field:ManyToOne(fetch = FetchType.LAZY)
+    @field:JoinColumn(name = "club_room_id")
+    var clubRoom: ClubRoomJpaEntity? = null,
 ) {
     fun isModifiableBy(user: UserJpaEntity): Boolean {
         val isAdminOrCouncil = user.role == Role.ADMIN || user.role == Role.STUDENT_COUNCIL
