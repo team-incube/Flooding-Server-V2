@@ -14,7 +14,7 @@ import team.incube.flooding.domain.auth.service.SignInService
 
 @Tag(name = "인증", description = "인증 관련 API")
 @RestController
-@RequestMapping("/v2/auth")
+@RequestMapping("/auth")
 class AuthController(
     private val signInService: SignInService,
 ) {
