@@ -20,6 +20,7 @@ class ReissueTokenService(
         val storedToken = refreshTokenRedisAdapter.find(userId)
 
         if (storedToken != refreshToken) {
+            refreshTokenRedisAdapter.delete(userId)
             throw ExpectedException("유효하지 않은 리프레시 토큰입니다.", HttpStatus.UNAUTHORIZED)
         }
 
