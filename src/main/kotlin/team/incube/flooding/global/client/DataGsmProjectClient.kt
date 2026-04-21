@@ -1,17 +1,17 @@
 package team.incube.flooding.global.client
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.json.JsonMapper
 import java.time.Duration
 
 @Component
 class DataGsmProjectClient(
     private val redisTemplate: RedisTemplate<String, String>,
-    private val objectMapper: ObjectMapper,
+    private val jsonMapper: JsonMapper,
     private val restClientBuilder: RestClient.Builder,
     @Value("\${datagsm.open-api-key}") private val apiKey: String,
 ) {
@@ -30,10 +30,10 @@ class DataGsmProjectClient(
     fun getProjectsByClubId(clubId: Long): List<GetClubResponse.ProjectSummary> {
         val cacheKey = "$CACHE_PREFIX$clubId"
         redisTemplate.opsForValue().get(cacheKey)?.let {
-            return objectMapper.readValue(it, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
+            return jsonMapper.readValue(it, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
         }
         val projects = fetchFromApi(clubId)
-        redisTemplate.opsForValue().set(cacheKey, objectMapper.writeValueAsString(projects), CACHE_TTL)
+        redisTemplate.opsForValue().set(cacheKey, jsonMapper.writeValueAsString(projects), CACHE_TTL)
         return projects
     }
 
