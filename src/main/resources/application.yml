@@ -68,7 +68,6 @@ massage:
 oauth:
   client-id: ${OAUTH_CLIENT_ID}
   client-secret: ${OAUTH_CLIENT_SECRET}
-  redirect-uri: ${OAUTH_REDIRECT_URI}
 
 datagsm:
   open-api-key: ${DATAGSM_OPEN_API_KEY}

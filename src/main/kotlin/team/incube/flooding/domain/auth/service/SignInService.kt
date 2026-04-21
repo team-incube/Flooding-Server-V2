@@ -8,7 +8,6 @@ import team.incube.flooding.domain.auth.adapter.RefreshTokenRedisAdapter
 import team.incube.flooding.domain.auth.dto.response.SignInResponse
 import team.incube.flooding.domain.user.repository.UserRepository
 import team.incube.flooding.domain.user.service.CreateUserService
-import team.incube.flooding.global.auth.config.OAuthConfig
 import team.incube.flooding.global.auth.provider.JwtProvider
 import team.themoment.datagsm.sdk.oauth.DataGsmOAuthClient
 import team.themoment.datagsm.sdk.oauth.exception.DataGsmException
@@ -22,14 +21,16 @@ class SignInService(
     private val createUserService: CreateUserService,
     private val jwtProvider: JwtProvider,
     private val refreshTokenRedisAdapter: RefreshTokenRedisAdapter,
-    private val oauthConfig: OAuthConfig,
 ) {
     private val logger = LoggerFactory.getLogger(SignInService::class.java)
 
-    fun execute(authCode: String): SignInResponse {
+    fun execute(
+        authCode: String,
+        redirectUri: String,
+    ): SignInResponse {
         val oauthUser =
             try {
-                val tokenResponse = dataGsmClient.exchangeCodeForToken(authCode, oauthConfig.redirectUri)
+                val tokenResponse = dataGsmClient.exchangeCodeForToken(authCode, redirectUri)
                 dataGsmClient.getUserInfo(tokenResponse.accessToken)
             } catch (ex: DataGsmException) {
                 logger.warn("DataGSM OAuth SDK error (status={}): {}", ex.statusCode, ex.message)
