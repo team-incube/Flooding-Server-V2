@@ -34,7 +34,7 @@ class AuthController(
     @PostMapping("/signin")
     fun signIn(
         @RequestBody request: SignInRequest,
-    ): SignInResponse = signInService.execute(request.authCode)
+    ): SignInResponse = signInService.execute(request.authCode, request.redirectUri)
 
     @Operation(
         summary = "토큰 재발급",
