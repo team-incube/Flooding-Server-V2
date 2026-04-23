@@ -62,6 +62,7 @@ class StudyApplicationServiceImpl(
             }
 
             studyRedisAdapter.saveApplication(user.id, StudyApplicationStatus.APPROVED)
+            studyRedisAdapter.addApplicant(user.id)
         } finally {
             lock.unlock()
         }
