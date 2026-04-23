@@ -15,4 +15,6 @@ interface WakeUpMusicLikeRepository : JpaRepository<WakeUpMusicLikeJpaEntity, Lo
     ): WakeUpMusicLikeJpaEntity?
 
     fun countByMusicId(musicId: Long): Long
+
+    fun deleteAllByMusicIdIn(musicIds: List<Long>)
 }
