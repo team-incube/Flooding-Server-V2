@@ -7,7 +7,7 @@ import team.incube.flooding.domain.dormitory.music.presentation.data.response.Wa
 import java.time.LocalDateTime
 
 interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
-    fun existsByUserId(userId: Long): Boolean
+    fun findTop5ByUserIdOrderByAppliedAtDesc(userId: Long): List<WakeUpMusicJpaEntity>
 
     @Query(
         """
