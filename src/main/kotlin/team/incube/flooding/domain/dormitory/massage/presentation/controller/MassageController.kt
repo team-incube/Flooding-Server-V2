@@ -24,14 +24,14 @@ class MassageController(
     private val getMassageService: GetMassageService,
 ) {
     @Operation(
-        summary = "안마의자 신청 현황 조회",
-        description = "현재 사용자의 안마의자 신청 여부, 대기 순번, 전체 신청 인원을 조회합니다.",
+        summary = "안마의자 신청자 목록 조회",
+        description = "오늘 안마의자를 신청한 학생 목록을 대기 순번과 함께 조회합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "조회 성공"),
     )
     @GetMapping
-    fun getMassage(): CommonApiResponse<GetMassageResponse> =
+    fun getMassage(): CommonApiResponse<List<GetMassageResponse>> =
         CommonApiResponse.success("OK", getMassageService.execute())
 
     @Operation(

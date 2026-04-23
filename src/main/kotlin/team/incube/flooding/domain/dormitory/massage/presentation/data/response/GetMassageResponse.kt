@@ -1,7 +1,7 @@
 package team.incube.flooding.domain.dormitory.massage.presentation.data.response
 
 data class GetMassageResponse(
-    val isApplied: Boolean,
-    val order: Long?,
-    val currentCount: Long,
+    val order: Long,
+    val name: String,
+    val studentNumber: Int,
 )

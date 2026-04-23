@@ -15,6 +15,7 @@ class StudyRedisAdapter(
     companion object {
         private const val APPLICATION_KEY = "study:application"
         private const val COUNT_KEY = "study:count"
+        private const val APPLICANTS_KEY = "study:applicants"
     }
 
     private fun ttlUntilMidnight(): Duration {
@@ -49,4 +50,23 @@ class StudyRedisAdapter(
     }
 
     fun getCount(): Long = redisTemplate.opsForValue().get(COUNT_KEY)?.toLong() ?: 0
+
+    fun addApplicant(userId: Long) {
+        redisTemplate.opsForSet().add(APPLICANTS_KEY, userId.toString())
+        val size = redisTemplate.opsForSet().size(APPLICANTS_KEY) ?: 0L
+        if (size == 1L) {
+            redisTemplate.expire(APPLICANTS_KEY, ttlUntilMidnight())
+        }
+    }
+
+    fun removeApplicant(userId: Long) {
+        redisTemplate.opsForSet().remove(APPLICANTS_KEY, userId.toString())
+    }
+
+    fun getApplicantIds(): Set<Long> =
+        redisTemplate
+            .opsForSet()
+            .members(APPLICANTS_KEY)
+            ?.map { it.toLong() }
+            ?.toSet() ?: emptySet()
 }

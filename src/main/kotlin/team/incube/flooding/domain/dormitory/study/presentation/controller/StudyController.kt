@@ -28,14 +28,15 @@ class StudyController(
     private val getStudyService: GetStudyService,
 ) {
     @Operation(
-        summary = "자습 신청 현황 조회",
-        description = "현재 사용자의 자습 신청 상태, 금지 여부, 전체 신청 인원을 조회합니다.",
+        summary = "자습 신청자 목록 조회",
+        description = "오늘 자습을 신청한 학생 목록을 조회합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "조회 성공"),
     )
     @GetMapping
-    fun getStudy(): CommonApiResponse<GetStudyResponse> = CommonApiResponse.success("OK", getStudyService.execute())
+    fun getStudy(): CommonApiResponse<List<GetStudyResponse>> =
+        CommonApiResponse.success("OK", getStudyService.execute())
 
     @Operation(
         summary = "자습 신청",
