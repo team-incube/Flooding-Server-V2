@@ -5,11 +5,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageResponse
 import team.incube.flooding.domain.dormitory.massage.service.ApplyMassageService
 import team.incube.flooding.domain.dormitory.massage.service.CancelMassageService
+import team.incube.flooding.domain.dormitory.massage.service.GetMassageService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "마사지", description = "마사지 신청 관련 API")
@@ -18,7 +21,18 @@ import team.themoment.sdk.response.CommonApiResponse
 class MassageController(
     private val applyMassageService: ApplyMassageService,
     private val cancelMassageService: CancelMassageService,
+    private val getMassageService: GetMassageService,
 ) {
+    @Operation(
+        summary = "안마의자 신청 현황 조회",
+        description = "현재 사용자의 안마의자 신청 여부, 대기 순번, 전체 신청 인원을 조회합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "조회 성공"),
+    )
+    @GetMapping
+    fun getMassage(): CommonApiResponse<GetMassageResponse> = CommonApiResponse.success(getMassageService.execute())
+
     @Operation(
         summary = "마사지 신청",
         description = "마사지 신청 시간 내에 마사지를 신청합니다. 이미 신청한 경우 신청할 수 없습니다.",
