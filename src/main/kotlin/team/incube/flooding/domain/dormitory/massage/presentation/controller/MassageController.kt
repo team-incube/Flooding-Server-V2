@@ -31,7 +31,8 @@ class MassageController(
         ApiResponse(responseCode = "200", description = "조회 성공"),
     )
     @GetMapping
-    fun getMassage(): CommonApiResponse<GetMassageResponse> = CommonApiResponse.success(getMassageService.execute())
+    fun getMassage(): CommonApiResponse<GetMassageResponse> =
+        CommonApiResponse.success("OK", getMassageService.execute())
 
     @Operation(
         summary = "마사지 신청",

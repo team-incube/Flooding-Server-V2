@@ -35,7 +35,7 @@ class StudyController(
         ApiResponse(responseCode = "200", description = "조회 성공"),
     )
     @GetMapping
-    fun getStudy(): CommonApiResponse<GetStudyResponse> = CommonApiResponse.success(getStudyService.execute())
+    fun getStudy(): CommonApiResponse<GetStudyResponse> = CommonApiResponse.success("OK", getStudyService.execute())
 
     @Operation(
         summary = "자습 신청",
