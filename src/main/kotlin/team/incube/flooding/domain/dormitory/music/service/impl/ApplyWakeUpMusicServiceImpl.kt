@@ -30,6 +30,8 @@ class ApplyWakeUpMusicServiceImpl(
             WakeUpMusicJpaEntity(
                 user = user,
                 musicUrl = request.musicUrl,
+                title = request.title,
+                artist = request.artist,
             ),
         )
     }
