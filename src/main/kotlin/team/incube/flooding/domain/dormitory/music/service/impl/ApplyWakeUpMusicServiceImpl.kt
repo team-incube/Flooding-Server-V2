@@ -1,32 +1,41 @@
 package team.incube.flooding.domain.dormitory.music.service.impl
 
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicRequest
+import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.global.security.util.CurrentUserProvider
-import team.themoment.sdk.exception.ExpectedException
 
 @Service
 class ApplyWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
+    private val wakeUpMusicLikeRepository: WakeUpMusicLikeRepository,
     private val currentUserProvider: CurrentUserProvider,
 ) : ApplyWakeUpMusicService {
+    companion object {
+        private const val MAX_HISTORY_SIZE = 5
+    }
+
     @Transactional
     override fun execute(request: ApplyWakeUpMusicRequest) {
         val user = currentUserProvider.getCurrentUser()
 
-        if (wakeUpMusicRepository.existsByUserId(user.id)) {
-            throw ExpectedException("이미 기상음악을 신청했습니다.", HttpStatus.CONFLICT)
+        val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
+        if (histories.size >= MAX_HISTORY_SIZE) {
+            val toDelete = histories.take(histories.size - MAX_HISTORY_SIZE + 1)
+            wakeUpMusicLikeRepository.deleteAllByMusicIdIn(toDelete.map { it.id })
+            wakeUpMusicRepository.deleteAllInBatch(toDelete)
         }
 
         wakeUpMusicRepository.save(
             WakeUpMusicJpaEntity(
                 user = user,
                 musicUrl = request.musicUrl,
+                title = request.title,
+                artist = request.artist,
             ),
         )
     }
