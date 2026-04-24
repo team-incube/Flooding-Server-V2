@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.club.event
 
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -15,6 +16,7 @@ class ClubApprovedEventListener(
     private val dataGsmClubClient: DataGsmClubClient,
     private val clubDataGsmIdSaver: ClubDataGsmIdSaver,
 ) {
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleClubApproved(event: ClubApprovedEvent) {
         val club = clubRepository.findByIdWithLeader(event.clubId) ?: return

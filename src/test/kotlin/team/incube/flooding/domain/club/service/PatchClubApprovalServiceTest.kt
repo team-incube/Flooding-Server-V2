@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import team.incube.flooding.domain.club.entity.ClubApprovalStatus
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
@@ -19,7 +20,8 @@ import java.util.Optional
 class PatchClubApprovalServiceTest :
     BehaviorSpec({
         val clubRepository = mockk<ClubRepository>()
-        val service = PatchClubApprovalServiceImpl(clubRepository)
+        val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
+        val service = PatchClubApprovalServiceImpl(clubRepository, eventPublisher)
 
         fun club(approvalStatus: ClubApprovalStatus) =
             ClubJpaEntity(
