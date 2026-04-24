@@ -70,6 +70,7 @@ oauth:
   client-secret: ${OAUTH_CLIENT_SECRET}
 
 datagsm:
+  base-url: ${DATAGSM_BASE_URL:https://api.datagsm.com}
   open-api-key: ${DATAGSM_OPEN_API_KEY}
 
 ai:

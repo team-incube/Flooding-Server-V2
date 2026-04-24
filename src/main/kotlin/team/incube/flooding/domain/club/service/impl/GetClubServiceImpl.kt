@@ -33,15 +33,15 @@ class GetClubServiceImpl(
                         )
                     }
                 }
+            val projectsDeferred =
+                async(Dispatchers.IO) {
+                    val dgId = clubDeferred.await()?.dataGsmClubId ?: return@async emptyList()
+                    runCatching { dataGsmProjectClient.getProjectsByClubId(dgId) }.getOrElse { emptyList() }
+                }
+
             val club =
                 clubDeferred.await()
                     ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
-
-            val projectsDeferred =
-                async(Dispatchers.IO) {
-                    val dgId = club.dataGsmClubId ?: return@async emptyList()
-                    runCatching { dataGsmProjectClient.getProjectsByClubId(dgId) }.getOrElse { emptyList() }
-                }
 
             GetClubResponse(
                 club =

@@ -9,13 +9,14 @@ import org.springframework.web.client.RestClient
 @Component
 class DataGsmClubClient(
     private val restClientBuilder: RestClient.Builder,
+    @Value("\${datagsm.base-url}") private val baseUrl: String,
     @Value("\${datagsm.open-api-key}") private val apiKey: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val restClient: RestClient by lazy {
         restClientBuilder
-            .baseUrl("https://api.datagsm.com")
+            .baseUrl(baseUrl)
             .defaultHeader("X-API-KEY", apiKey)
             .build()
     }

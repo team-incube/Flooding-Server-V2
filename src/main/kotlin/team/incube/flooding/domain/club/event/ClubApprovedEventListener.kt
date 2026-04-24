@@ -13,9 +13,9 @@ import java.time.LocalDate
 class ClubApprovedEventListener(
     private val clubRepository: ClubRepository,
     private val dataGsmClubClient: DataGsmClubClient,
+    private val clubDataGsmIdSaver: ClubDataGsmIdSaver,
 ) {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleClubApproved(event: ClubApprovedEvent) {
         val club = clubRepository.findByIdWithLeader(event.clubId) ?: return
 
@@ -29,12 +29,24 @@ class ClubApprovedEventListener(
                     leaderId = leaderDataGsmId,
                     participantIds = emptyList(),
                     foundedYear = LocalDate.now().year,
-                    status = "ACTIVE",
+                    status = club.status.name,
                 ),
-            )
+            ) ?: return
 
-        if (dataGsmClubId != null) {
-            club.dataGsmClubId = dataGsmClubId
-        }
+        clubDataGsmIdSaver.save(event.clubId, dataGsmClubId)
+    }
+}
+
+@Component
+class ClubDataGsmIdSaver(
+    private val clubRepository: ClubRepository,
+) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun save(
+        clubId: Long,
+        dataGsmClubId: Long,
+    ) {
+        val club = clubRepository.findById(clubId).orElse(null) ?: return
+        club.dataGsmClubId = dataGsmClubId
     }
 }
