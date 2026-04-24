@@ -9,6 +9,8 @@ import java.time.LocalDateTime
 interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
     fun findTop5ByUserIdOrderByAppliedAtDesc(userId: Long): List<WakeUpMusicJpaEntity>
 
+    fun findAllByUserIdOrderByAppliedAtAsc(userId: Long): List<WakeUpMusicJpaEntity>
+
     @Query(
         """
         SELECT new team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse(
