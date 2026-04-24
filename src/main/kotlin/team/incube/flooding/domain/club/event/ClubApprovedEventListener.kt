@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.club.event
 
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
@@ -48,7 +49,7 @@ class ClubDataGsmIdSaver(
         clubId: Long,
         dataGsmClubId: Long,
     ) {
-        val club = clubRepository.findById(clubId).orElse(null) ?: return
+        val club = clubRepository.findByIdOrNull(clubId) ?: return
         club.dataGsmClubId = dataGsmClubId
     }
 }
