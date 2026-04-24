@@ -1,9 +1,11 @@
 package team.incube.flooding.domain.club.service.impl
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubApprovalStatus
+import team.incube.flooding.domain.club.event.ClubApprovedEvent
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
 import team.incube.flooding.domain.club.repository.ClubRepository
@@ -13,6 +15,7 @@ import team.themoment.sdk.exception.ExpectedException
 @Service
 class PatchClubApprovalServiceImpl(
     private val clubRepository: ClubRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) : PatchClubApprovalService {
     @Transactional
     override fun execute(
@@ -30,6 +33,10 @@ class PatchClubApprovalServiceImpl(
 
         val newApprovalStatus = if (request.approved) ClubApprovalStatus.APPROVED else ClubApprovalStatus.REJECTED
         club.approvalStatus = newApprovalStatus
+
+        if (newApprovalStatus == ClubApprovalStatus.APPROVED) {
+            eventPublisher.publishEvent(ClubApprovedEvent(clubId))
+        }
 
         return PatchClubApprovalResponse(clubId = clubId, status = newApprovalStatus)
     }
