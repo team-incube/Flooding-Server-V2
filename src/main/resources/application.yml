@@ -69,8 +69,20 @@ oauth:
   client-id: ${OAUTH_CLIENT_ID}
   client-secret: ${OAUTH_CLIENT_SECRET}
 
+neis:
+  openapi:
+    timetable:
+      baseUrl: ${NEIS_OPENAPI_TIMETABLE_BASE_URL:https://open.neis.go.kr/hub/}
+      apiKey: ${NEIS_TIMETABLE_API_KEY}
+      path: "hisTimetable"
+
 datagsm:
   open-api-key: ${DATAGSM_OPEN_API_KEY}
+  neis:
+    meals:
+      baseUrl: ${DATAGSM_NEIS_MEALS_BASE_URL:https://openapi.datagsm.kr/}
+      apiKey: ${DATAGSM_NEIS_MEALS_API_KEY}
+      path: "v1/neis/meals"
 
 ai:
   chatbot:
