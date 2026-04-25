@@ -72,9 +72,9 @@ oauth:
 neis:
   openapi:
     timetable:
-      baseUrl: ${NEIS_OPENAPI_TIMETABLE_BASE_URL:https://open.neis.go.kr/hub/}
+      baseUrl: ${NEIS_OPENAPI_TIMETABLE_BASE_URL:https://open.neis.go.kr/}
       apiKey: ${NEIS_TIMETABLE_API_KEY}
-      path: "hisTimetable"
+      path: "hub/hisTimetable"
 
 datagsm:
   open-api-key: ${DATAGSM_OPEN_API_KEY}
