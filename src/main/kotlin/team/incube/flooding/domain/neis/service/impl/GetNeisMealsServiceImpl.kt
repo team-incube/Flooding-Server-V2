@@ -1,6 +1,6 @@
 package team.incube.flooding.domain.neis.service.impl
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.neis.client.DgMealsClient
 import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
@@ -26,51 +26,15 @@ class GetNeisMealsServiceImpl(
     }
 
     private fun extractMeals(response: JsonNode): List<GetNeisMealsResponse.Meal> {
-        val targets =
-            listOf(
-                response.path("data"),
-                response.path("meals"),
-                response,
-            )
-
-        val mealNodes =
-            targets.firstNotNullOfOrNull { node ->
-                when {
-                    node.isArray -> node
-                    node.path("meals").isArray -> node.path("meals")
-                    node.path("data").isArray -> node.path("data")
-                    else -> null
-                }
-            } ?: return emptyList()
+        val mealNodes = response.path("data")
+        if (!mealNodes.isArray) return emptyList()
 
         return mealNodes.map { mealNode ->
-            val menuText = valueOf(mealNode, "menu", "menus", "DDISH_NM")
             GetNeisMealsResponse.Meal(
-                mealType = valueOf(mealNode, "mealType", "meal_type", "MMEAL_SC_NM") ?: "UNKNOWN",
-                menus = parseMenus(menuText),
-                calories = valueOf(mealNode, "calories", "calorie", "CAL_INFO"),
+                mealType = mealNode.path("mealType").asText("UNKNOWN"),
+                menus = mealNode.path("mealMenu").map { it.asText() },
+                calories = mealNode.path("mealCalories").takeIf { !it.isNull && !it.isMissingNode }?.asText(),
             )
         }
-    }
-
-    private fun parseMenus(value: String?): List<String> {
-        if (value.isNullOrBlank()) return emptyList()
-        return value
-            .replace("<br/>", "\n")
-            .replace("<br>", "\n")
-            .split("\n")
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-    }
-
-    private fun valueOf(
-        node: JsonNode,
-        vararg keys: String,
-    ): String? {
-        keys.forEach { key ->
-            val value = node.path(key)
-            if (!value.isMissingNode && !value.isNull) return value.asText()
-        }
-        return null
     }
 }
