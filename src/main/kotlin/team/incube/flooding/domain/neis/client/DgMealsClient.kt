@@ -1,8 +1,9 @@
 package team.incube.flooding.domain.neis.client
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
 import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
@@ -14,7 +15,10 @@ class DgMealsClient(
     private val dgMealsProperties: DgMealsProperties,
     restClientBuilder: RestClient.Builder,
 ) {
-    private val restClient = restClientBuilder.build()
+    private val restClient = restClientBuilder
+        .clone()
+        .baseUrl(dgMealsProperties.baseUrl)
+        .build()
 
     fun getMeals(request: GetMealsRequest): JsonNode =
         try {
@@ -22,8 +26,6 @@ class DgMealsClient(
                 .get()
                 .uri { builder ->
                     builder
-                        .scheme("https")
-                        .host(dgMealsProperties.baseUrl.removePrefix("https://").removePrefix("http://"))
                         .path(dgMealsProperties.path)
                         .queryParam("date", request.date)
                         .build()
@@ -34,6 +36,11 @@ class DgMealsClient(
         } catch (exception: RestClientResponseException) {
             throw ExpectedException(
                 "DG 급식 호출에 실패했습니다. status=${exception.statusCode.value()}",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            )
+        } catch (exception: ResourceAccessException) {
+            throw ExpectedException(
+                "DG 급식 서버에 연결할 수 없습니다.",
                 HttpStatus.INTERNAL_SERVER_ERROR,
             )
         }
