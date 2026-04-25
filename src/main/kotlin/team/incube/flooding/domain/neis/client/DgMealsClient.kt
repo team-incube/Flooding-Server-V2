@@ -25,8 +25,6 @@ class DgMealsClient(
                         .scheme("https")
                         .host(dgMealsProperties.baseUrl.removePrefix("https://").removePrefix("http://"))
                         .path(dgMealsProperties.path)
-                        .queryParam("officeCode", request.officeCode)
-                        .queryParam("schoolCode", request.schoolCode)
                         .queryParam("date", request.date)
                         .build()
                 }.header("X-API-KEY", dgMealsProperties.apiKey)

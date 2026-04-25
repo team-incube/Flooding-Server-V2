@@ -35,8 +35,6 @@ class NeisController(
     )
     @GetMapping("/meals")
     fun getMeals(
-        @RequestParam officeCode: String,
-        @RequestParam schoolCode: String,
         @RequestParam
         @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "date는 yyyy-MM-dd 형식이어야 합니다.")
         date: String,
@@ -44,11 +42,7 @@ class NeisController(
         CommonApiResponse.success(
             "OK",
             getNeisMealsService.execute(
-                GetNeisMealsRequest(
-                    officeCode = officeCode,
-                    schoolCode = schoolCode,
-                    date = date,
-                ),
+                GetNeisMealsRequest(date = date),
             ),
         )
 

@@ -16,8 +16,6 @@ class GetNeisMealsServiceImpl(
         val response =
             dgMealsClient.getMeals(
                 GetMealsRequest(
-                    officeCode = request.officeCode,
-                    schoolCode = request.schoolCode,
                     date = request.date,
                 ),
             )
