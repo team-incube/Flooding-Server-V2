@@ -1,6 +1,6 @@
 package team.incube.flooding.domain.neis.client
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -14,7 +14,10 @@ class NeisTimetableClient(
     private val neisTimetableProperties: NeisTimetableProperties,
     restClientBuilder: RestClient.Builder,
 ) {
-    private val restClient = restClientBuilder.build()
+    private val restClient = restClientBuilder
+        .clone()
+        .baseUrl(neisTimetableProperties.baseUrl)
+        .build()
 
     fun getTimetables(request: GetTimetablesRequest): JsonNode =
         try {
@@ -22,8 +25,6 @@ class NeisTimetableClient(
                 .get()
                 .uri { builder ->
                     builder
-                        .scheme("https")
-                        .host(neisTimetableProperties.baseUrl.removePrefix("https://").removePrefix("http://"))
                         .path(neisTimetableProperties.path)
                         .queryParam("KEY", neisTimetableProperties.apiKey)
                         .queryParam("Type", neisTimetableProperties.dataType)
