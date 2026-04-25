@@ -2,6 +2,7 @@ package team.incube.flooding.domain.neis.client
 
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
 import team.incube.flooding.domain.neis.client.dto.GetTimetablesRequest
@@ -43,6 +44,11 @@ class NeisTimetableClient(
         } catch (exception: RestClientResponseException) {
             throw ExpectedException(
                 "NEIS 시간표 호출에 실패했습니다. status=${exception.statusCode.value()}",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            )
+        } catch (exception: ResourceAccessException) {
+            throw ExpectedException(
+                "NEIS 시간표 서버에 연결할 수 없습니다.",
                 HttpStatus.INTERNAL_SERVER_ERROR,
             )
         }
