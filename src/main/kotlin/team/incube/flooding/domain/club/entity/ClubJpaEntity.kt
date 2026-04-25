@@ -33,6 +33,8 @@ class ClubJpaEntity(
     @field:ManyToOne(fetch = FetchType.LAZY)
     @field:JoinColumn(name = "club_room_id")
     var clubRoom: ClubRoomJpaEntity? = null,
+    @field:Column(name = "data_gsm_club_id")
+    var dataGsmClubId: Long? = null,
 ) {
     fun isModifiableBy(user: UserJpaEntity): Boolean {
         val isAdminOrCouncil = user.role == Role.ADMIN || user.role == Role.STUDENT_COUNCIL

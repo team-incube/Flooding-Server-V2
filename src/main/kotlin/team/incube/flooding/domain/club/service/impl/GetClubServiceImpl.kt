@@ -35,7 +35,8 @@ class GetClubServiceImpl(
                 }
             val projectsDeferred =
                 async(Dispatchers.IO) {
-                    dataGsmProjectClient.getProjectsByClubId(clubId)
+                    val dgId = clubDeferred.await()?.dataGsmClubId ?: return@async emptyList()
+                    runCatching { dataGsmProjectClient.getProjectsByClubId(dgId) }.getOrElse { emptyList() }
                 }
 
             val club =
