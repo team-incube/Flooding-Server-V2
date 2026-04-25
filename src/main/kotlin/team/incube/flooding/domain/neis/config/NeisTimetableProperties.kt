@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class NeisTimetableProperties(
     val baseUrl: String,
     val apiKey: String,
-    val path: String = "/hub/hisTimetable",
+    val path: String = "hub/hisTimetable",
     val dataType: String = "json",
     val pageSize: Int = 100,
 )
