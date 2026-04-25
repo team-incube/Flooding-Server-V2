@@ -1,6 +1,5 @@
 package team.incube.flooding.domain.neis.client
 
-import tools.jackson.databind.JsonNode
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -8,16 +7,18 @@ import org.springframework.web.client.RestClientResponseException
 import team.incube.flooding.domain.neis.client.dto.GetTimetablesRequest
 import team.incube.flooding.domain.neis.config.NeisTimetableProperties
 import team.themoment.sdk.exception.ExpectedException
+import tools.jackson.databind.JsonNode
 
 @Component
 class NeisTimetableClient(
     private val neisTimetableProperties: NeisTimetableProperties,
     restClientBuilder: RestClient.Builder,
 ) {
-    private val restClient = restClientBuilder
-        .clone()
-        .baseUrl(neisTimetableProperties.baseUrl)
-        .build()
+    private val restClient =
+        restClientBuilder
+            .clone()
+            .baseUrl(neisTimetableProperties.baseUrl)
+            .build()
 
     fun getTimetables(request: GetTimetablesRequest): JsonNode =
         try {

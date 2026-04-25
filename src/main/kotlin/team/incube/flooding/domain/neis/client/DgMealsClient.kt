@@ -1,6 +1,5 @@
 package team.incube.flooding.domain.neis.client
 
-import tools.jackson.databind.JsonNode
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.ResourceAccessException
@@ -9,16 +8,18 @@ import org.springframework.web.client.RestClientResponseException
 import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
 import team.incube.flooding.domain.neis.config.DgMealsProperties
 import team.themoment.sdk.exception.ExpectedException
+import tools.jackson.databind.JsonNode
 
 @Component
 class DgMealsClient(
     private val dgMealsProperties: DgMealsProperties,
     restClientBuilder: RestClient.Builder,
 ) {
-    private val restClient = restClientBuilder
-        .clone()
-        .baseUrl(dgMealsProperties.baseUrl)
-        .build()
+    private val restClient =
+        restClientBuilder
+            .clone()
+            .baseUrl(dgMealsProperties.baseUrl)
+            .build()
 
     fun getMeals(request: GetMealsRequest): JsonNode =
         try {

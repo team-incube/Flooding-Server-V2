@@ -1,12 +1,12 @@
 package team.incube.flooding.domain.neis.service.impl
 
-import tools.jackson.databind.JsonNode
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.neis.client.DgMealsClient
 import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
 import team.incube.flooding.domain.neis.presentation.data.request.GetNeisMealsRequest
 import team.incube.flooding.domain.neis.presentation.data.response.GetNeisMealsResponse
 import team.incube.flooding.domain.neis.service.GetNeisMealsService
+import tools.jackson.databind.JsonNode
 
 @Service
 class GetNeisMealsServiceImpl(
