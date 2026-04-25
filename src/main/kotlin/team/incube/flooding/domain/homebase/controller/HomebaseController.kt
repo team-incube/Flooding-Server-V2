@@ -12,12 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
-import team.incube.flooding.domain.homebase.dto.request.UpdateHomebaseMembersRequest
 import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 import team.incube.flooding.domain.homebase.service.CreateHomebaseReservationService
 import team.incube.flooding.domain.homebase.service.DeleteHomebaseReservationService
 import team.incube.flooding.domain.homebase.service.GetHomebaseReservationService
-import team.incube.flooding.domain.homebase.service.PatchHomebaseReservationService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "홈베이스", description = "홈베이스 예약 관련 API")
@@ -25,7 +23,6 @@ import team.themoment.sdk.response.CommonApiResponse
 @RequestMapping("/homebase")
 class HomebaseController(
     private val createService: CreateHomebaseReservationService,
-    private val patchService: PatchHomebaseReservationService,
     private val deleteService: DeleteHomebaseReservationService,
     private val getService: GetHomebaseReservationService,
 ) {
@@ -52,16 +49,6 @@ class HomebaseController(
         @PathVariable reservationId: Long,
     ): CommonApiResponse<Nothing> {
         deleteService.deleteReservation(reservationId)
-        return CommonApiResponse.success("OK")
-    }
-
-    @Operation(summary = "홈베이스 예약 수정")
-    @PatchMapping("/{reservationId}")
-    fun updateReservation(
-        @PathVariable reservationId: Long,
-        @RequestBody @Valid request: UpdateHomebaseMembersRequest,
-    ): CommonApiResponse<Nothing> {
-        patchService.patchReservation(reservationId, request)
         return CommonApiResponse.success("OK")
     }
 }
