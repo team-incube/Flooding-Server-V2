@@ -1,6 +1,6 @@
 package team.incube.flooding.domain.neis.service.impl
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.neis.client.NeisTimetableClient
 import team.incube.flooding.domain.neis.client.dto.GetTimetablesRequest
