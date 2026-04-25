@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 
 interface UserRepository : JpaRepository<UserJpaEntity, Long> {
@@ -15,13 +16,16 @@ interface UserRepository : JpaRepository<UserJpaEntity, Long> {
     @Query(
         """
         SELECT u FROM UserJpaEntity u
-        WHERE (:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')))
-        AND (:studentNumber IS NULL OR CAST(u.studentNumber AS string) LIKE CONCAT(:studentNumber, '%'))
+        WHERE u.role <> :excludedRole
+        AND (:name IS NULL OR u.name LIKE CONCAT('%', :name, '%'))
+        AND (:studentNumberStart IS NULL OR u.studentNumber BETWEEN :studentNumberStart AND :studentNumberEnd)
         """,
     )
     fun searchUsers(
         name: String?,
-        studentNumber: String?,
+        studentNumberStart: Int?,
+        studentNumberEnd: Int?,
+        excludedRole: Role,
         pageable: Pageable,
     ): Page<UserJpaEntity>
 }

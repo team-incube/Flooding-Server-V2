@@ -35,15 +35,18 @@ class UserController(
 
     @Operation(
         summary = "학생 검색",
-        description = "이름 또는 학번으로 학생을 검색합니다. 두 조건 모두 부분 일치하며, 파라미터를 모두 생략하면 전체 학생을 페이지네이션하여 반환합니다.",
+        description =
+            "이름(부분 일치) 또는 학번(전방 일치)으로 학생을 검색합니다. " +
+                "파라미터를 모두 생략하면 전체 학생을 페이지네이션하여 반환합니다. " +
+                "ADMIN 역할은 검색 결과에서 제외됩니다.",
     )
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @GetMapping
     fun searchUsers(
-        @Parameter(description = "이름 (부분 일치, 대소문자 무시)")
+        @Parameter(description = "이름 (부분 일치)")
         @RequestParam(required = false) name: String?,
-        @Parameter(description = "학번 (앞자리 일치, 예: '1' → 1학년)")
+        @Parameter(description = "학번 (전방 일치, 예: '1' → 1학년 전체, '11' → 1학년 1반)")
         @RequestParam(required = false) studentNumber: String?,
         @Parameter(description = "페이지 정보 (page, size, sort)")
         @PageableDefault(size = 20, sort = ["studentNumber,asc"])
