@@ -13,6 +13,7 @@ import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -27,7 +28,7 @@ class StudyApplicationServiceImpl(
     override fun execute() {
         val user = currentUserProvider.getCurrentUser()
 
-        val now = LocalTime.now()
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
 
         val crossesMidnight = studyProperties.openTime.isAfter(studyProperties.closeTime)
         val outOfRange =
