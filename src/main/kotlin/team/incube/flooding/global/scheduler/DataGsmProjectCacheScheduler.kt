@@ -1,7 +1,8 @@
 package team.incube.flooding.global.scheduler
 
-import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import team.incube.flooding.domain.club.repository.ClubRepository
@@ -14,7 +15,7 @@ class DataGsmProjectCacheScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent::class)
     fun warmUpOnStartup() = warmAll()
 
     @Scheduled(fixedRate = 30 * 60 * 1000)

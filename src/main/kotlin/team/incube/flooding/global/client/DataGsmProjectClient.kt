@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.json.JsonMapper
+import java.time.Duration
 
 @Component
 class DataGsmProjectClient(
@@ -38,21 +39,19 @@ class DataGsmProjectClient(
             return jsonMapper.readValue(cached, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
         }
         return withContext(Dispatchers.IO) {
-            warmCache(clubId)
-            redisTemplate.opsForValue().get(cacheKey)?.let {
-                jsonMapper.readValue(it, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
-            } ?: emptyList()
+            warmCache(clubId) ?: emptyList()
         }
     }
 
-    fun warmCache(clubId: Long) {
+    fun warmCache(clubId: Long): List<GetClubResponse.ProjectSummary>? {
         val projects =
             fetchFromApi(clubId) ?: run {
                 log.warn("DataGSM API 응답 없음, 기존 캐시 유지: clubId=$clubId")
-                return
+                return null
             }
         val cacheKey = "$CACHE_PREFIX$clubId"
-        redisTemplate.opsForValue().set(cacheKey, jsonMapper.writeValueAsString(projects))
+        redisTemplate.opsForValue().set(cacheKey, jsonMapper.writeValueAsString(projects), Duration.ofHours(1))
+        return projects
     }
 
     private fun fetchFromApi(clubId: Long): List<GetClubResponse.ProjectSummary>? =
