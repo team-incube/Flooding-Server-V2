@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Query
 import team.incube.flooding.domain.club.entity.ClubFormSubmissionJpaEntity
 
 interface ClubFormSubmissionRepository : JpaRepository<ClubFormSubmissionJpaEntity, Long> {
+    fun existsByFormId(formId: Long): Boolean
+
     fun existsByFormIdAndUserId(
         formId: Long,
         userId: Long,

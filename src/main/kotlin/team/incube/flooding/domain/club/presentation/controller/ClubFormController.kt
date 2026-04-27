@@ -8,6 +8,7 @@ import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -16,6 +17,7 @@ import team.incube.flooding.domain.club.presentation.data.response.CreateClubFor
 import team.incube.flooding.domain.club.presentation.data.response.GetClubFormResponse
 import team.incube.flooding.domain.club.service.CreateClubFormService
 import team.incube.flooding.domain.club.service.GetClubFormService
+import team.incube.flooding.domain.club.service.PutClubFormService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "동아리 폼", description = "동아리 신청 폼 관련 API")
@@ -24,6 +26,7 @@ import team.themoment.sdk.response.CommonApiResponse
 class ClubFormController(
     private val createClubFormService: CreateClubFormService,
     private val getClubFormService: GetClubFormService,
+    private val putClubFormService: PutClubFormService,
 ) {
     @Operation(summary = "동아리 폼 생성", description = "동아리 신청 폼을 생성합니다.")
     @ApiResponses(
@@ -46,4 +49,20 @@ class ClubFormController(
     fun getClubForm(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubFormResponse> = CommonApiResponse.success("OK", getClubFormService.execute(clubId))
+
+    @Operation(summary = "동아리 폼 수정", description = "동아리 신청 폼의 메타정보와 필드를 전체 수정합니다. 신청자가 있으면 수정할 수 없습니다.")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "폼 수정 성공"),
+        ApiResponse(responseCode = "403", description = "권한 없음"),
+        ApiResponse(responseCode = "404", description = "동아리 또는 폼 없음"),
+        ApiResponse(responseCode = "409", description = "신청자가 있어 수정 불가"),
+    )
+    @PutMapping("/{clubId}/forms")
+    fun putClubForm(
+        @PathVariable clubId: Long,
+        @Valid @RequestBody request: CreateClubFormRequest,
+    ): CommonApiResponse<Nothing> {
+        putClubFormService.execute(clubId, request)
+        return CommonApiResponse.success("OK")
+    }
 }
