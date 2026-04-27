@@ -8,6 +8,7 @@ import team.incube.flooding.domain.homebase.dto.request.CreateHomebaseRequest
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
 import team.incube.flooding.domain.homebase.repository.HomebaseRepository
 import team.incube.flooding.domain.homebase.repository.HomebaseReservationRepository
+import java.time.LocalDate
 
 @Service
 class CreateHomebaseReservationService(
@@ -26,12 +27,18 @@ class CreateHomebaseReservationService(
                 .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "홈베이스가 존재하지 않습니다.") }
 
         validateCapacity(homebase.capacity, request.members.size)
-        validateReservationOverlap(homebase.id, request.startPeriod, request.endPeriod)
-        memberService.validateStudentDuplicate(request.startPeriod, request.endPeriod, request.members)
+        validateReservationOverlap(homebase.id, request.reservationDate, request.startPeriod, request.endPeriod)
+        memberService.validateStudentDuplicate(
+            request.reservationDate,
+            request.startPeriod,
+            request.endPeriod,
+            request.members,
+        )
 
         val reservation =
             reservationRepository.save(
                 HomebaseReservationJpaEntity(
+                    reservationDate = request.reservationDate,
                     startPeriod = request.startPeriod,
                     endPeriod = request.endPeriod,
                     reason = request.reason,
@@ -52,10 +59,11 @@ class CreateHomebaseReservationService(
 
     private fun validateReservationOverlap(
         homebaseId: Long,
+        reservationDate: LocalDate,
         start: Int,
         end: Int,
     ) {
-        val overlapping = reservationRepository.findOverlappingReservation(homebaseId, start, end)
+        val overlapping = reservationRepository.findOverlappingReservation(homebaseId, reservationDate, start, end)
         if (overlapping.isNotEmpty()) {
             throw IllegalArgumentException("이미 예약된 시간입니다.")
         }
