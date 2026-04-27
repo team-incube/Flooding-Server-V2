@@ -61,8 +61,8 @@ class ClubFormController(
     fun putClubForm(
         @PathVariable clubId: Long,
         @Valid @RequestBody request: CreateClubFormRequest,
-    ): CommonApiResponse<Unit> {
+    ): CommonApiResponse<Nothing> {
         putClubFormService.execute(clubId, request)
-        return CommonApiResponse.success("OK", Unit)
+        return CommonApiResponse.success("OK")
     }
 }
