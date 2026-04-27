@@ -30,7 +30,7 @@ class GetClubApplicationListServiceImpl(
                 ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
 
         val isLeader = club.leader?.id == currentUser.id
-        val isPrivileged = currentUser.role in listOf(Role.ADMIN, Role.STUDENT_COUNCIL)
+        val isPrivileged = currentUser.role == Role.ADMIN || currentUser.role == Role.STUDENT_COUNCIL
         if (!isLeader && !isPrivileged) {
             throw ExpectedException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN)
         }
