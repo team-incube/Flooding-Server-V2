@@ -28,7 +28,12 @@ class CreateHomebaseReservationService(
 
         validateCapacity(homebase.capacity, request.members.size)
         validateReservationOverlap(homebase.id, request.reservationDate, request.startPeriod, request.endPeriod)
-        memberService.validateStudentDuplicate(request.reservationDate, request.startPeriod, request.endPeriod, request.members)
+        memberService.validateStudentDuplicate(
+            request.reservationDate,
+            request.startPeriod,
+            request.endPeriod,
+            request.members,
+        )
 
         val reservation =
             reservationRepository.save(
