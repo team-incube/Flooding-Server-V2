@@ -4,6 +4,7 @@ data class GetClubResponse(
     val club: ClubDetail,
     val members: List<MemberSummary>,
     val projects: List<ProjectSummary>,
+    val isLeader: Boolean,
 ) {
     data class ClubDetail(
         val id: Long,
