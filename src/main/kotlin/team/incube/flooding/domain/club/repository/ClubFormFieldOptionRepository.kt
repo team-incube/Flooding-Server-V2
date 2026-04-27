@@ -8,7 +8,7 @@ import team.incube.flooding.domain.club.entity.ClubFormFieldOptionJpaEntity
 interface ClubFormFieldOptionRepository : JpaRepository<ClubFormFieldOptionJpaEntity, Long> {
     fun findAllByFieldIdInOrderByOptionOrder(fieldIds: List<Long>): List<ClubFormFieldOptionJpaEntity>
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM ClubFormFieldOptionJpaEntity o WHERE o.field.form.id = :formId")
     fun deleteAllByFormId(formId: Long)
 }
