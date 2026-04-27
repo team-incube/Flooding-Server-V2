@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import team.incube.flooding.domain.homebase.dto.MemberDto
 import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
+import java.time.LocalDate
 
 @Entity
 @Table(name = "tb_homebase_reservation")
@@ -19,6 +20,8 @@ class HomebaseReservationJpaEntity(
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
+    @Column(nullable = false)
+    val reservationDate: LocalDate,
     @field:Column(nullable = false)
     val startPeriod: Int,
     @field:Column(nullable = false)
@@ -34,6 +37,7 @@ class HomebaseReservationJpaEntity(
     fun toResponse() =
         GetHomebaseResponse(
             id = id,
+            reservationDate = reservationDate,
             startPeriod = startPeriod,
             endPeriod = endPeriod,
             reason = reason,
