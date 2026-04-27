@@ -10,7 +10,6 @@ import org.springframework.web.client.RestClient
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.json.JsonMapper
-import java.time.Duration
 
 @Component
 class DataGsmProjectClient(
@@ -32,16 +31,18 @@ class DataGsmProjectClient(
             .build()
     }
 
-    suspend fun getProjectsByClubId(clubId: Long): List<GetClubResponse.ProjectSummary> {
-        val cacheKey = "$CACHE_PREFIX$clubId"
-        val cached = redisTemplate.opsForValue().get(cacheKey)
-        if (cached != null) {
-            return jsonMapper.readValue(cached, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
+    suspend fun getProjectsByClubId(clubId: Long): List<GetClubResponse.ProjectSummary> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val cacheKey = "$CACHE_PREFIX$clubId"
+                val cached = redisTemplate.opsForValue().get(cacheKey)
+                if (cached != null) {
+                    jsonMapper.readValue(cached, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
+                } else {
+                    warmCache(clubId) ?: emptyList()
+                }
+            }.getOrElse { emptyList() }
         }
-        return withContext(Dispatchers.IO) {
-            warmCache(clubId) ?: emptyList()
-        }
-    }
 
     fun warmCache(clubId: Long): List<GetClubResponse.ProjectSummary>? {
         val projects =
@@ -50,7 +51,7 @@ class DataGsmProjectClient(
                 return null
             }
         val cacheKey = "$CACHE_PREFIX$clubId"
-        redisTemplate.opsForValue().set(cacheKey, jsonMapper.writeValueAsString(projects), Duration.ofHours(1))
+        redisTemplate.opsForValue().set(cacheKey, jsonMapper.writeValueAsString(projects))
         return projects
     }
 
