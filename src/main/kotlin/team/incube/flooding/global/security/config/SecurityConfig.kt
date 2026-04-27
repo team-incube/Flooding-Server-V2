@@ -58,13 +58,13 @@ class SecurityConfig(
                     .hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
                 it
                     .requestMatchers(HttpMethod.PUT, "/clubs/*")
-                    .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name)
+                    .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
                 it
                     .requestMatchers(HttpMethod.POST, "/clubs/*/autonomous/applications")
-                    .hasRole(Role.GENERAL_STUDENT.name)
+                    .hasAnyRole(Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name, Role.ADMIN.name)
                 it
                     .requestMatchers(HttpMethod.POST, "/clubs/*/applications")
-                    .hasRole(Role.GENERAL_STUDENT.name)
+                    .hasAnyRole(Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name, Role.ADMIN.name)
 
                 // study
                 it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
