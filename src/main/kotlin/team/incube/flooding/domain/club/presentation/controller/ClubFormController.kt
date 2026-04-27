@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubFormRequest
-import team.incube.flooding.domain.club.presentation.data.request.PutClubFormRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateClubFormResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubFormResponse
 import team.incube.flooding.domain.club.service.CreateClubFormService
@@ -61,7 +60,7 @@ class ClubFormController(
     @PutMapping("/{clubId}/forms")
     fun putClubForm(
         @PathVariable clubId: Long,
-        @Valid @RequestBody request: PutClubFormRequest,
+        @Valid @RequestBody request: CreateClubFormRequest,
     ): CommonApiResponse<Unit> {
         putClubFormService.execute(clubId, request)
         return CommonApiResponse.success("OK", Unit)

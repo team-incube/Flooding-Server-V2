@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubFormFieldJpaEntity
 import team.incube.flooding.domain.club.entity.ClubFormFieldOptionJpaEntity
-import team.incube.flooding.domain.club.presentation.data.request.PutClubFormRequest
+import team.incube.flooding.domain.club.presentation.data.request.CreateClubFormRequest
 import team.incube.flooding.domain.club.repository.ClubFormFieldOptionRepository
 import team.incube.flooding.domain.club.repository.ClubFormFieldRepository
 import team.incube.flooding.domain.club.repository.ClubFormRepository
@@ -27,7 +27,7 @@ class PutClubFormServiceImpl(
     @Transactional
     override fun execute(
         clubId: Long,
-        request: PutClubFormRequest,
+        request: CreateClubFormRequest,
     ) {
         val currentUser = currentUserProvider.getCurrentUser()
         val club =

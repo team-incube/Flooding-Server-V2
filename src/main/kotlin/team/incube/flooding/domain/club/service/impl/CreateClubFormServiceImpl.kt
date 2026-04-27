@@ -32,9 +32,8 @@ class CreateClubFormServiceImpl(
         val currentUser = currentUserProvider.getCurrentUser()
 
         val club =
-            clubRepository.findById(clubId).orElseThrow {
-                ExpectedException("동아리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
-            }
+            clubRepository.findByIdWithLeader(clubId)
+                ?: throw ExpectedException("동아리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
 
         if (club.leader?.id != currentUser.id) {
             throw ExpectedException("해당 동아리의 관리자만 폼을 생성할 수 있습니다.", HttpStatus.FORBIDDEN)
