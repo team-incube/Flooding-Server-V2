@@ -36,7 +36,7 @@ class AiSongAdapter(
             .body(request)
             .retrieve()
             .onStatus({ it.isError }) { _, response ->
-                val body = response.bodyTo(String::class.java)
+                val body = response.body.bufferedReader().readText()
                 log.error("AI 음악 추천 서버 오류 - status: {}, body: {}", response.statusCode, body)
                 throw ExpectedException("AI 음악 추천 서버와 통신 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY)
             }.body(RecommendAiSongResponse::class.java)
