@@ -9,6 +9,6 @@ interface ClubFormFieldOptionRepository : JpaRepository<ClubFormFieldOptionJpaEn
     fun findAllByFieldIdInOrderByOptionOrder(fieldIds: List<Long>): List<ClubFormFieldOptionJpaEntity>
 
     @Modifying
-    @Query("DELETE FROM ClubFormFieldOptionJpaEntity o WHERE o.field.id IN :fieldIds")
-    fun deleteAllByFieldIdIn(fieldIds: List<Long>)
+    @Query("DELETE FROM ClubFormFieldOptionJpaEntity o WHERE o.field.form.id = :formId")
+    fun deleteAllByFormId(formId: Long)
 }

@@ -46,11 +46,8 @@ class PutClubFormServiceImpl(
         form.title = request.title
         form.description = request.description
 
-        val existingFieldIds = clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(form.id).map { it.id }
-        if (existingFieldIds.isNotEmpty()) {
-            clubFormFieldOptionRepository.deleteAllByFieldIdIn(existingFieldIds)
-            clubFormFieldRepository.deleteAllByFormId(form.id)
-        }
+        clubFormFieldOptionRepository.deleteAllByFormId(form.id)
+        clubFormFieldRepository.deleteAllByFormId(form.id)
 
         val savedFields =
             clubFormFieldRepository.saveAll(
