@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -49,7 +50,7 @@ class UserController(
         @Parameter(description = "학번 (전방 일치, 예: '1' → 1학년 전체, '11' → 1학년 1반)")
         @RequestParam(required = false) studentNumber: String?,
         @Parameter(description = "페이지 정보 (page, size, sort)")
-        @PageableDefault(size = 20, sort = ["studentNumber,asc"])
+        @PageableDefault(size = 20, sort = ["studentNumber"], direction = Sort.Direction.ASC)
         pageable: Pageable,
     ): CommonApiResponse<Page<SearchUsersResponse>> =
         CommonApiResponse.success("OK", searchUsersService.execute(name, studentNumber, pageable))
