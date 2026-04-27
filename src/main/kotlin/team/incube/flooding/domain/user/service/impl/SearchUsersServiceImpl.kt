@@ -20,9 +20,10 @@ class SearchUsersServiceImpl(
         pageable: Pageable,
     ): Page<SearchUsersResponse> {
         val (start, end) = parseStudentNumberPrefix(studentNumber)
+        val nameLike = name?.trim()?.takeIf { it.isNotEmpty() }?.let { "%$it%" } ?: "%"
         return userRepository
             .searchUsers(
-                name = name?.trim()?.takeIf { it.isNotEmpty() },
+                nameLike = nameLike,
                 studentNumberStart = start,
                 studentNumberEnd = end,
                 excludedRole = Role.ADMIN,

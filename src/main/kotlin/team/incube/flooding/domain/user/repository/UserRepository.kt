@@ -14,15 +14,21 @@ interface UserRepository : JpaRepository<UserJpaEntity, Long> {
     fun clearCleaningZoneByZoneId(zoneId: Long)
 
     @Query(
-        """
+        value = """
         SELECT u FROM UserJpaEntity u
         WHERE u.role <> :excludedRole
-        AND (:name IS NULL OR u.name LIKE CONCAT('%', :name, '%'))
+        AND u.name LIKE :nameLike
+        AND (:studentNumberStart IS NULL OR u.studentNumber BETWEEN :studentNumberStart AND :studentNumberEnd)
+        """,
+        countQuery = """
+        SELECT count(u) FROM UserJpaEntity u
+        WHERE u.role <> :excludedRole
+        AND u.name LIKE :nameLike
         AND (:studentNumberStart IS NULL OR u.studentNumber BETWEEN :studentNumberStart AND :studentNumberEnd)
         """,
     )
     fun searchUsers(
-        name: String?,
+        nameLike: String,
         studentNumberStart: Int?,
         studentNumberEnd: Int?,
         excludedRole: Role,
