@@ -29,7 +29,15 @@ class StudyApplicationServiceImpl(
 
         val now = LocalTime.now()
 
-        if (now.isBefore(studyProperties.openTime) || now.isAfter(studyProperties.closeTime)) {
+        val crossesMidnight = studyProperties.openTime.isAfter(studyProperties.closeTime)
+        val outOfRange =
+            if (crossesMidnight) {
+                now.isBefore(studyProperties.openTime) && now.isAfter(studyProperties.closeTime)
+            } else {
+                now.isBefore(studyProperties.openTime) || now.isAfter(studyProperties.closeTime)
+            }
+
+        if (outOfRange) {
             throw ExpectedException("자습 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
         }
 
