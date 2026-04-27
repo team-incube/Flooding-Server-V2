@@ -51,10 +51,20 @@ class SecurityConfig(
 
                 // club
                 it
-                    .requestMatchers(
-                        HttpMethod.PATCH,
-                        "/clubs/*/approval",
-                    ).hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+                    .requestMatchers(HttpMethod.GET, "/clubs/opening/requests")
+                    .hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+                it
+                    .requestMatchers(HttpMethod.PATCH, "/clubs/*/approval")
+                    .hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+                it
+                    .requestMatchers(HttpMethod.PUT, "/clubs/*")
+                    .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name)
+                it
+                    .requestMatchers(HttpMethod.POST, "/clubs/*/autonomous/applications")
+                    .hasRole(Role.GENERAL_STUDENT.name)
+                it
+                    .requestMatchers(HttpMethod.POST, "/clubs/*/applications")
+                    .hasRole(Role.GENERAL_STUDENT.name)
 
                 // study
                 it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
