@@ -16,7 +16,7 @@ interface HomebaseMemberRepository : JpaRepository<HomebaseMemberJpaEntity, Long
         SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
         FROM HomebaseMemberJpaEntity m
         WHERE m.studentNumber = :studentNumber
-        AND m.reservationDate = :reservationDate
+        AND m.reservation.reservationDate = :reservationDate
         AND m.reservation.startPeriod <= :endPeriod
         AND m.reservation.endPeriod >= :startPeriod
         """,
@@ -33,9 +33,9 @@ interface HomebaseMemberRepository : JpaRepository<HomebaseMemberJpaEntity, Long
     SELECT m.studentNumber 
     FROM HomebaseMemberJpaEntity m 
     WHERE m.studentNumber IN :studentNumbers 
-    AND m.reservationDate = :reservationDate
-    AND m.reservation.startPeriod = :startPeriod
-    AND m.reservation.endPeriod = :endPeriod
+    AND m.reservation.reservationDate = :reservationDate
+    AND m.reservation.startPeriod <= :endPeriod
+    AND m.reservation.endPeriod >= :startPeriod
     AND (:reservationId IS NULL OR m.reservation.id != :reservationId)
 """,
     )
