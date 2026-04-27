@@ -65,7 +65,7 @@ class CreateHomebaseReservationService(
     ) {
         val overlapping = reservationRepository.findOverlappingReservation(homebaseId, reservationDate, start, end)
         if (overlapping.isNotEmpty()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST,"이미 예약된 시간입니다.")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 예약된 시간입니다.")
         }
     }
 }
