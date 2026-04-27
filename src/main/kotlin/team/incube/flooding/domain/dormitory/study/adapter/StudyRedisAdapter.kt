@@ -3,6 +3,7 @@ package team.incube.flooding.domain.dormitory.study.adapter
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
+import java.time.Clock
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -11,6 +12,7 @@ import java.time.LocalTime
 @Component
 class StudyRedisAdapter(
     private val redisTemplate: RedisTemplate<String, String>,
+    private val clock: Clock,
 ) {
     companion object {
         private const val APPLICATION_KEY = "study:application"
@@ -19,8 +21,8 @@ class StudyRedisAdapter(
     }
 
     private fun ttlUntilMidnight(): Duration {
-        val midnight = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)
-        return Duration.between(LocalDateTime.now(), midnight)
+        val midnight = LocalDateTime.of(LocalDate.now(clock).plusDays(1), LocalTime.MIDNIGHT)
+        return Duration.between(LocalDateTime.now(clock), midnight)
     }
 
     fun saveApplication(

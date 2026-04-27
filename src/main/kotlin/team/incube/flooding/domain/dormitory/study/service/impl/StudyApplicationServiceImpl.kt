@@ -11,6 +11,7 @@ import team.incube.flooding.domain.dormitory.study.repository.StudyBanJpaReposit
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
+import java.time.Clock
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
@@ -23,11 +24,12 @@ class StudyApplicationServiceImpl(
     private val currentUserProvider: CurrentUserProvider,
     private val studyProperties: StudyProperties,
     private val redissonClient: RedissonClient,
+    private val clock: Clock,
 ) : StudyApplicationService {
     override fun execute() {
         val user = currentUserProvider.getCurrentUser()
 
-        val now = LocalTime.now()
+        val now = LocalTime.now(clock)
 
         val crossesMidnight = studyProperties.openTime.isAfter(studyProperties.closeTime)
         val outOfRange =
@@ -42,7 +44,7 @@ class StudyApplicationServiceImpl(
         }
 
         if (studyRedisAdapter.getApplicationStatus(user.id) == StudyApplicationStatus.BANNED ||
-            studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())
+            studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now(clock))
         ) {
             throw ExpectedException("자습 금지 상태입니다.", HttpStatus.FORBIDDEN)
         }
