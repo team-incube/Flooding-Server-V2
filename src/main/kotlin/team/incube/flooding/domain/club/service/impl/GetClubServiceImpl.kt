@@ -10,6 +10,7 @@ import team.incube.flooding.domain.club.repository.ClubParticipantRepository
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.GetClubService
 import team.incube.flooding.global.client.DataGsmProjectClient
+import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
 
 @Service
@@ -17,9 +18,11 @@ class GetClubServiceImpl(
     private val clubRepository: ClubRepository,
     private val clubParticipantRepository: ClubParticipantRepository,
     private val dataGsmProjectClient: DataGsmProjectClient,
+    private val currentUserProvider: CurrentUserProvider,
 ) : GetClubService {
-    override suspend fun execute(clubId: Long): GetClubResponse =
-        coroutineScope {
+    override suspend fun execute(clubId: Long): GetClubResponse {
+        val currentUser = currentUserProvider.getCurrentUser()
+        return coroutineScope {
             val clubDeferred = async(Dispatchers.IO) { clubRepository.findByIdWithLeader(clubId) }
             val membersDeferred =
                 async(Dispatchers.IO) {
@@ -56,6 +59,8 @@ class GetClubServiceImpl(
                     ),
                 members = membersDeferred.await(),
                 projects = projectsDeferred.await(),
+                isLeader = club.leader?.id == currentUser.id,
             )
         }
+    }
 }
