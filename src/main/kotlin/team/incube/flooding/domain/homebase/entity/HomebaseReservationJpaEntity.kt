@@ -20,7 +20,7 @@ class HomebaseReservationJpaEntity(
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
-    @Column(nullable = false)
+    @field:Column(nullable = false)
     val reservationDate: LocalDate,
     @field:Column(nullable = false)
     val startPeriod: Int,
