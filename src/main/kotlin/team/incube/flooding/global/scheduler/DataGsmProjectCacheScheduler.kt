@@ -16,16 +16,19 @@ class DataGsmProjectCacheScheduler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @EventListener(ApplicationReadyEvent::class)
-    fun warmUpOnStartup() = warmAll()
+    fun warmUpOnStartup() {
+        Thread.startVirtualThread { warmAll() }
+    }
 
-    @Scheduled(fixedRate = 30 * 60 * 1000)
+    @Scheduled(fixedRate = 30 * 60 * 1000, initialDelay = 30 * 60 * 1000)
     fun warmUpScheduled() = warmAll()
 
     private fun warmAll() {
         val clubs = clubRepository.findAllByDataGsmClubIdIsNotNull()
         log.info("DataGSM 프로젝트 캐시 워밍 시작: {}개 동아리", clubs.size)
         clubs.forEach { club ->
-            runCatching { dataGsmProjectClient.warmCache(club.dataGsmClubId!!) }
+            val dataGsmClubId = club.dataGsmClubId ?: return@forEach
+            runCatching { dataGsmProjectClient.warmCache(dataGsmClubId) }
                 .onFailure { log.error("캐시 워밍 실패: clubId=${club.id}", it) }
         }
         log.info("DataGSM 프로젝트 캐시 워밍 완료")
