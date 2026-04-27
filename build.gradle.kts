@@ -16,12 +16,6 @@ ext {
     set("spring-security.version", "7.0.4")
 }
 
-dependencyManagement {
-    dependencies {
-        dependency("tools.jackson.core:jackson-core:3.1.1")
-    }
-}
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(24)
