@@ -24,4 +24,6 @@ interface ClubRepository : JpaRepository<ClubJpaEntity, Long> {
         type: ClubType,
         keyword: String,
     ): List<ClubJpaEntity>
+
+    fun findAllByDataGsmClubIdIsNotNull(): List<ClubJpaEntity>
 }

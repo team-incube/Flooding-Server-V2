@@ -64,7 +64,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     // External SDK
-    implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.0.0")
+    implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.4.1")
     implementation("com.github.themoment-team:the-sdk:1.4")
 
     // Test
@@ -77,6 +77,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation(kotlin("test"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Excel
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 }
 
 kotlin {

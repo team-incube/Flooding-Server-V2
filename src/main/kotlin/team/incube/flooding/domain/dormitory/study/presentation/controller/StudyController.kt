@@ -6,12 +6,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import team.incube.flooding.domain.dormitory.study.presentation.data.response.GetStudyResponse
 import team.incube.flooding.domain.dormitory.study.service.BanStudyService
 import team.incube.flooding.domain.dormitory.study.service.CancelStudyService
+import team.incube.flooding.domain.dormitory.study.service.GetStudyService
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.themoment.sdk.response.CommonApiResponse
 
@@ -22,7 +25,19 @@ class StudyController(
     private val studyApplicationService: StudyApplicationService,
     private val cancelStudyService: CancelStudyService,
     private val banStudyService: BanStudyService,
+    private val getStudyService: GetStudyService,
 ) {
+    @Operation(
+        summary = "자습 신청자 목록 조회",
+        description = "오늘 자습을 신청한 학생 목록을 조회합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "조회 성공"),
+    )
+    @GetMapping
+    fun getStudy(): CommonApiResponse<List<GetStudyResponse>> =
+        CommonApiResponse.success("OK", getStudyService.execute())
+
     @Operation(
         summary = "자습 신청",
         description = "자습 신청 시간 내에 자습을 신청합니다. 금지 상태이거나 이미 신청한 경우 신청할 수 없습니다.",

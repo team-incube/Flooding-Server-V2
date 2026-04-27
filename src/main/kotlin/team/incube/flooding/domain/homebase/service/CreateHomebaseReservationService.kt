@@ -34,6 +34,7 @@ class CreateHomebaseReservationService(
                 HomebaseReservationJpaEntity(
                     startPeriod = request.startPeriod,
                     endPeriod = request.endPeriod,
+                    reason = request.reason,
                     homebase = homebase,
                 ),
             )

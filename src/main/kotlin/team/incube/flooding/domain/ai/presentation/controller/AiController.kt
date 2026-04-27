@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import team.incube.flooding.domain.ai.presentation.data.request.RecommendAiSongRequest
 import team.incube.flooding.domain.ai.presentation.data.request.SendAiChatRequest
 import team.incube.flooding.domain.ai.presentation.data.response.RecommendAiSongResponse
 import team.incube.flooding.domain.ai.presentation.data.response.SendAiChatResponse
@@ -39,15 +38,13 @@ class AiController(
 
     @Operation(
         summary = "AI 음악 추천",
-        description = "최근 들은 노래 5곡을 기반으로 AI가 추천하는 유튜브 링크 3개를 반환합니다.",
+        description = "로그인한 사용자의 최근 기상송 신청 내역(최대 5곡)을 기반으로 AI가 추천하는 유튜브 링크 3개를 반환합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "AI 음악 추천 성공"),
         ApiResponse(responseCode = "502", description = "AI 음악 추천 서버 오류"),
     )
     @PostMapping("/song")
-    fun recommendAiSong(
-        @Valid @RequestBody request: RecommendAiSongRequest,
-    ): CommonApiResponse<RecommendAiSongResponse> =
-        CommonApiResponse.success("OK", recommendAiSongService.execute(request))
+    fun recommendAiSong(): CommonApiResponse<RecommendAiSongResponse> =
+        CommonApiResponse.success("OK", recommendAiSongService.execute())
 }

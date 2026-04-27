@@ -6,6 +6,7 @@ data class GetHomebaseResponse(
     val id: Long,
     val startPeriod: Int,
     val endPeriod: Int,
+    val reason: String,
     val homebaseId: Long,
     val members: List<MemberDto>,
 )

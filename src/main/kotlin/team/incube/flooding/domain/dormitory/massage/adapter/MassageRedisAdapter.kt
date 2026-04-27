@@ -45,4 +45,10 @@ class MassageRedisAdapter(
     }
 
     fun getCount(): Long = redisTemplate.opsForList().size(QUEUE_KEY) ?: 0L
+
+    fun getQueue(): List<Long> =
+        redisTemplate
+            .opsForList()
+            .range(QUEUE_KEY, 0, -1)
+            ?.map { it.toLong() } ?: emptyList()
 }

@@ -30,6 +30,13 @@ class JwtProvider(
             .subject
             .toLong()
 
+    fun getUserIdOrNull(token: String): Long? =
+        try {
+            getUserId(token)
+        } catch (e: JwtException) {
+            null
+        }
+
     fun isValid(token: String): Boolean =
         try {
             Jwts

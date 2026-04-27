@@ -25,5 +25,6 @@ class CancelStudyServiceImpl(
 
         studyRedisAdapter.saveApplication(user.id, StudyApplicationStatus.CANCELLED)
         studyRedisAdapter.decrementCount()
+        studyRedisAdapter.removeApplicant(user.id)
     }
 }
