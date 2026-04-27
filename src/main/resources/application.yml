@@ -56,7 +56,7 @@ sdk:
 
 study:
   open-time: "${STUDY_OPEN_TIME:20:00}"
-  close-time: "${STUDY_CLOSE_TIME:21:00}"
+  close-time: "${STUDY_CLOSE_TIME:03:00}"
   max-count: ${STUDY_MAX_COUNT:50}
   lock-key: ${STUDY_LOCK_KEY:study:lock}
 
