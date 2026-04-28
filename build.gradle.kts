@@ -56,6 +56,7 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
 
     // External SDK
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.4.1")
