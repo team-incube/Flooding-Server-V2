@@ -18,6 +18,7 @@ class StudyRedisAdapter(
         private const val APPLICATION_KEY = "study:application"
         private const val COUNT_KEY = "study:count"
         private const val APPLICANTS_KEY = "study:applicants"
+        private const val ATTENDANCE_KEY = "study:attendance"
     }
 
     private fun ttlUntilMidnight(): Duration {
@@ -69,6 +70,24 @@ class StudyRedisAdapter(
         redisTemplate
             .opsForSet()
             .members(APPLICANTS_KEY)
+            ?.map { it.toLong() }
+            ?.toSet() ?: emptySet()
+
+    fun checkAttendance(userId: Long) {
+        redisTemplate.opsForSet().add(ATTENDANCE_KEY, userId.toString())
+        val size = redisTemplate.opsForSet().size(ATTENDANCE_KEY) ?: 0L
+        if (size == 1L) {
+            redisTemplate.expire(ATTENDANCE_KEY, ttlUntilMidnight())
+        }
+    }
+
+    fun isAttendanceChecked(userId: Long): Boolean =
+        redisTemplate.opsForSet().isMember(ATTENDANCE_KEY, userId.toString()) ?: false
+
+    fun getAttendanceIds(): Set<Long> =
+        redisTemplate
+            .opsForSet()
+            .members(ATTENDANCE_KEY)
             ?.map { it.toLong() }
             ?.toSet() ?: emptySet()
 }
