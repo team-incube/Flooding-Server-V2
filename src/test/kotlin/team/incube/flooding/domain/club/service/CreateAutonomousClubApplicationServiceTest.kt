@@ -13,9 +13,12 @@ import org.springframework.transaction.support.TransactionCallback
 import org.springframework.transaction.support.TransactionTemplate
 import team.incube.flooding.domain.club.entity.ClubAutonomousApplicationJpaEntity
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
+import team.incube.flooding.domain.club.entity.ClubParticipantId
+import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
 import team.incube.flooding.domain.club.entity.ClubStatus
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.repository.ClubAutonomousApplicationRepository
+import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.impl.CreateAutonomousClubApplicationServiceImpl
 import team.incube.flooding.domain.user.entity.Role
@@ -30,6 +33,7 @@ class CreateAutonomousClubApplicationServiceTest :
     BehaviorSpec({
         val clubRepository = mockk<ClubRepository>()
         val clubAutonomousApplicationRepository = mockk<ClubAutonomousApplicationRepository>()
+        val clubParticipantJpaRepository = mockk<ClubParticipantJpaRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
         val redissonClient = mockk<RedissonClient>()
         val lock = mockk<RLock>(relaxed = true)
@@ -43,6 +47,7 @@ class CreateAutonomousClubApplicationServiceTest :
             CreateAutonomousClubApplicationServiceImpl(
                 clubRepository,
                 clubAutonomousApplicationRepository,
+                clubParticipantJpaRepository,
                 currentUserProvider,
                 redissonClient,
                 transactionTemplate,
@@ -135,6 +140,23 @@ class CreateAutonomousClubApplicationServiceTest :
             }
         }
 
+        given("이미 가입된 사용자가") {
+            `when`("다시 신청하면") {
+                then("CONFLICT 예외가 발생한다") {
+                    every { currentUserProvider.getCurrentUser() } returns user
+                    every { clubRepository.findById(1L) } returns Optional.of(autonomousClub())
+                    every { redissonClient.getLock(any<String>()) } returns lock
+                    every { lock.tryLock(any<Long>(), any<Long>(), any<TimeUnit>()) } returns true
+
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        true
+
+                    val exception = shouldThrow<ExpectedException> { service.execute(1L) }
+                    exception.statusCode shouldBe HttpStatus.CONFLICT
+                }
+            }
+        }
+
         given("이미 신청한 사용자가") {
             `when`("다시 신청하면") {
                 then("CONFLICT 예외가 발생한다") {
@@ -143,6 +165,8 @@ class CreateAutonomousClubApplicationServiceTest :
                     every { redissonClient.getLock(any<String>()) } returns lock
                     every { lock.tryLock(any<Long>(), any<Long>(), any<TimeUnit>()) } returns true
 
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubAutonomousApplicationRepository.existsByClubIdAndUserId(1L, 1L) } returns true
 
                     val exception = shouldThrow<ExpectedException> { service.execute(1L) }
@@ -159,8 +183,10 @@ class CreateAutonomousClubApplicationServiceTest :
                     every { redissonClient.getLock(any<String>()) } returns lock
                     every { lock.tryLock(any<Long>(), any<Long>(), any<TimeUnit>()) } returns true
 
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubAutonomousApplicationRepository.existsByClubIdAndUserId(1L, 1L) } returns false
-                    every { clubAutonomousApplicationRepository.countByClubId(1L) } returns 5L
+                    every { clubParticipantJpaRepository.countByClubId(1L) } returns 5L
 
                     val exception = shouldThrow<ExpectedException> { service.execute(1L) }
                     exception.statusCode shouldBe HttpStatus.CONFLICT
@@ -179,13 +205,17 @@ class CreateAutonomousClubApplicationServiceTest :
                     every { redissonClient.getLock(any<String>()) } returns lock
                     every { lock.tryLock(any<Long>(), any<Long>(), any<TimeUnit>()) } returns true
 
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubAutonomousApplicationRepository.existsByClubIdAndUserId(1L, 1L) } returns false
-                    every { clubAutonomousApplicationRepository.countByClubId(1L) } returns 3L
+                    every { clubParticipantJpaRepository.countByClubId(1L) } returns 3L
                     every { clubAutonomousApplicationRepository.save(any()) } returns savedApplication
+                    every { clubParticipantJpaRepository.save(any<ClubParticipantJpaEntity>()) } returns mockk()
 
                     val response = service.execute(1L)
                     response.applicationId shouldBe 100L
                     verify(exactly = 1) { clubAutonomousApplicationRepository.save(any()) }
+                    verify(exactly = 1) { clubParticipantJpaRepository.save(any<ClubParticipantJpaEntity>()) }
                 }
             }
         }

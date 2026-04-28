@@ -14,6 +14,7 @@ import team.incube.flooding.domain.club.entity.ClubFormFieldType
 import team.incube.flooding.domain.club.entity.ClubFormJpaEntity
 import team.incube.flooding.domain.club.entity.ClubFormSubmissionJpaEntity
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
+import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubStatus
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubApplicationAnswerRequest
@@ -22,6 +23,7 @@ import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
 import team.incube.flooding.domain.club.repository.ClubFormFieldRepository
 import team.incube.flooding.domain.club.repository.ClubFormRepository
 import team.incube.flooding.domain.club.repository.ClubFormSubmissionRepository
+import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
 import team.incube.flooding.domain.club.service.impl.CreateClubApplicationServiceImpl
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
@@ -35,6 +37,7 @@ class CreateClubApplicationServiceTest :
         val clubFormFieldRepository = mockk<ClubFormFieldRepository>()
         val clubFormSubmissionRepository = mockk<ClubFormSubmissionRepository>()
         val clubFormAnswerRepository = mockk<ClubFormAnswerRepository>()
+        val clubParticipantJpaRepository = mockk<ClubParticipantJpaRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
 
         val service =
@@ -43,6 +46,7 @@ class CreateClubApplicationServiceTest :
                 clubFormFieldRepository,
                 clubFormSubmissionRepository,
                 clubFormAnswerRepository,
+                clubParticipantJpaRepository,
                 currentUserProvider,
             )
 
@@ -108,11 +112,30 @@ class CreateClubApplicationServiceTest :
             }
         }
 
+        given("이미 가입된 구성원이") {
+            `when`("폼을 신청하면") {
+                then("CONFLICT 예외가 발생한다") {
+                    every { currentUserProvider.getCurrentUser() } returns user
+                    every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        true
+
+                    val exception =
+                        shouldThrow<ExpectedException> {
+                            service.execute(1L, CreateClubApplicationRequest(emptyList()))
+                        }
+                    exception.statusCode shouldBe HttpStatus.CONFLICT
+                }
+            }
+        }
+
         given("이미 신청한 사용자가") {
             `when`("다시 신청하면") {
                 then("CONFLICT 예외가 발생한다") {
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns true
 
                     val exception =
@@ -129,6 +152,8 @@ class CreateClubApplicationServiceTest :
                 then("BAD_REQUEST 예외가 발생한다") {
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
                     every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
                         listOf(requiredField, optionalField)
@@ -154,6 +179,8 @@ class CreateClubApplicationServiceTest :
 
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
                     every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
                         listOf(requiredField, optionalField)
@@ -182,6 +209,8 @@ class CreateClubApplicationServiceTest :
 
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
+                    every { clubParticipantJpaRepository.existsById(ClubParticipantId(club = 1L, user = 1L)) } returns
+                        false
                     every { clubFormSubmissionRepository.existsByFormIdAndUserId(10L, 1L) } returns false
                     every { clubFormFieldRepository.findAllByFormIdOrderByFieldOrder(10L) } returns
                         listOf(optionalField)
