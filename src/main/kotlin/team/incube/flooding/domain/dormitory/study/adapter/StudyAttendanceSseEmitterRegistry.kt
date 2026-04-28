@@ -20,7 +20,6 @@ class StudyAttendanceSseEmitterRegistry {
 
     @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
-        val deadEmitters = mutableListOf<SseEmitter>()
         emitters.forEach { emitter ->
             try {
                 emitter.send(
@@ -30,9 +29,8 @@ class StudyAttendanceSseEmitterRegistry {
                         .data(event),
                 )
             } catch (e: Exception) {
-                deadEmitters.add(emitter)
+                emitter.completeWithError(e)
             }
         }
-        emitters.removeAll(deadEmitters)
     }
 }
