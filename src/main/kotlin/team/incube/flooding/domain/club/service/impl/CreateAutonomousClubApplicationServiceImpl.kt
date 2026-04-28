@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import team.incube.flooding.domain.club.entity.ClubAutonomousApplicationJpaEntity
-import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
@@ -51,7 +50,9 @@ class CreateAutonomousClubApplicationServiceImpl(
                     club.maxMember
                         ?: throw ExpectedException("정원이 설정되지 않은 동아리입니다.", HttpStatus.BAD_REQUEST)
 
-                if (clubParticipantJpaRepository.existsById(ClubParticipantId(club = clubId, user = user.id))) {
+                val participants = clubParticipantJpaRepository.findAllByClubId(clubId)
+
+                if (participants.any { it.user.id == user.id }) {
                     throw ExpectedException("이미 가입된 동아리입니다.", HttpStatus.CONFLICT)
                 }
 
@@ -59,7 +60,7 @@ class CreateAutonomousClubApplicationServiceImpl(
                     throw ExpectedException("이미 신청한 동아리입니다.", HttpStatus.CONFLICT)
                 }
 
-                if (clubParticipantJpaRepository.countByClubId(clubId) >= maxMember) {
+                if (participants.size >= maxMember) {
                     throw ExpectedException("신청 정원이 마감되었습니다.", HttpStatus.CONFLICT)
                 }
 

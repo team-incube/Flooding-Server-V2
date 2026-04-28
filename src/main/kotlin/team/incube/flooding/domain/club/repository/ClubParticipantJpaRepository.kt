@@ -13,5 +13,5 @@ interface ClubParticipantJpaRepository : JpaRepository<ClubParticipantJpaEntity,
         @Param("clubType") clubType: ClubType,
     ): List<ClubParticipantJpaEntity>
 
-    fun countByClubId(clubId: Long): Long
+    fun findAllByClubId(clubId: Long): List<ClubParticipantJpaEntity>
 }
