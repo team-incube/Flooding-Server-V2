@@ -4,4 +4,5 @@ data class GetStudyResponse(
     val userId: Long,
     val name: String,
     val studentNumber: Int,
+    val isBanned: Boolean,
 )
