@@ -14,15 +14,19 @@ import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 import team.incube.flooding.domain.user.repository.UserRepository
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 class GetStudyServiceTest :
     BehaviorSpec({
         val studyRedisAdapter = mockk<StudyRedisAdapter>()
         val userRepository = mockk<UserRepository>()
         val studyBanJpaRepository = mockk<StudyBanJpaRepository>()
+        val clock = Clock.fixed(Instant.parse("2026-04-29T12:00:00Z"), ZoneId.of("Asia/Seoul"))
 
-        val service = GetStudyServiceImpl(studyRedisAdapter, userRepository, studyBanJpaRepository)
+        val service = GetStudyServiceImpl(studyRedisAdapter, userRepository, studyBanJpaRepository, clock)
 
         fun user(
             id: Long,
@@ -100,13 +104,14 @@ class GetStudyServiceTest :
         }
 
         given("신청자 중 금지된 학생이 있을 때") {
+            val now = LocalDateTime.now(clock)
             val user1 = user(id = 1L, studentNumber = 1101)
             val user2 = user(id = 2L, studentNumber = 1102)
             val banEntity =
                 StudyBanJpaEntity(
                     user = user2,
-                    bannedAt = LocalDateTime.now().minusDays(1),
-                    bannedUntil = LocalDateTime.now().plusDays(6),
+                    bannedAt = now.minusDays(1),
+                    bannedUntil = now.plusDays(6),
                 )
 
             `when`("자습 신청자 목록을 조회하면") {
@@ -126,12 +131,13 @@ class GetStudyServiceTest :
         }
 
         given("금지되고 체크도 된 학생이 있을 때") {
+            val now = LocalDateTime.now(clock)
             val user1 = user(id = 1L, studentNumber = 1101)
             val banEntity =
                 StudyBanJpaEntity(
                     user = user1,
-                    bannedAt = LocalDateTime.now().minusDays(1),
-                    bannedUntil = LocalDateTime.now().plusDays(6),
+                    bannedAt = now.minusDays(1),
+                    bannedUntil = now.plusDays(6),
                 )
 
             `when`("자습 신청자 목록을 조회하면") {
