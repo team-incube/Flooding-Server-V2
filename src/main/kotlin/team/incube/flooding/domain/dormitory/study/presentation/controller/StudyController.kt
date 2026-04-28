@@ -88,16 +88,18 @@ class StudyController(
 
     @Operation(
         summary = "자습 체크인",
-        description = "자습을 신청한 학생이 자습실에 도착했음을 체크합니다.",
+        description = "자습을 신청한 학생의 자습실 도착을 체크합니다. 관리자 또는 기자위 권한이 필요합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "체크인 성공"),
-        ApiResponse(responseCode = "404", description = "자습 신청 내역 없음"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 학생 또는 자습 신청 내역 없음"),
         ApiResponse(responseCode = "409", description = "이미 체크인 완료"),
     )
-    @PostMapping("/attendance")
-    fun checkAttendance(): CommonApiResponse<Nothing> {
-        checkStudyAttendanceService.execute()
+    @PostMapping("/attendance/{userId}")
+    fun checkAttendance(
+        @Parameter(description = "체크인할 학생의 ID") @PathVariable userId: Long,
+    ): CommonApiResponse<Nothing> {
+        checkStudyAttendanceService.execute(userId)
         return CommonApiResponse.success("OK")
     }
 

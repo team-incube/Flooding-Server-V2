@@ -19,6 +19,6 @@ class GetStudyServiceImpl(
         return userRepository
             .findAllById(applicantIds)
             .sortedBy { it.studentNumber }
-            .map { GetStudyResponse(name = it.name, studentNumber = it.studentNumber) }
+            .map { GetStudyResponse(userId = it.id, name = it.name, studentNumber = it.studentNumber) }
     }
 }

@@ -78,8 +78,8 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.GET, "/dormitory/studies/attendance")
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
                 it
-                    .requestMatchers(HttpMethod.POST, "/dormitory/studies/attendance")
-                    .hasRole(Role.GENERAL_STUDENT.name)
+                    .requestMatchers(HttpMethod.POST, "/dormitory/studies/attendance/*")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 // massage
                 it.requestMatchers(HttpMethod.POST, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
