@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
+import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
 import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
 import team.incube.flooding.domain.club.repository.ClubRepository
@@ -56,7 +57,10 @@ class ClubLeaderParticipantSaver(
         club: ClubJpaEntity,
         leader: UserJpaEntity,
     ) {
-        clubParticipantJpaRepository.save(ClubParticipantJpaEntity(club = club, user = leader))
+        val participantId = ClubParticipantId(club = club.id, user = leader.id)
+        if (!clubParticipantJpaRepository.existsById(participantId)) {
+            clubParticipantJpaRepository.save(ClubParticipantJpaEntity(club = club, user = leader))
+        }
     }
 }
 
