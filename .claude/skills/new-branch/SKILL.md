@@ -7,7 +7,7 @@ Create a new git branch and switch to it, following the project branch naming co
 
 Steps:
 1. If the purpose of the branch is unclear, ask the user before proceeding
-2. Check for uncommitted changes with `git status --porcelain`
+2. Check for uncommitted changes with `git status --porcelain -uno`
    - If output is non-empty, stop immediately and print:
      "uncommitted changes가 있습니다. 커밋하거나 stash 후 다시 실행하세요."
 3. Switch to develop and pull the latest changes:
