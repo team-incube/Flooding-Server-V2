@@ -24,6 +24,7 @@ class GetStudyServiceImpl(
                 .findAllByUserIdInAndBannedUntilAfter(applicantIds, LocalDateTime.now())
                 .map { it.user.id }
                 .toSet()
+        val checkedUserIds = studyRedisAdapter.getAttendanceIds()
         return userRepository
             .findAllById(applicantIds)
             .sortedBy { it.studentNumber }
@@ -32,8 +33,8 @@ class GetStudyServiceImpl(
                     userId = it.id,
                     name = it.name,
                     studentNumber = it.studentNumber,
-                    isBanned =
-                        it.id in bannedUserIds,
+                    isBanned = it.id in bannedUserIds,
+                    isChecked = it.id in checkedUserIds,
                 )
             }
     }

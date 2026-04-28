@@ -5,4 +5,5 @@ data class GetStudyResponse(
     val name: String,
     val studentNumber: Int,
     val isBanned: Boolean,
+    val isChecked: Boolean,
 )
