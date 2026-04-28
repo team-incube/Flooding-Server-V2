@@ -18,6 +18,7 @@ class SubscribeStudyAttendanceServiceImpl(
 ) : SubscribeStudyAttendanceService {
     override fun execute(): SseEmitter {
         val emitter = SseEmitter(1_800_000L)
+        emitter.send(SseEmitter.event().name("connect").data("connected"))
         sseEmitterRegistry.register(emitter)
 
         val attendanceIds = studyRedisAdapter.getAttendanceIds()

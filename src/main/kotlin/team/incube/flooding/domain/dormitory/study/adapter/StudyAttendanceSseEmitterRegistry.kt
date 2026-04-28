@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.study.adapter
 
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
@@ -17,6 +18,7 @@ class StudyAttendanceSseEmitterRegistry {
         return emitter
     }
 
+    @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
         val deadEmitters = mutableListOf<SseEmitter>()
         emitters.forEach { emitter ->

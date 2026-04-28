@@ -75,10 +75,7 @@ class StudyRedisAdapter(
 
     fun checkAttendance(userId: Long) {
         redisTemplate.opsForSet().add(ATTENDANCE_KEY, userId.toString())
-        val size = redisTemplate.opsForSet().size(ATTENDANCE_KEY) ?: 0L
-        if (size == 1L) {
-            redisTemplate.expire(ATTENDANCE_KEY, ttlUntilMidnight())
-        }
+        redisTemplate.expire(ATTENDANCE_KEY, ttlUntilMidnight())
     }
 
     fun isAttendanceChecked(userId: Long): Boolean =
