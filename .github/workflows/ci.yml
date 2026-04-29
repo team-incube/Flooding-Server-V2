@@ -138,11 +138,11 @@ jobs:
       environment: ${{ github.ref_name == 'master' && 'prod' || 'dev' }}
     secrets: inherit
 
-  # ── 4. Slack notification ────────────────────────────────────
+  # ── 4. Discord notification ───────────────────────────────────
   notify:
-    name: Slack Notify
+    name: Discord Notify
     runs-on: [self-hosted, flooding]
-    needs: [test, build]
+    needs: [test, build, trigger-cd]
     if: always()
     steps:
       - name: Sanitize commit message
@@ -151,22 +151,37 @@ jobs:
           MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
           echo "first_line=${MSG}" >> $GITHUB_OUTPUT
 
-      - name: Send Slack notification
-        uses: slackapi/slack-github-action@v1
-        with:
-          payload: |
-            {
-              "text": "*[CI/CD] Flooding-Server-V2*",
-              "attachments": [{
-                "color": "${{ (needs.build.result == 'success') && 'good' || 'danger' }}",
-                "fields": [
-                  { "title": "Status",  "value": "${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}", "short": true },
-                  { "title": "Branch",  "value": "${{ github.ref_name }}", "short": true },
-                  { "title": "Commit",  "value": "${{ github.sha }}", "short": true },
-                  { "title": "Message", "value": "${{ steps.msg.outputs.first_line }}", "short": false }
-                ]
-              }]
-            }
+      - name: Send Discord notification
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          BUILD_RESULT: ${{ needs.build.result }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ steps.msg.outputs.first_line }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, urllib.request
+
+          is_success = os.environ['BUILD_RESULT'] == 'success'
+          payload = {
+              "content": "@here",
+              "allowed_mentions": {"parse": ["everyone"]},
+              "embeds": [{
+                  "title": "[CI/CD] Flooding-Server-V2",
+                  "color": 5763719 if is_success else 15548997,
+                  "fields": [
+                      {"name": "Status",  "value": "✅ SUCCESS" if is_success else "❌ FAILED", "inline": True},
+                      {"name": "Branch",  "value": os.environ['BRANCH'],                        "inline": True},
+                      {"name": "Commit",  "value": os.environ['COMMIT_SHA'][:7],                "inline": True},
+                      {"name": "Message", "value": os.environ['COMMIT_MSG'],                    "inline": False},
+                  ]
+              }]
+          }
+          data = json.dumps(payload).encode('utf-8')
+          req = urllib.request.Request(
+              os.environ['DISCORD_WEBHOOK_URL'],
+              data=data,
+              headers={"Content-Type": "application/json"}
+          )
+          urllib.request.urlopen(req)
+          EOF
