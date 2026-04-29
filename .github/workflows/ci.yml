@@ -164,7 +164,7 @@ jobs:
 
           is_success = os.environ['BUILD_RESULT'] == 'success'
           payload = {
-              "content": "@here",
+              "content": "@BE @DevOps",
               "allowed_mentions": {"parse": ["everyone"]},
               "embeds": [{
                   "title": "[CI/CD] Flooding-Server-V2",
