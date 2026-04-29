@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicRequest
+import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.CancelLikeWakeUpMusicService
@@ -59,7 +59,7 @@ class WakeUpMusicController(
     )
     @PostMapping
     fun applyWakeUpMusic(
-        @RequestBody request: ApplyWakeUpMusicRequest,
+        @RequestBody request: ApplyWakeUpMusicByUrlRequest,
     ): CommonApiResponse<Nothing> {
         applyWakeUpMusicService.execute(request)
         return CommonApiResponse.success("OK")

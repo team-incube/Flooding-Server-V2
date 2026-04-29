@@ -23,6 +23,10 @@ class WakeUpMusicJpaEntity(
     val user: UserJpaEntity,
     @field:Column(name = "music_url", nullable = false)
     val musicUrl: String,
+    @field:Column(name = "title")
+    val title: String? = null,
+    @field:Column(name = "artist")
+    val artist: String? = null,
     @field:Column(name = "applied_at", nullable = false)
     val appliedAt: LocalDateTime = LocalDateTime.now(),
 )

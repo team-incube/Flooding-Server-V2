@@ -3,7 +3,7 @@ package team.incube.flooding.domain.dormitory.music.service.impl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
-import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicRequest
+import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
@@ -20,7 +20,7 @@ class ApplyWakeUpMusicServiceImpl(
     }
 
     @Transactional
-    override fun execute(request: ApplyWakeUpMusicRequest) {
+    override fun execute(request: ApplyWakeUpMusicByUrlRequest) {
         val user = currentUserProvider.getCurrentUser()
 
         val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
@@ -33,7 +33,7 @@ class ApplyWakeUpMusicServiceImpl(
         wakeUpMusicRepository.save(
             WakeUpMusicJpaEntity(
                 user = user,
-                musicUrl = request.musicUrl
+                musicUrl = request.musicUrl,
             ),
         )
     }
