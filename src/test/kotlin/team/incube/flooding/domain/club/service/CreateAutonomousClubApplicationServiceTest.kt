@@ -95,7 +95,7 @@ class CreateAutonomousClubApplicationServiceTest :
                 email = "other$id@test.com",
                 studentNumber = (10000 + id).toInt(),
                 role = Role.GENERAL_STUDENT,
-                dormitoryRoom = null,
+                dormitoryRoom = 101,
             )
 
         given("존재하지 않는 동아리일 때") {
