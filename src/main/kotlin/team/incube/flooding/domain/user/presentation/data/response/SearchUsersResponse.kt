@@ -11,17 +11,21 @@ data class SearchUsersResponse(
     val grade: Int,
     val classNumber: Int,
     val number: Int,
+    val isBanned: Boolean,
 ) {
     companion object {
-        fun from(user: UserJpaEntity) =
-            SearchUsersResponse(
-                id = user.id,
-                name = user.name,
-                sex = user.sex,
-                studentNumber = user.studentNumber,
-                grade = user.grade,
-                classNumber = user.classNumber,
-                number = user.number,
-            )
+        fun from(
+            user: UserJpaEntity,
+            isBanned: Boolean,
+        ) = SearchUsersResponse(
+            id = user.id,
+            name = user.name,
+            sex = user.sex,
+            studentNumber = user.studentNumber,
+            grade = user.grade,
+            classNumber = user.classNumber,
+            number = user.number,
+            isBanned = isBanned,
+        )
     }
 }

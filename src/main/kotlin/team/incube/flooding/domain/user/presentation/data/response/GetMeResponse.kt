@@ -18,23 +18,27 @@ data class GetMeResponse(
     val dormitoryFloor: Int,
     val specialty: String?,
     val penaltyScore: Int,
+    val isBanned: Boolean,
 ) {
     companion object {
-        fun from(user: UserJpaEntity) =
-            GetMeResponse(
-                id = user.id,
-                name = user.name,
-                sex = user.sex,
-                email = user.email,
-                studentNumber = user.studentNumber,
-                grade = user.grade,
-                classNumber = user.classNumber,
-                number = user.number,
-                role = user.role,
-                dormitoryRoom = user.dormitoryRoom,
-                dormitoryFloor = user.dormitoryFloor,
-                specialty = user.specialty,
-                penaltyScore = user.penaltyScore,
-            )
+        fun from(
+            user: UserJpaEntity,
+            isBanned: Boolean,
+        ) = GetMeResponse(
+            id = user.id,
+            name = user.name,
+            sex = user.sex,
+            email = user.email,
+            studentNumber = user.studentNumber,
+            grade = user.grade,
+            classNumber = user.classNumber,
+            number = user.number,
+            role = user.role,
+            dormitoryRoom = user.dormitoryRoom,
+            dormitoryFloor = user.dormitoryFloor,
+            specialty = user.specialty,
+            penaltyScore = user.penaltyScore,
+            isBanned = isBanned,
+        )
     }
 }
