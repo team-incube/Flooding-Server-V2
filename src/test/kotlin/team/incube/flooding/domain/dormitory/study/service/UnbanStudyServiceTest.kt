@@ -42,9 +42,11 @@ class UnbanStudyServiceTest :
                 dormitoryRoom = 101,
             )
 
-        given("존재하지 않는 학생 ID로 요청할 때") {
+        given("활성 자습 금지 내역이 없고 유저도 존재하지 않을 때") {
             `when`("자습 금지를 해제하면") {
-                then("NOT_FOUND 예외가 발생한다") {
+                then("NOT_FOUND 예외 - 존재하지 않는 유저") {
+                    val now = LocalDateTime.now(clock)
+                    every { studyBanJpaRepository.findByUserIdAndBannedUntilAfter(1L, now) } returns null
                     every { userRepository.existsById(1L) } returns false
 
                     val exception = shouldThrow<ExpectedException> { service.execute(1L) }
@@ -57,10 +59,10 @@ class UnbanStudyServiceTest :
 
         given("학생은 존재하지만 활성 자습 금지 내역이 없을 때") {
             `when`("자습 금지를 해제하면") {
-                then("NOT_FOUND 예외가 발생한다") {
+                then("NOT_FOUND 예외 - 자습 금지 내역 없음") {
                     val now = LocalDateTime.now(clock)
-                    every { userRepository.existsById(1L) } returns true
                     every { studyBanJpaRepository.findByUserIdAndBannedUntilAfter(1L, now) } returns null
+                    every { userRepository.existsById(1L) } returns true
 
                     val exception = shouldThrow<ExpectedException> { service.execute(1L) }
 
@@ -82,7 +84,6 @@ class UnbanStudyServiceTest :
                             bannedAt = now.minusDays(1),
                             bannedUntil = now.plusDays(6),
                         )
-                    every { userRepository.existsById(1L) } returns true
                     every { studyBanJpaRepository.findByUserIdAndBannedUntilAfter(1L, now) } returns studyBan
                     justRun { studyBanJpaRepository.delete(studyBan) }
 

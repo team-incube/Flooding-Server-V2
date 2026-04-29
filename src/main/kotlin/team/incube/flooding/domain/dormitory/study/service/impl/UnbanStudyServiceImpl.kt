@@ -18,15 +18,15 @@ class UnbanStudyServiceImpl(
     private val clock: Clock,
 ) : UnbanStudyService {
     override fun execute(targetUserId: Long) {
-        if (!userRepository.existsById(targetUserId)) {
-            throw ExpectedException("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND)
-        }
-
         val studyBan =
             studyBanJpaRepository.findByUserIdAndBannedUntilAfter(
                 targetUserId,
                 LocalDateTime.now(clock),
-            ) ?: throw ExpectedException("자습 금지 내역이 없습니다.", HttpStatus.NOT_FOUND)
+            ) ?: if (!userRepository.existsById(targetUserId)) {
+                throw ExpectedException("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND)
+            } else {
+                throw ExpectedException("자습 금지 내역이 없습니다.", HttpStatus.NOT_FOUND)
+            }
 
         studyBanJpaRepository.delete(studyBan)
     }
