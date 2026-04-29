@@ -35,6 +35,7 @@ class GetStudyServiceImpl(
                     userId = it.id,
                     name = it.name,
                     studentNumber = it.studentNumber,
+                    sex = it.sex,
                     isBanned = it.id in bannedUserIds,
                     isChecked = it.id in checkedUserIds,
                 )
