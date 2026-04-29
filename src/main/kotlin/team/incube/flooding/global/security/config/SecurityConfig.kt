@@ -77,6 +77,11 @@ class SecurityConfig(
                         "/dormitory/studies/ban/**",
                     ).hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
                 it
+                    .requestMatchers(
+                        HttpMethod.DELETE,
+                        "/dormitory/studies/ban/**",
+                    ).hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
                     .requestMatchers(HttpMethod.GET, "/dormitory/studies/attendance")
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
                 it
