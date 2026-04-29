@@ -25,7 +25,12 @@ class RecommendAiSongServiceImpl(
         if (history.isEmpty()) {
             throw ExpectedException("추천을 위한 기상송 신청 내역이 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         }
-        val recentSongs = history.map { SongRequest(title = it.title, artist = it.artist) }
+        val recentSongs =
+            history.mapNotNull { entity ->
+                val title = entity.title ?: return@mapNotNull null
+                val artist = entity.artist ?: return@mapNotNull null
+                SongRequest(title = title, artist = artist)
+            }
         return aiSongAdapter.recommend(RecommendAiSongRequest(recentSongs = recentSongs))
     }
 }
