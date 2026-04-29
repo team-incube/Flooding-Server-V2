@@ -1,5 +1,6 @@
 package team.incube.flooding.global.security.config
 
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -102,6 +103,10 @@ class SecurityConfig(
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 it.anyRequest().authenticated()
+            }.exceptionHandling {
+                it.authenticationEntryPoint { _, response, _ ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                }
             }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
 }
