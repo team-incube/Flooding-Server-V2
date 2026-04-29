@@ -89,8 +89,9 @@ class SecurityConfig(
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 // massage
-                it.requestMatchers(HttpMethod.POST, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.GET, "/dormitory/massages").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/dormitory/massages").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").authenticated()
 
                 // penalty
                 it
