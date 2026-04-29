@@ -1,8 +1,5 @@
 package team.incube.flooding.domain.club.service.impl
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
@@ -22,45 +19,38 @@ class GetClubServiceImpl(
 ) : GetClubService {
     override fun execute(clubId: Long): GetClubResponse {
         val currentUser = currentUserProvider.getCurrentUser()
-        return runBlocking {
-            val clubDeferred = async(Dispatchers.IO) { clubRepository.findByIdWithLeader(clubId) }
-            val membersDeferred =
-                async(Dispatchers.IO) {
-                    clubParticipantRepository.findAllByClubId(clubId).map { p ->
-                        GetClubResponse.MemberSummary(
-                            id = p.user.id,
-                            name = p.user.name,
-                            studentNumber = p.user.studentNumber,
-                            sex = p.user.sex.name,
-                            specialty = p.user.specialty,
-                        )
-                    }
-                }
-            val projectsDeferred =
-                async(Dispatchers.IO) {
-                    val dgId = clubDeferred.await()?.dataGsmClubId ?: return@async emptyList()
-                    runCatching { dataGsmProjectClient.getProjectsByClubId(dgId) }.getOrElse { emptyList() }
-                }
+        val club =
+            clubRepository.findByIdWithLeader(clubId)
+                ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
+        val members =
+            clubParticipantRepository.findAllByClubId(clubId).map { p ->
+                GetClubResponse.MemberSummary(
+                    id = p.user.id,
+                    name = p.user.name,
+                    studentNumber = p.user.studentNumber,
+                    sex = p.user.sex.name,
+                    specialty = p.user.specialty,
+                )
+            }
+        val projects =
+            club.dataGsmClubId?.let { dgId ->
+                runCatching { dataGsmProjectClient.getProjectsByClubId(dgId) }.getOrElse { emptyList() }
+            } ?: emptyList()
 
-            val club =
-                clubDeferred.await()
-                    ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
-
-            GetClubResponse(
-                club =
-                    GetClubResponse.ClubDetail(
-                        id = club.id,
-                        name = club.name,
-                        type = club.type.name,
-                        leader = club.leader?.name,
-                        description = club.description,
-                        imageUrl = club.imageUrl,
-                        maxMember = club.maxMember,
-                    ),
-                members = membersDeferred.await(),
-                projects = projectsDeferred.await(),
-                isLeader = club.leader?.id == currentUser.id,
-            )
-        }
+        return GetClubResponse(
+            club =
+                GetClubResponse.ClubDetail(
+                    id = club.id,
+                    name = club.name,
+                    type = club.type.name,
+                    leader = club.leader?.name,
+                    description = club.description,
+                    imageUrl = club.imageUrl,
+                    maxMember = club.maxMember,
+                ),
+            members = members,
+            projects = projects,
+            isLeader = club.leader?.id == currentUser.id,
+        )
     }
 }
