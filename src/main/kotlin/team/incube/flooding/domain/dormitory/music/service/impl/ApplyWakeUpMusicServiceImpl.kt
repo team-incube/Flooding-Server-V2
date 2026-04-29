@@ -33,9 +33,7 @@ class ApplyWakeUpMusicServiceImpl(
         wakeUpMusicRepository.save(
             WakeUpMusicJpaEntity(
                 user = user,
-                musicUrl = request.musicUrl,
-                title = request.title,
-                artist = request.artist,
+                musicUrl = request.musicUrl
             ),
         )
     }
