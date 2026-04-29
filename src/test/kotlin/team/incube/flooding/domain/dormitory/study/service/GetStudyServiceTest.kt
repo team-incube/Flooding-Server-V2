@@ -31,10 +31,11 @@ class GetStudyServiceTest :
         fun user(
             id: Long,
             studentNumber: Int,
+            sex: Sex = Sex.MAN,
         ) = UserJpaEntity(
             id = id,
             name = "학생$id",
-            sex = Sex.MAN,
+            sex = sex,
             email = "student$id@test.com",
             studentNumber = studentNumber,
             role = Role.GENERAL_STUDENT,
@@ -152,6 +153,26 @@ class GetStudyServiceTest :
 
                     result[0].isBanned shouldBe true
                     result[0].isChecked shouldBe true
+                }
+            }
+        }
+
+        given("성별이 다른 학생 2명이 신청했을 때") {
+            val manUser = user(id = 1L, studentNumber = 1101, sex = Sex.MAN)
+            val womanUser = user(id = 2L, studentNumber = 1102, sex = Sex.WOMAN)
+
+            `when`("자습 신청자 목록을 조회하면") {
+                then("sex 필드가 올바르게 매핑된다") {
+                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L)
+                    every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
+                        emptyList()
+                    every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
+                    every { userRepository.findAllById(any()) } returns listOf(manUser, womanUser)
+
+                    val result = service.execute().sortedBy { it.userId }
+
+                    result[0].sex shouldBe Sex.MAN
+                    result[1].sex shouldBe Sex.WOMAN
                 }
             }
         }
