@@ -121,6 +121,12 @@ jobs:
             --insecure-registry \
             "${{ steps.meta.outputs.full }}"
 
+      - name: Cleanup local images
+        if: always()
+        run: |
+          sudo nerdctl --address /run/containerd/containerd.sock rmi "${{ steps.meta.outputs.full }}" --force 2>/dev/null || true
+          sudo nerdctl --address /run/containerd/containerd.sock image prune -f 2>/dev/null || true
+
   # ── 3. Trigger CD (master → prod, develop → dev) ─────────────
   trigger-cd:
     name: Trigger CD
