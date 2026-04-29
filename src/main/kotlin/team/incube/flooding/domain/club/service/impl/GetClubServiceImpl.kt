@@ -2,7 +2,7 @@ package team.incube.flooding.domain.club.service.impl
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
@@ -20,9 +20,9 @@ class GetClubServiceImpl(
     private val dataGsmProjectClient: DataGsmProjectClient,
     private val currentUserProvider: CurrentUserProvider,
 ) : GetClubService {
-    override suspend fun execute(clubId: Long): GetClubResponse {
+    override fun execute(clubId: Long): GetClubResponse {
         val currentUser = currentUserProvider.getCurrentUser()
-        return coroutineScope {
+        return runBlocking {
             val clubDeferred = async(Dispatchers.IO) { clubRepository.findByIdWithLeader(clubId) }
             val membersDeferred =
                 async(Dispatchers.IO) {
