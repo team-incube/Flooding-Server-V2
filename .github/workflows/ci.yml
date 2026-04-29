@@ -151,37 +151,34 @@ jobs:
           MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
           echo "first_line=${MSG}" >> $GITHUB_OUTPUT
 
-      - name: Send Discord notification
-        env:
-          BUILD_RESULT: ${{ needs.build.result }}
-          BRANCH: ${{ github.ref_name }}
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ steps.msg.outputs.first_line }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          python3 - <<'EOF'
-          import os, json, urllib.request
+      - name: Install jq
+        run: which jq || sudo apt-get install -y jq
 
-          is_success = os.environ['BUILD_RESULT'] == 'success'
-          payload = {
-              "content": "@BE @DevOps",
-              "allowed_mentions": {"parse": ["everyone"]},
-              "embeds": [{
-                  "title": "[CI/CD] Flooding-Server-V2",
-                  "color": 5763719 if is_success else 15548997,
-                  "fields": [
-                      {"name": "Status",  "value": "✅ SUCCESS" if is_success else "❌ FAILED", "inline": True},
-                      {"name": "Branch",  "value": os.environ['BRANCH'],                        "inline": True},
-                      {"name": "Commit",  "value": os.environ['COMMIT_SHA'][:7],                "inline": True},
-                      {"name": "Message", "value": os.environ['COMMIT_MSG'],                    "inline": False},
-                  ]
+      - name: Send Discord notification
+        run: |
+          STATUS="${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}"
+          COLOR="${{ (needs.build.result == 'success') && '5763719' || '15548997' }}"
+          COMMIT_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          PAYLOAD=$(jq -n \
+            --arg status  "$STATUS" \
+            --arg branch  "${{ github.ref_name }}" \
+            --arg commit  "$COMMIT_SHORT" \
+            --arg message "${{ steps.msg.outputs.first_line }}" \
+            --argjson color "$COLOR" \
+            '{
+              content: "<@&1445205580598874162> <@&1445206322730504253>",
+              allowed_mentions: {roles: ["1445205580598874162", "1445206322730504253"]},
+              embeds: [{
+                title: "[CI/CD] Flooding-Server-V2",
+                color: $color,
+                fields: [
+                  {name: "Status",  value: $status,  inline: true},
+                  {name: "Branch",  value: $branch,  inline: true},
+                  {name: "Commit",  value: $commit,  inline: true},
+                  {name: "Message", value: $message, inline: false}
+                ]
               }]
-          }
-          data = json.dumps(payload).encode('utf-8')
-          req = urllib.request.Request(
-              os.environ['DISCORD_WEBHOOK_URL'],
-              data=data,
-              headers={"Content-Type": "application/json"}
-          )
-          urllib.request.urlopen(req)
-          EOF
+            }')
+          curl -fsSL -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"

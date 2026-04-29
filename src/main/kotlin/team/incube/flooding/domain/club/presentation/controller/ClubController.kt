@@ -86,7 +86,7 @@ class ClubController(
 
     @Operation(summary = "동아리 단건 조회", description = "동아리 상세 정보를 조회합니다.")
     @GetMapping("/{clubId}")
-    suspend fun getClub(
+    fun getClub(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
 

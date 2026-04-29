@@ -1,7 +1,5 @@
 package team.incube.flooding.global.client
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
@@ -31,18 +29,16 @@ class DataGsmProjectClient(
             .build()
     }
 
-    suspend fun getProjectsByClubId(clubId: Long): List<GetClubResponse.ProjectSummary> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val cacheKey = "$CACHE_PREFIX$clubId"
-                val cached = redisTemplate.opsForValue().get(cacheKey)
-                if (cached != null) {
-                    jsonMapper.readValue(cached, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
-                } else {
-                    warmCache(clubId) ?: emptyList()
-                }
-            }.getOrElse { emptyList() }
-        }
+    fun getProjectsByClubId(clubId: Long): List<GetClubResponse.ProjectSummary> =
+        runCatching {
+            val cacheKey = "$CACHE_PREFIX$clubId"
+            val cached = redisTemplate.opsForValue().get(cacheKey)
+            if (cached != null) {
+                jsonMapper.readValue(cached, object : TypeReference<List<GetClubResponse.ProjectSummary>>() {})
+            } else {
+                warmCache(clubId) ?: emptyList()
+            }
+        }.getOrElse { emptyList() }
 
     fun warmCache(clubId: Long): List<GetClubResponse.ProjectSummary>? {
         val projects =
