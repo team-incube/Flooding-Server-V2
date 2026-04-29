@@ -20,6 +20,7 @@ import team.incube.flooding.domain.dormitory.study.service.CheckStudyAttendanceS
 import team.incube.flooding.domain.dormitory.study.service.GetStudyService
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.incube.flooding.domain.dormitory.study.service.SubscribeStudyAttendanceService
+import team.incube.flooding.domain.dormitory.study.service.UnbanStudyService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "자습", description = "자습 신청 관련 API")
@@ -29,6 +30,7 @@ class StudyController(
     private val studyApplicationService: StudyApplicationService,
     private val cancelStudyService: CancelStudyService,
     private val banStudyService: BanStudyService,
+    private val unbanStudyService: UnbanStudyService,
     private val getStudyService: GetStudyService,
     private val subscribeStudyAttendanceService: SubscribeStudyAttendanceService,
     private val checkStudyAttendanceService: CheckStudyAttendanceService,
@@ -117,6 +119,22 @@ class StudyController(
         @Parameter(description = "금지할 학생의 ID") @PathVariable userId: Long,
     ): CommonApiResponse<Nothing> {
         banStudyService.execute(userId)
+        return CommonApiResponse.success("OK")
+    }
+
+    @Operation(
+        summary = "자습 금지 해제",
+        description = "특정 학생의 자습 금지 상태를 해제합니다. 관리자 또는 기자위 권한이 필요합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "자습 금지 해제 성공"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 유저 또는 자습 금지 내역 없음"),
+    )
+    @DeleteMapping("/ban/{userId}")
+    fun unban(
+        @Parameter(description = "금지 해제할 학생의 ID") @PathVariable userId: Long,
+    ): CommonApiResponse<Nothing> {
+        unbanStudyService.execute(userId)
         return CommonApiResponse.success("OK")
     }
 }
