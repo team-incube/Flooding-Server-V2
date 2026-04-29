@@ -151,6 +151,9 @@ jobs:
           MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
           echo "first_line=${MSG}" >> $GITHUB_OUTPUT
 
+      - name: Install jq
+        run: which jq || sudo apt-get install -y jq
+
       - name: Send Discord notification
         run: |
           STATUS="${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}"
