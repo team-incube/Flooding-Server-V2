@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.club.entity
 
 import jakarta.persistence.*
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Entity
@@ -22,8 +23,8 @@ class ClubOpeningPeriodJpaEntity(
         this.endDate = endDate
     }
 
-    fun isOpened(): Boolean {
-        val now = LocalDateTime.now()
+    fun isOpened(clock: Clock): Boolean {
+        val now = LocalDateTime.now(clock)
         return !now.isBefore(startDate) && !now.isAfter(endDate)
     }
 }

@@ -108,12 +108,14 @@ class ClubController(
             .body(fileBytes)
     }
 
-    @Operation(summary = "동아리 개설 신청 기간 조회", description = "현재 동아리 개설 신청이 가능한 기간인지 확인하고, 설정된 시작/종료 시간을 반환합니다.")
+    @Operation(summary = "동아리 개설 신청 기간 조회", description = "현재 서버 시간(Clock)을 기준으로 동아리 개설 신청이 가능한 기간인지 확인합니다.",
+    )
     @GetMapping("/opening-status")
     fun getClubOpeningStatus(): CommonApiResponse<GetClubOpeningStatusResponse> =
         CommonApiResponse.success("OK", queryClubOpeningStatusService.execute())
 
-    @Operation(summary = "동아리 개설 신청 기간 설정", description = "관리자(ADMIN)가 동아리 개설 신청 시작 및 종료 시간을 설정합니다.")
+    @Operation(summary = "동아리 개설 신청 기간 설정", description = "관리자(ADMIN) 권한이 필요합니다. 동아리 개설 신청의 시작 일시와 종료 일시를 설정하며, 기존에 설정된 기간이 있다면 최신 정보로 덮어씌웁니다.",
+    )
     @PatchMapping("/opening-period")
     fun updateClubOpeningPeriod(
         @Valid @RequestBody request: UpdateClubOpeningPeriodRequest,
