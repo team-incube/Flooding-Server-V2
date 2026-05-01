@@ -65,6 +65,7 @@ class GetMeServiceTest :
                     val currentUser = user()
                     stubUserContext(currentUser)
                     every { clubFormSubmissionRepository.existsByUserId(currentUser.id) } returns true
+                    every { clubAutonomousApplicationRepository.existsByUserId(currentUser.id) } returns false
 
                     val response = service.execute()
 
