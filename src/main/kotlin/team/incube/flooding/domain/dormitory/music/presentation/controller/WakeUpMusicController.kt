@@ -60,10 +60,8 @@ class WakeUpMusicController(
     @PostMapping
     fun applyWakeUpMusic(
         @RequestBody request: ApplyWakeUpMusicByUrlRequest,
-    ): CommonApiResponse<Nothing> {
-        applyWakeUpMusicService.execute(request)
-        return CommonApiResponse.success("OK")
-    }
+    ): CommonApiResponse<WakeUpMusicResponse> =
+        CommonApiResponse.success("OK", applyWakeUpMusicService.execute(request))
 
     @Operation(
         summary = "기상음악 취소",

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
+import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
@@ -20,7 +21,7 @@ class ApplyWakeUpMusicServiceImpl(
     }
 
     @Transactional
-    override fun execute(request: ApplyWakeUpMusicByUrlRequest) {
+    override fun execute(request: ApplyWakeUpMusicByUrlRequest): WakeUpMusicResponse {
         val user = currentUserProvider.getCurrentUser()
 
         val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
@@ -30,11 +31,19 @@ class ApplyWakeUpMusicServiceImpl(
             wakeUpMusicRepository.deleteAllInBatch(toDelete)
         }
 
-        wakeUpMusicRepository.save(
-            WakeUpMusicJpaEntity(
-                user = user,
-                musicUrl = request.musicUrl,
-            ),
+        val saved =
+            wakeUpMusicRepository.save(
+                WakeUpMusicJpaEntity(
+                    user = user,
+                    musicUrl = request.musicUrl,
+                ),
+            )
+
+        return WakeUpMusicResponse(
+            id = saved.id,
+            musicUrl = saved.musicUrl,
+            appliedAt = saved.appliedAt,
+            likeCount = 0,
         )
     }
 }
