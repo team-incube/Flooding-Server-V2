@@ -19,11 +19,13 @@ data class GetMeResponse(
     val specialty: String?,
     val penaltyScore: Int,
     val isBanned: Boolean,
+    val hasClubApplication: Boolean,
 ) {
     companion object {
         fun from(
             user: UserJpaEntity,
             isBanned: Boolean,
+            hasClubApplication: Boolean,
         ) = GetMeResponse(
             id = user.id,
             name = user.name,
@@ -39,6 +41,7 @@ data class GetMeResponse(
             specialty = user.specialty,
             penaltyScore = user.penaltyScore,
             isBanned = isBanned,
+            hasClubApplication = hasClubApplication,
         )
     }
 }
