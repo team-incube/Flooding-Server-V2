@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import team.incube.flooding.domain.club.entity.ClubAutonomousApplicationJpaEntity
 
 interface ClubAutonomousApplicationRepository : JpaRepository<ClubAutonomousApplicationJpaEntity, Long> {
+    fun existsByUserId(userId: Long): Boolean
+
     fun existsByClubIdAndUserId(
         clubId: Long,
         userId: Long,
