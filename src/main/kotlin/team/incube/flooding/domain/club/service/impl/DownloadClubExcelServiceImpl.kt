@@ -71,7 +71,9 @@ class DownloadClubExcelServiceImpl(
         }
 
         val headerRow = sheet.createRow(0)
-        clubNames.forEachIndexed { i, name -> headerRow.createCell(i).setCellValue(name) }
+        clubNames.forEachIndexed { i, name ->
+            headerRow.createCell(i).setCellValue(name)
+        }
 
         val maxRows = clubMap.values.map { it.size }.maxOrNull() ?: 0
         for (i in 0 until maxRows) {
