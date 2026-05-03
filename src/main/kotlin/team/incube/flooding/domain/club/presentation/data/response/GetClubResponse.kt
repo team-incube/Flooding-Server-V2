@@ -10,6 +10,7 @@ data class GetClubResponse(
         val id: Long,
         val name: String,
         val type: String,
+        val leaderId: Long?,
         val leader: String?,
         val description: String?,
         val imageUrl: String?,

@@ -43,6 +43,7 @@ class GetClubServiceImpl(
                     id = club.id,
                     name = club.name,
                     type = club.type.name,
+                    leaderId = club.leader?.id,
                     leader = club.leader?.name,
                     description = club.description,
                     imageUrl = club.imageUrl,
