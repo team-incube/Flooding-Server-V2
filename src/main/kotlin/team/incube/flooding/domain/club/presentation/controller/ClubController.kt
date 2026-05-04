@@ -12,8 +12,10 @@ import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
 import team.incube.flooding.domain.club.presentation.data.request.PutClubRequest
+import team.incube.flooding.domain.club.presentation.data.request.UpdateClubOpeningPeriodRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
+import team.incube.flooding.domain.club.presentation.data.response.GetClubOpeningStatusResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
 import team.incube.flooding.domain.club.service.*
@@ -32,6 +34,8 @@ class ClubController(
     private val putClubService: PutClubService,
     private val getClubService: GetClubService,
     private val downloadClubExcelService: DownloadClubExcelService,
+    private val queryClubOpeningStatusService: QueryClubOpeningStatusService,
+    private val updateClubOpeningPeriodService: UpdateClubOpeningPeriodService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다.")
     @ResponseStatus(HttpStatus.CREATED)
@@ -102,5 +106,22 @@ class ClubController(
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$encodedFileName\"")
             .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
             .body(fileBytes)
+    }
+
+    @Operation(summary = "동아리 개설 신청 기간 조회", description = "현재 서버 시간(Clock)을 기준으로 동아리 개설 신청이 가능한 기간인지 확인합니다.")
+    @GetMapping("/opening-status")
+    fun getClubOpeningStatus(): CommonApiResponse<GetClubOpeningStatusResponse> =
+        CommonApiResponse.success("OK", queryClubOpeningStatusService.execute())
+
+    @Operation(
+        summary = "동아리 개설 신청 기간 설정",
+        description = "관리자(ADMIN) 권한이 필요합니다. 동아리 개설 신청의 시작 일시와 종료 일시를 설정하며, 기존에 설정된 기간이 있다면 최신 정보로 덮어씌웁니다.",
+    )
+    @PatchMapping("/opening-period")
+    fun updateClubOpeningPeriod(
+        @Valid @RequestBody request: UpdateClubOpeningPeriodRequest,
+    ): CommonApiResponse<Nothing> {
+        updateClubOpeningPeriodService.execute(request)
+        return CommonApiResponse.success("OK")
     }
 }
