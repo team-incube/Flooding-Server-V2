@@ -64,10 +64,16 @@ class DownloadClubExcelServiceImpl(
         val clubMap = participants.groupBy { it.club.name }
         val clubNames = clubMap.keys.toList()
 
-        if (clubNames.isEmpty()) return
+        if (clubNames.isEmpty()) {
+            val row = sheet.createRow(0)
+            row.createCell(0).setCellValue("조회된 참여 데이터가 없습니다.")
+            return
+        }
 
         val headerRow = sheet.createRow(0)
-        clubNames.forEachIndexed { i, name -> headerRow.createCell(i).setCellValue(name) }
+        clubNames.forEachIndexed { i, name ->
+            headerRow.createCell(i).setCellValue(name)
+        }
 
         val maxRows = clubMap.values.map { it.size }.maxOrNull() ?: 0
         for (i in 0 until maxRows) {
