@@ -26,7 +26,7 @@ class GetNeisMealsServiceImpl(
     }
 
     private fun extractMeals(response: JsonNode): List<GetNeisMealsResponse.Meal> {
-        val mealNodes = response.path("data")
+        val mealNodes = response.path("data").path("meals")
         if (!mealNodes.isArray) return emptyList()
 
         return mealNodes.map { mealNode ->
