@@ -48,8 +48,8 @@ class SecurityConfig(
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 // ai
-                it.requestMatchers(HttpMethod.POST, "/ai/chat").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()
 
                 // club
                 it
