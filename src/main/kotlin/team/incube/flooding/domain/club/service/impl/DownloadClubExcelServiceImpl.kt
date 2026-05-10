@@ -65,8 +65,7 @@ class DownloadClubExcelServiceImpl(
         val clubNames = clubMap.keys.toList()
 
         if (clubNames.isEmpty()) {
-            val row = sheet.createRow(0)
-            row.createCell(0).setCellValue("조회된 참여 데이터가 없습니다.")
+            sheet.createRow(0).createCell(0).setCellValue("조회된 참여 데이터가 없습니다.")
             return
         }
 
