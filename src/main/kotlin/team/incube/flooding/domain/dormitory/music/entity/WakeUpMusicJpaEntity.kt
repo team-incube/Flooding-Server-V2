@@ -28,5 +28,5 @@ class WakeUpMusicJpaEntity(
     @field:Column(name = "artist")
     val artist: String? = null,
     @field:Column(name = "applied_at", nullable = false)
-    val appliedAt: LocalDateTime = LocalDateTime.now(),
+    val appliedAt: LocalDateTime,
 )
