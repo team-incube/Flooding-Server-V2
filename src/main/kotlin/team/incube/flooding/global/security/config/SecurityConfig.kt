@@ -69,8 +69,8 @@ class SecurityConfig(
                     ).hasAnyRole(Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name, Role.ADMIN.name)
 
                 // study
-                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").authenticated()
                 it
                     .requestMatchers(
                         HttpMethod.POST,
