@@ -231,7 +231,8 @@ class GetStudyServiceTest :
                 then("내 신청 상태가 CANCELLED로 반환된다") {
                     every { studyRedisAdapter.getApplicantIds() } returns emptySet()
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
-                    every { studyRedisAdapter.getApplicationStatus(currentUser.id) } returns StudyApplicationStatus.CANCELLED
+                    every { studyRedisAdapter.getApplicationStatus(currentUser.id) } returns
+                        StudyApplicationStatus.CANCELLED
 
                     val result = service.execute()
 
