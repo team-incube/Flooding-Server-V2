@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import team.incube.flooding.domain.dormitory.study.presentation.data.response.GetStudyResponse
+import team.incube.flooding.domain.dormitory.study.presentation.data.response.GetStudyListResponse
 import team.incube.flooding.domain.dormitory.study.service.BanStudyService
 import team.incube.flooding.domain.dormitory.study.service.CancelStudyService
 import team.incube.flooding.domain.dormitory.study.service.CheckStudyAttendanceService
@@ -43,8 +43,7 @@ class StudyController(
         ApiResponse(responseCode = "200", description = "조회 성공"),
     )
     @GetMapping
-    fun getStudy(): CommonApiResponse<List<GetStudyResponse>> =
-        CommonApiResponse.success("OK", getStudyService.execute())
+    fun getStudy(): CommonApiResponse<GetStudyListResponse> = CommonApiResponse.success("OK", getStudyService.execute())
 
     @Operation(
         summary = "자습 신청",
