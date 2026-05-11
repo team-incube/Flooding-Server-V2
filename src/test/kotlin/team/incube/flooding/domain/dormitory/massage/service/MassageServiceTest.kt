@@ -28,6 +28,7 @@ class MassageServiceTest {
         userId: Long,
         now: LocalTime,
         queue: MutableList<Long>,
+        cancelledUsers: MutableSet<Long>,
         lock: ReentrantLock,
         successCount: AtomicInteger,
     ) {
@@ -47,6 +48,9 @@ class MassageServiceTest {
             if (queue.contains(userId)) {
                 throw RuntimeException("이미 신청하였습니다.")
             }
+            if (cancelledUsers.contains(userId)) {
+                throw RuntimeException("당일 취소한 안마의자는 다시 신청할 수 없습니다.")
+            }
             queue.add(userId)
             successCount.incrementAndGet()
         } finally {
@@ -58,10 +62,12 @@ class MassageServiceTest {
     private fun cancelLogic(
         userId: Long,
         queue: MutableList<Long>,
+        cancelledUsers: MutableSet<Long>,
     ) {
         if (!queue.contains(userId)) {
             throw RuntimeException("안마의자 신청 내역이 없습니다.")
         }
+        cancelledUsers.add(userId)
         queue.remove(userId)
     }
 
@@ -70,13 +76,14 @@ class MassageServiceTest {
     @Test
     fun `신청_시간_전에는_예외가_발생한다`() {
         val queue = mutableListOf<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
         val beforeOpenTime = openTime.minusMinutes(1)
 
         val exception =
             assertThrows(RuntimeException::class.java) {
-                applyLogic(1L, beforeOpenTime, queue, lock, successCount)
+                applyLogic(1L, beforeOpenTime, queue, cancelledUsers, lock, successCount)
             }
 
         assertEquals("안마의자 신청 시간이 아닙니다.", exception.message)
@@ -86,11 +93,12 @@ class MassageServiceTest {
     @Test
     fun `신청_시간_이후에는_정상_신청된다`() {
         val queue = mutableListOf<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
         val afterOpenTime = openTime.plusMinutes(1)
 
-        applyLogic(1L, afterOpenTime, queue, lock, successCount)
+        applyLogic(1L, afterOpenTime, queue, cancelledUsers, lock, successCount)
 
         assertEquals(1, queue.size)
         assertTrue(queue.contains(1L))
@@ -100,19 +108,20 @@ class MassageServiceTest {
     @Test
     fun `최대_인원_초과_시_예외가_발생한다`() {
         val queue = mutableListOf<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
         val now = openTime.plusMinutes(1)
 
         // maxCount만큼 먼저 채움
         (1L..maxCount.toLong()).forEach { id ->
-            applyLogic(id, now, queue, lock, successCount)
+            applyLogic(id, now, queue, cancelledUsers, lock, successCount)
         }
         assertEquals(maxCount, queue.size)
 
         val exception =
             assertThrows(RuntimeException::class.java) {
-                applyLogic(maxCount + 1L, now, queue, lock, successCount)
+                applyLogic(maxCount + 1L, now, queue, cancelledUsers, lock, successCount)
             }
 
         assertEquals("신청 인원이 마감되었습니다.", exception.message)
@@ -122,15 +131,16 @@ class MassageServiceTest {
     @Test
     fun `동일_유저_중복_신청_시_예외가_발생한다`() {
         val queue = mutableListOf<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
         val now = openTime.plusMinutes(1)
 
-        applyLogic(1L, now, queue, lock, successCount)
+        applyLogic(1L, now, queue, cancelledUsers, lock, successCount)
 
         val exception =
             assertThrows(RuntimeException::class.java) {
-                applyLogic(1L, now, queue, lock, successCount)
+                applyLogic(1L, now, queue, cancelledUsers, lock, successCount)
             }
 
         assertEquals("이미 신청하였습니다.", exception.message)
@@ -142,10 +152,11 @@ class MassageServiceTest {
     @Test
     fun `신청_내역이_없을_때_취소하면_예외가_발생한다`() {
         val queue = mutableListOf<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
 
         val exception =
             assertThrows(RuntimeException::class.java) {
-                cancelLogic(1L, queue)
+                cancelLogic(1L, queue, cancelledUsers)
             }
 
         assertEquals("안마의자 신청 내역이 없습니다.", exception.message)
@@ -154,27 +165,34 @@ class MassageServiceTest {
     @Test
     fun `신청한_유저는_정상_취소된다`() {
         val queue = mutableListOf(1L, 2L, 3L)
+        val cancelledUsers = mutableSetOf<Long>()
 
-        cancelLogic(2L, queue)
+        cancelLogic(2L, queue, cancelledUsers)
 
         assertEquals(2, queue.size)
         assertFalse(queue.contains(2L))
+        assertTrue(cancelledUsers.contains(2L))
     }
 
     @Test
-    fun `취소_후_재신청이_가능하다`() {
+    fun `취소_후_당일_재신청은_불가능하다`() {
         val queue = mutableListOf<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
         val now = openTime.plusMinutes(1)
 
-        applyLogic(1L, now, queue, lock, successCount)
-        cancelLogic(1L, queue)
-        applyLogic(1L, now, queue, lock, successCount)
+        applyLogic(1L, now, queue, cancelledUsers, lock, successCount)
+        cancelLogic(1L, queue, cancelledUsers)
 
-        assertEquals(1, queue.size)
-        assertTrue(queue.contains(1L))
-        assertEquals(2, successCount.get())
+        val exception =
+            assertThrows(RuntimeException::class.java) {
+                applyLogic(1L, now, queue, cancelledUsers, lock, successCount)
+            }
+
+        assertEquals("당일 취소한 안마의자는 다시 신청할 수 없습니다.", exception.message)
+        assertEquals(0, queue.size)
+        assertEquals(1, successCount.get())
     }
 
     // ── 동시성 테스트 ──────────────────────────────────────────────────────────
@@ -185,6 +203,7 @@ class MassageServiceTest {
 
         repeat(10) { attempt ->
             val queue = CopyOnWriteArrayList<Long>()
+            val cancelledUsers = mutableSetOf<Long>()
             val lock = ReentrantLock()
             val successCount = AtomicInteger(0)
             val now = openTime.plusMinutes(1)
@@ -195,7 +214,7 @@ class MassageServiceTest {
                 executor.submit {
                     latch.await()
                     try {
-                        applyLogic(userId, now, queue, lock, successCount)
+                        applyLogic(userId, now, queue, cancelledUsers, lock, successCount)
                     } catch (_: Exception) {
                     }
                 }
@@ -217,6 +236,7 @@ class MassageServiceTest {
         val concurrentRequests = 30
 
         val queue = CopyOnWriteArrayList<Long>()
+        val cancelledUsers = mutableSetOf<Long>()
         val lock = ReentrantLock()
         val successCount = AtomicInteger(0)
         val now = openTime.plusMinutes(1)
@@ -227,7 +247,7 @@ class MassageServiceTest {
             executor.submit {
                 latch.await()
                 try {
-                    applyLogic(sameUserId, now, queue, lock, successCount)
+                    applyLogic(sameUserId, now, queue, cancelledUsers, lock, successCount)
                 } catch (_: Exception) {
                 }
             }
