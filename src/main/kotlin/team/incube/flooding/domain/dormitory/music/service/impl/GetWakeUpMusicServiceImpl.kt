@@ -13,8 +13,8 @@ class GetWakeUpMusicServiceImpl(
 ) : GetWakeUpMusicService {
     @Transactional(readOnly = true)
     override fun execute(date: LocalDate): List<WakeUpMusicResponse> {
-        val startOfDay = date.atStartOfDay()
-        val endOfDay = date.plusDays(1).atStartOfDay()
-        return wakeUpMusicRepository.findAllWithLikeCountByDate(startOfDay, endOfDay)
+        val legacyStart = date.minusDays(1).atStartOfDay()
+        val legacyEnd = date.atStartOfDay()
+        return wakeUpMusicRepository.findAllWithLikeCountByWakeUpDate(date, legacyStart, legacyEnd)
     }
 }
