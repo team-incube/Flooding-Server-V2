@@ -38,6 +38,10 @@ class ApplyMassageServiceImpl(
                 throw ExpectedException("이미 신청하였습니다.", HttpStatus.CONFLICT)
             }
 
+            if (massageRedisAdapter.isReapplyBlocked(user.id)) {
+                throw ExpectedException("당일 취소한 안마의자는 다시 신청할 수 없습니다.", HttpStatus.CONFLICT)
+            }
+
             if (massageRedisAdapter.getCount() >= massageProperties.maxCount) {
                 throw ExpectedException("신청 인원이 마감되었습니다.", HttpStatus.CONFLICT)
             }
