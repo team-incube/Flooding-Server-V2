@@ -19,6 +19,7 @@ class CancelMassageServiceImpl(
             throw ExpectedException("안마의자 신청 내역이 없습니다.", HttpStatus.NOT_FOUND)
         }
 
+        massageRedisAdapter.markCancelledToday(user.id)
         massageRedisAdapter.cancel(user.id)
     }
 }

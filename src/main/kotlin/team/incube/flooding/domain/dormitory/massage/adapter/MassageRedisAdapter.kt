@@ -2,6 +2,7 @@ package team.incube.flooding.domain.dormitory.massage.adapter
 
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -10,15 +11,19 @@ import java.time.LocalTime
 @Component
 class MassageRedisAdapter(
     private val redisTemplate: RedisTemplate<String, String>,
+    private val clock: Clock,
 ) {
     companion object {
         private const val QUEUE_KEY = "massage:queue"
+        private const val CANCELLED_KEY_PREFIX = "massage:cancelled:"
     }
 
     private fun ttlUntilMidnight(): Duration {
-        val midnight = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)
-        return Duration.between(LocalDateTime.now(), midnight)
+        val midnight = LocalDateTime.of(LocalDate.now(clock).plusDays(1), LocalTime.MIDNIGHT)
+        return Duration.between(LocalDateTime.now(clock), midnight)
     }
+
+    private fun cancelledKey(userId: Long): String = "$CANCELLED_KEY_PREFIX$userId"
 
     fun apply(userId: Long): Long {
         val size = redisTemplate.opsForList().rightPush(QUEUE_KEY, userId.toString())
@@ -31,6 +36,12 @@ class MassageRedisAdapter(
     fun cancel(userId: Long) {
         redisTemplate.opsForList().remove(QUEUE_KEY, 1, userId.toString())
     }
+
+    fun markCancelledToday(userId: Long) {
+        redisTemplate.opsForValue().set(cancelledKey(userId), "true", ttlUntilMidnight())
+    }
+
+    fun isReapplyBlocked(userId: Long): Boolean = redisTemplate.hasKey(cancelledKey(userId))
 
     fun isApply(userId: Long): Boolean =
         redisTemplate
