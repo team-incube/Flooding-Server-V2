@@ -1,7 +1,7 @@
 package team.incube.flooding.domain.dormitory.study.service
 
-import team.incube.flooding.domain.dormitory.study.presentation.data.response.GetStudyResponse
+import team.incube.flooding.domain.dormitory.study.presentation.data.response.GetStudyListResponse
 
 interface GetStudyService {
-    fun execute(): List<GetStudyResponse>
+    fun execute(): GetStudyListResponse
 }

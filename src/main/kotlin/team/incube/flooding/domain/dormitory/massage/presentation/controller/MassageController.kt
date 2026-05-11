@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageResponse
+import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageListResponse
 import team.incube.flooding.domain.dormitory.massage.service.ApplyMassageService
 import team.incube.flooding.domain.dormitory.massage.service.CancelMassageService
 import team.incube.flooding.domain.dormitory.massage.service.GetMassageService
@@ -31,7 +31,7 @@ class MassageController(
         ApiResponse(responseCode = "200", description = "조회 성공"),
     )
     @GetMapping
-    fun getMassage(): CommonApiResponse<List<GetMassageResponse>> =
+    fun getMassage(): CommonApiResponse<GetMassageListResponse> =
         CommonApiResponse.success("OK", getMassageService.execute())
 
     @Operation(

@@ -1,7 +1,7 @@
 package team.incube.flooding.domain.dormitory.massage.service
 
-import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageResponse
+import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageListResponse
 
 interface GetMassageService {
-    fun execute(): List<GetMassageResponse>
+    fun execute(): GetMassageListResponse
 }
