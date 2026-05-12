@@ -112,9 +112,9 @@ class ClubController(
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/representative-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadClubRepresentativeImage(
-        @RequestParam("image") request: MultipartFile,
+        @RequestParam("image") image: MultipartFile,
     ): CommonApiResponse<UploadClubRepresentativeImageResponse> =
-        CommonApiResponse.created("OK", uploadClubRepresentativeImageService.execute(request))
+        CommonApiResponse.created("OK", uploadClubRepresentativeImageService.execute(image))
 
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")

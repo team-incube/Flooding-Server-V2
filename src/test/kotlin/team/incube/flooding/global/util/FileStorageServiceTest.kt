@@ -163,6 +163,22 @@ class FileStorageServiceTest :
                 }
             }
         }
+
+        given("업로드 루트를 벗어나는 이미지 URL이 주어졌을 때") {
+            `when`("삭제하면") {
+                then("업로드 루트 밖 파일은 삭제하지 않는다") {
+                    val outsidePath = Files.createTempFile(uploadDir.parent, "outside", ".png")
+
+                    try {
+                        service.delete("$IMAGE_URL_PREFIX/../${outsidePath.fileName}")
+
+                        Files.exists(outsidePath).shouldBeTrue()
+                    } finally {
+                        Files.deleteIfExists(outsidePath)
+                    }
+                }
+            }
+        }
     })
 
 private fun pngBytes(): ByteArray =

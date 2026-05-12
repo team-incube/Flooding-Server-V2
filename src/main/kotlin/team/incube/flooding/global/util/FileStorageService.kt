@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
+import java.io.IOException
 import java.io.PushbackInputStream
 import java.net.URI
 import java.nio.file.Files
@@ -34,27 +35,25 @@ class FileStorageService(
             throw ExpectedException("파일 저장 경로가 올바르지 않습니다.", HttpStatus.BAD_REQUEST)
         }
 
+        var stored = false
         try {
             Files.createDirectories(targetDir)
             file.inputStream.use { rawInputStream ->
                 val inputStream = PushbackInputStream(rawInputStream, IMAGE_SIGNATURE_READ_SIZE)
                 validateImageSignature(inputStream)
                 Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING)
+                stored = true
             }
         } catch (exception: ExpectedException) {
-            runCatching {
-                Files.deleteIfExists(targetPath)
-            }.onFailure { deleteException ->
-                log.warn("Failed to delete partially stored image file. path={}", targetPath, deleteException)
-            }
             throw exception
-        } catch (exception: Exception) {
-            runCatching {
-                Files.deleteIfExists(targetPath)
-            }.onFailure { deleteException ->
-                log.warn("Failed to delete partially stored image file. path={}", targetPath, deleteException)
-            }
+        } catch (exception: IOException) {
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
+        } catch (exception: SecurityException) {
+            throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
+        } finally {
+            if (!stored) {
+                deletePartiallyStoredFile(targetPath)
+            }
         }
 
         return "${fileStorageProperties.baseUrl.trimEnd('/')}$IMAGE_URL_PREFIX/$subDir/$fileName"
@@ -70,7 +69,15 @@ class FileStorageService(
         runCatching {
             Files.deleteIfExists(targetPath)
         }.onFailure { exception ->
-            log.warn("Failed to delete stored image file. path={}", targetPath, exception)
+            log.warn("저장된 이미지 파일 삭제에 실패했습니다. path={}", targetPath, exception)
+        }
+    }
+
+    private fun deletePartiallyStoredFile(targetPath: java.nio.file.Path) {
+        runCatching {
+            Files.deleteIfExists(targetPath)
+        }.onFailure { exception ->
+            log.warn("부분 저장된 이미지 파일 삭제에 실패했습니다. path={}", targetPath, exception)
         }
     }
 
