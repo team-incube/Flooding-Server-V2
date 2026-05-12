@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
@@ -20,7 +21,6 @@ import team.incube.flooding.domain.club.presentation.data.response.PatchClubAppr
 import team.incube.flooding.domain.club.service.*
 import team.themoment.sdk.response.CommonApiResponse
 import java.net.URLEncoder
-import org.springframework.http.MediaType
 
 @Tag(name = "동아리", description = "동아리 관련 API")
 @RestController
