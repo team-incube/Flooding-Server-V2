@@ -48,8 +48,8 @@ class SecurityConfig(
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 // ai
-                it.requestMatchers(HttpMethod.POST, "/ai/chat").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()
 
                 // club
                 it
@@ -68,9 +68,16 @@ class SecurityConfig(
                         "/clubs/*/applications",
                     ).hasAnyRole(Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name, Role.ADMIN.name)
 
+                // music
+                it.requestMatchers(HttpMethod.GET, "/dormitory/music").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/dormitory/music").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/*").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/dormitory/music/*/like").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/*/like").authenticated()
+
                 // study
-                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").authenticated()
                 it
                     .requestMatchers(
                         HttpMethod.POST,

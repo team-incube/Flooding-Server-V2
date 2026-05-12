@@ -9,12 +9,16 @@ import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRep
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.global.security.util.CurrentUserProvider
+import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 class ApplyWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
     private val wakeUpMusicLikeRepository: WakeUpMusicLikeRepository,
     private val currentUserProvider: CurrentUserProvider,
+    private val clock: Clock,
 ) : ApplyWakeUpMusicService {
     companion object {
         private const val MAX_HISTORY_SIZE = 5
@@ -23,6 +27,8 @@ class ApplyWakeUpMusicServiceImpl(
     @Transactional
     override fun execute(request: ApplyWakeUpMusicByUrlRequest): WakeUpMusicResponse {
         val user = currentUserProvider.getCurrentUser()
+        val now = LocalDateTime.now(clock)
+        val wakeUpDate = LocalDate.now(clock).plusDays(1)
 
         val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
         if (histories.size >= MAX_HISTORY_SIZE) {
@@ -36,6 +42,8 @@ class ApplyWakeUpMusicServiceImpl(
                 WakeUpMusicJpaEntity(
                     user = user,
                     musicUrl = request.musicUrl,
+                    wakeUpDate = wakeUpDate,
+                    appliedAt = now,
                 ),
             )
 

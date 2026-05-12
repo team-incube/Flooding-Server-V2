@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import team.incube.flooding.domain.user.entity.UserJpaEntity
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity
@@ -27,6 +28,8 @@ class WakeUpMusicJpaEntity(
     val title: String? = null,
     @field:Column(name = "artist")
     val artist: String? = null,
+    @field:Column(name = "wake_up_date")
+    val wakeUpDate: LocalDate? = null,
     @field:Column(name = "applied_at", nullable = false)
-    val appliedAt: LocalDateTime = LocalDateTime.now(),
+    val appliedAt: LocalDateTime,
 )
