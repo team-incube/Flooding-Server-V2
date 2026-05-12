@@ -103,3 +103,4 @@ jwt:
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:./uploads}
+  base-url: ${FILE_BASE_URL:http://localhost:8080}

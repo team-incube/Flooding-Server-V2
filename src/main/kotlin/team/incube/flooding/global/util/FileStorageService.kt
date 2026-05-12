@@ -43,7 +43,7 @@ class FileStorageService(
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
-        return "/images/$subDir/$fileName"
+        return "${fileStorageProperties.baseUrl.trimEnd('/')}/images/$subDir/$fileName"
     }
 
     private fun validate(file: MultipartFile) {

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
+import java.net.URI
 import java.nio.file.Files
 
 class FileStorageServiceTest :
@@ -18,7 +19,13 @@ class FileStorageServiceTest :
 
         beforeEach {
             uploadDir = Files.createTempDirectory("flooding-upload-test")
-            service = FileStorageService(FileStorageProperties(uploadDir = uploadDir.toString()))
+            service =
+                FileStorageService(
+                    FileStorageProperties(
+                        uploadDir = uploadDir.toString(),
+                        baseUrl = "https://dev-api.example.com",
+                    ),
+                )
         }
 
         afterEach {
@@ -68,8 +75,9 @@ class FileStorageServiceTest :
 
                     val imageUrl = service.store(file, "clubs")
 
-                    imageUrl shouldMatch Regex("^/images/clubs/[0-9a-f-]+\\.png$")
-                    Files.exists(uploadDir.resolve(imageUrl.removePrefix("/images/"))).shouldBeTrue()
+                    imageUrl shouldMatch Regex("^https://dev-api\\.example\\.com/images/clubs/[0-9a-f-]+\\.png$")
+                    val savedPath = URI.create(imageUrl).path.removePrefix("/images/")
+                    Files.exists(uploadDir.resolve(savedPath)).shouldBeTrue()
                 }
             }
         }

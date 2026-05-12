@@ -91,12 +91,13 @@ class UploadClubProfileImageServiceImplTest :
                     val targetClub = club(leader)
                     every { clubRepository.findById(1L) } returns Optional.of(targetClub)
                     every { currentUserProvider.getCurrentUser() } returns leader
-                    every { fileStorageService.store(any(), "clubs") } returns "/images/clubs/profile.png"
+                    every { fileStorageService.store(any(), "clubs") } returns
+                        "https://dev-api.example.com/images/clubs/profile.png"
 
                     val response = service.execute(1L, image())
 
-                    response.imageUrl shouldBe "/images/clubs/profile.png"
-                    targetClub.imageUrl shouldBe "/images/clubs/profile.png"
+                    response.imageUrl shouldBe "https://dev-api.example.com/images/clubs/profile.png"
+                    targetClub.imageUrl shouldBe "https://dev-api.example.com/images/clubs/profile.png"
                 }
             }
         }
@@ -108,12 +109,13 @@ class UploadClubProfileImageServiceImplTest :
                     val targetClub = club(null)
                     every { clubRepository.findById(1L) } returns Optional.of(targetClub)
                     every { currentUserProvider.getCurrentUser() } returns admin
-                    every { fileStorageService.store(any(), "clubs") } returns "/images/clubs/admin.png"
+                    every { fileStorageService.store(any(), "clubs") } returns
+                        "https://dev-api.example.com/images/clubs/admin.png"
 
                     val response = service.execute(1L, image())
 
-                    response.imageUrl shouldBe "/images/clubs/admin.png"
-                    targetClub.imageUrl shouldBe "/images/clubs/admin.png"
+                    response.imageUrl shouldBe "https://dev-api.example.com/images/clubs/admin.png"
+                    targetClub.imageUrl shouldBe "https://dev-api.example.com/images/clubs/admin.png"
                 }
             }
         }
@@ -125,12 +127,13 @@ class UploadClubProfileImageServiceImplTest :
                     val targetClub = club(null)
                     every { clubRepository.findById(1L) } returns Optional.of(targetClub)
                     every { currentUserProvider.getCurrentUser() } returns council
-                    every { fileStorageService.store(any(), "clubs") } returns "/images/clubs/council.png"
+                    every { fileStorageService.store(any(), "clubs") } returns
+                        "https://dev-api.example.com/images/clubs/council.png"
 
                     val response = service.execute(1L, image())
 
-                    response.imageUrl shouldBe "/images/clubs/council.png"
-                    targetClub.imageUrl shouldBe "/images/clubs/council.png"
+                    response.imageUrl shouldBe "https://dev-api.example.com/images/clubs/council.png"
+                    targetClub.imageUrl shouldBe "https://dev-api.example.com/images/clubs/council.png"
                 }
             }
         }
