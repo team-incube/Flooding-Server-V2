@@ -87,4 +87,12 @@ class StudyRedisAdapter(
             .members(ATTENDANCE_KEY)
             ?.map { it.toLong() }
             ?.toSet() ?: emptySet()
+
+    fun resetAll() {
+        val applicationKeys = redisTemplate.keys("$APPLICATION_KEY:*") ?: emptySet()
+        if (applicationKeys.isNotEmpty()) redisTemplate.delete(applicationKeys)
+        redisTemplate.delete(COUNT_KEY)
+        redisTemplate.delete(APPLICANTS_KEY)
+        redisTemplate.delete(ATTENDANCE_KEY)
+    }
 }
