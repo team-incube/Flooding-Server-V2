@@ -24,7 +24,7 @@ class UploadClubRepresentativeImageServiceImplTest :
         fun image() = MockMultipartFile("image", "representative.png", "image/png", byteArrayOf(1, 2, 3))
 
         given("동아리 대표 이미지 업로드 요청이 들어오면") {
-            `when`("이미지를 저장한다") {
+            `when`("정상 이미지 파일을 전달하면") {
                 then("저장된 이미지 URL을 반환한다") {
                     every { fileStorageService.store(any(), CLUB_IMAGE_SUB_DIR) } returns
                         "https://dev-api.example.com/images/clubs/representative.png"
@@ -36,7 +36,7 @@ class UploadClubRepresentativeImageServiceImplTest :
                 }
             }
 
-            `when`("파일 저장 서비스에서 예외가 발생하면") {
+            `when`("파일 저장에 실패하면") {
                 then("예외를 그대로 전파한다") {
                     every { fileStorageService.store(any(), CLUB_IMAGE_SUB_DIR) } throws
                         ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)

@@ -11,12 +11,10 @@ import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
-import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URI
 import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
 
 class FileStorageServiceTest :
     BehaviorSpec({
@@ -100,6 +98,19 @@ class FileStorageServiceTest :
             }
         }
 
+        given("한 번만 열 수 있는 이미지 스트림이 주어졌을 때") {
+            `when`("저장하면") {
+                then("같은 스트림으로 검증과 저장을 수행한다") {
+                    val file = SingleUseMultipartFile()
+
+                    val imageUrl = service.store(file, "clubs")
+
+                    val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
+                    Files.readAllBytes(uploadDir.resolve(savedPath)) shouldBe pngBytes()
+                }
+            }
+        }
+
         given("이미지 확장자와 MIME 타입이지만 파일 시그니처가 다를 때") {
             `when`("저장하면") {
                 then("BAD_REQUEST 예외가 발생한다") {
@@ -165,11 +176,42 @@ private fun pngBytes(): ByteArray =
         0x1A,
         0x0A,
         0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
     )
 
-private class FailingMultipartFile : MultipartFile {
-    private val openCount = AtomicInteger()
+private class SingleUseMultipartFile : MultipartFile {
+    private var opened = false
 
+    override fun getName(): String = "image"
+
+    override fun getOriginalFilename(): String = "profile.png"
+
+    override fun getContentType(): String = "image/png"
+
+    override fun isEmpty(): Boolean = false
+
+    override fun getSize(): Long = pngBytes().size.toLong()
+
+    override fun getBytes(): ByteArray = pngBytes()
+
+    override fun getInputStream(): InputStream {
+        if (opened) {
+            throw IOException("stream already consumed")
+        }
+        opened = true
+        return pngBytes().inputStream()
+    }
+
+    override fun transferTo(dest: java.io.File) = Unit
+}
+
+private class FailingMultipartFile : MultipartFile {
     override fun getName(): String = "image"
 
     override fun getOriginalFilename(): String = "profile.png"
@@ -182,12 +224,8 @@ private class FailingMultipartFile : MultipartFile {
 
     override fun getBytes(): ByteArray = pngBytes()
 
-    override fun getInputStream(): InputStream {
-        if (openCount.incrementAndGet() == 1) {
-            return ByteArrayInputStream(pngBytes())
-        }
-
-        return object : InputStream() {
+    override fun getInputStream(): InputStream =
+        object : InputStream() {
             private val bytes = pngBytes()
             private var index = 0
 
@@ -199,7 +237,6 @@ private class FailingMultipartFile : MultipartFile {
                 throw IOException("copy failed")
             }
         }
-    }
 
     override fun transferTo(dest: java.io.File) = Unit
 }

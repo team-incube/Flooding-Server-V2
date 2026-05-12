@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
-import java.io.IOException
+import java.io.PushbackInputStream
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -19,16 +19,12 @@ class FileStorageService(
     private val fileStorageProperties: FileStorageProperties,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val allowedExtensions = setOf("jpg", "jpeg", "png", "webp")
-    private val allowedContentTypes = setOf("image/jpeg", "image/png", "image/webp")
 
     fun store(
         file: MultipartFile,
         subDir: String,
     ): String {
-        validate(file)
-
-        val extension = getExtension(file)
+        val extension = validateAndGetExtension(file)
         val fileName = "${UUID.randomUUID()}.$extension"
         val uploadRoot = Paths.get(fileStorageProperties.uploadDir).toAbsolutePath().normalize()
         val targetDir = uploadRoot.resolve(subDir).normalize()
@@ -40,10 +36,19 @@ class FileStorageService(
 
         try {
             Files.createDirectories(targetDir)
-            file.inputStream.use { inputStream ->
+            file.inputStream.use { rawInputStream ->
+                val inputStream = PushbackInputStream(rawInputStream, IMAGE_SIGNATURE_READ_SIZE)
+                validateImageSignature(inputStream)
                 Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING)
             }
-        } catch (exception: IOException) {
+        } catch (exception: ExpectedException) {
+            runCatching {
+                Files.deleteIfExists(targetPath)
+            }.onFailure { deleteException ->
+                log.warn("Failed to delete partially stored image file. path={}", targetPath, deleteException)
+            }
+            throw exception
+        } catch (exception: Exception) {
             runCatching {
                 Files.deleteIfExists(targetPath)
             }.onFailure { deleteException ->
@@ -69,7 +74,7 @@ class FileStorageService(
         }
     }
 
-    private fun validate(file: MultipartFile) {
+    private fun validateAndGetExtension(file: MultipartFile): String {
         if (file.isEmpty) {
             throw ExpectedException("이미지 파일이 비어 있습니다.", HttpStatus.BAD_REQUEST)
         }
@@ -83,9 +88,7 @@ class FileStorageService(
             throw ExpectedException("지원하지 않는 이미지 형식입니다.", HttpStatus.BAD_REQUEST)
         }
 
-        if (!hasValidImageSignature(file)) {
-            throw ExpectedException("지원하지 않는 이미지 형식입니다.", HttpStatus.BAD_REQUEST)
-        }
+        return extension
     }
 
     private fun getExtension(file: MultipartFile): String {
@@ -101,14 +104,25 @@ class FileStorageService(
         return extension
     }
 
-    private fun hasValidImageSignature(file: MultipartFile): Boolean {
+    private fun validateImageSignature(inputStream: PushbackInputStream) {
         val header =
             runCatching {
-                file.inputStream.use { inputStream -> inputStream.readNBytes(IMAGE_SIGNATURE_READ_SIZE) }
+                val bytes = ByteArray(IMAGE_SIGNATURE_READ_SIZE)
+                val bytesRead = inputStream.readNBytes(bytes, 0, IMAGE_SIGNATURE_READ_SIZE)
+
+                if (bytesRead > 0) {
+                    inputStream.unread(bytes, 0, bytesRead)
+                }
+
+                bytes.copyOf(bytesRead)
             }.getOrElse { throw ExpectedException("이미지 파일을 읽을 수 없습니다.", HttpStatus.BAD_REQUEST) }
 
-        return isJpeg(header) || isPng(header) || isWebp(header)
+        if (!hasValidImageSignature(header)) {
+            throw ExpectedException("지원하지 않는 이미지 형식입니다.", HttpStatus.BAD_REQUEST)
+        }
     }
+
+    private fun hasValidImageSignature(bytes: ByteArray): Boolean = isJpeg(bytes) || isPng(bytes) || isWebp(bytes)
 
     private fun isJpeg(bytes: ByteArray): Boolean =
         bytes.size >= 3 &&
@@ -139,6 +153,8 @@ class FileStorageService(
 
     companion object {
         private const val IMAGE_SIGNATURE_READ_SIZE = 12
+        private val allowedExtensions = setOf("jpg", "jpeg", "png", "webp")
+        private val allowedContentTypes = setOf("image/jpeg", "image/png", "image/webp")
 
         private val PNG_SIGNATURE =
             byteArrayOf(
