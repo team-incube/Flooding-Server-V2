@@ -99,7 +99,7 @@ class ClubController(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
 
-    @Operation(summary = "동아리 프로필 이미지 업로드", description = "multipart/form-data로 이미지를 업로드합니다.")
+    @Operation(summary = "동아리 대표 이미지 업로드", description = "multipart/form-data로 동아리 대표 이미지를 업로드합니다.")
     @ApiResponses(
         ApiResponse(responseCode = "201", description = "업로드 성공"),
         ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일"),
