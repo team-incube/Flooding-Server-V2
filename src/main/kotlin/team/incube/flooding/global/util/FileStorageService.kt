@@ -3,11 +3,12 @@ package team.incube.flooding.global.util
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
 import java.io.IOException
+import java.net.URI
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.UUID
@@ -43,7 +44,19 @@ class FileStorageService(
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
-        return "${fileStorageProperties.baseUrl.trimEnd('/')}/images/$subDir/$fileName"
+        return "${fileStorageProperties.baseUrl.trimEnd('/')}$IMAGE_URL_PREFIX/$subDir/$fileName"
+    }
+
+    fun delete(imageUrl: String?) {
+        val relativePath = getStoredRelativePath(imageUrl) ?: return
+        val uploadRoot = Paths.get(fileStorageProperties.uploadDir).toAbsolutePath().normalize()
+        val targetPath = uploadRoot.resolve(relativePath).normalize()
+
+        if (!targetPath.startsWith(uploadRoot)) return
+
+        runCatching {
+            Files.deleteIfExists(targetPath)
+        }
     }
 
     private fun validate(file: MultipartFile) {
@@ -65,18 +78,24 @@ class FileStorageService(
         val originalFilename =
             file.originalFilename
                 ?: throw ExpectedException("파일명이 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
-        val extension =
-            Path
-                .of(originalFilename)
-                .fileName
-                .toString()
-                .substringAfterLast('.', "")
-                .lowercase()
+        val extension = originalFilename.substringAfterLast('.', "").lowercase()
 
         if (extension.isBlank()) {
             throw ExpectedException("파일 확장자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         }
 
         return extension
+    }
+
+    private fun getStoredRelativePath(imageUrl: String?): String? {
+        if (imageUrl.isNullOrBlank()) return null
+
+        val path =
+            runCatching { URI.create(imageUrl).path }
+                .getOrDefault(imageUrl)
+
+        if (!path.startsWith("$IMAGE_URL_PREFIX/")) return null
+
+        return path.removePrefix("$IMAGE_URL_PREFIX/")
     }
 }

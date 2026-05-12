@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
 import java.net.URI
@@ -76,8 +77,22 @@ class FileStorageServiceTest :
                     val imageUrl = service.store(file, "clubs")
 
                     imageUrl shouldMatch Regex("^https://dev-api\\.example\\.com/images/clubs/[0-9a-f-]+\\.png$")
-                    val savedPath = URI.create(imageUrl).path.removePrefix("/images/")
+                    val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
                     Files.exists(uploadDir.resolve(savedPath)).shouldBeTrue()
+                }
+            }
+        }
+
+        given("저장된 이미지 URL이 주어졌을 때") {
+            `when`("삭제하면") {
+                then("파일이 제거된다") {
+                    val file = MockMultipartFile("image", "profile.png", "image/png", byteArrayOf(1, 2, 3))
+                    val imageUrl = service.store(file, "clubs")
+                    val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
+
+                    service.delete(imageUrl)
+
+                    Files.notExists(uploadDir.resolve(savedPath)).shouldBeTrue()
                 }
             }
         }

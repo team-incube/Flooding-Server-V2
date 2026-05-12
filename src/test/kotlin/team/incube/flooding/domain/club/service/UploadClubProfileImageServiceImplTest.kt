@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
@@ -88,16 +89,21 @@ class UploadClubProfileImageServiceImplTest :
             `when`("본인 동아리 이미지를 업로드하면") {
                 then("이미지 URL이 변경된다") {
                     val leader = user(1L, Role.GENERAL_STUDENT)
-                    val targetClub = club(leader)
+                    val targetClub =
+                        club(leader).apply {
+                            imageUrl = "https://dev-api.example.com/images/clubs/old.png"
+                        }
                     every { clubRepository.findById(1L) } returns Optional.of(targetClub)
                     every { currentUserProvider.getCurrentUser() } returns leader
                     every { fileStorageService.store(any(), "clubs") } returns
                         "https://dev-api.example.com/images/clubs/profile.png"
+                    every { fileStorageService.delete(any()) } returns Unit
 
                     val response = service.execute(1L, image())
 
                     response.imageUrl shouldBe "https://dev-api.example.com/images/clubs/profile.png"
                     targetClub.imageUrl shouldBe "https://dev-api.example.com/images/clubs/profile.png"
+                    verify { fileStorageService.delete("https://dev-api.example.com/images/clubs/old.png") }
                 }
             }
         }
