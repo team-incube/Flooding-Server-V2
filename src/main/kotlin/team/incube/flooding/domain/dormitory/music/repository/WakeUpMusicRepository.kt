@@ -15,10 +15,16 @@ interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
     @Query(
         """
         SELECT new team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse(
-            m.id, m.musicUrl, m.appliedAt, COUNT(l.id))
-        FROM WakeUpMusicJpaEntity m LEFT JOIN WakeUpMusicLikeJpaEntity l ON m.id = l.music.id
+            m.id, m.musicUrl, m.appliedAt, COUNT(l.id)
+        )
+        FROM WakeUpMusicJpaEntity m
+        LEFT JOIN WakeUpMusicLikeJpaEntity l ON l.music = m
         WHERE m.wakeUpDate = :date
-            OR (m.wakeUpDate IS NULL AND m.appliedAt >= :legacyStart AND m.appliedAt < :legacyEnd)
+            OR (
+                m.wakeUpDate IS NULL
+                AND m.appliedAt >= :legacyStart
+                AND m.appliedAt < :legacyEnd
+            )
         GROUP BY m.id, m.musicUrl, m.appliedAt
         ORDER BY m.appliedAt DESC
     """,
