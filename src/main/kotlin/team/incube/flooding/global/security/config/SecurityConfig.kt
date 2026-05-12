@@ -47,6 +47,7 @@ class SecurityConfig(
                 it.requestMatchers("/error").permitAll()
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                it.requestMatchers(HttpMethod.GET, "/images/**").permitAll()
                 // ai
                 it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()
@@ -60,6 +61,9 @@ class SecurityConfig(
                     .hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
                 it
                     .requestMatchers(HttpMethod.PUT, "/clubs/*")
+                    .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
+                it
+                    .requestMatchers(HttpMethod.POST, "/clubs/*/profile-image")
                     .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
                 it
                     .requestMatchers(

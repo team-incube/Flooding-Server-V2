@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
@@ -18,6 +19,7 @@ import team.incube.flooding.domain.club.presentation.data.response.GetClubListRe
 import team.incube.flooding.domain.club.presentation.data.response.GetClubOpeningStatusResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
+import team.incube.flooding.domain.club.presentation.data.response.UploadClubProfileImageResponse
 import team.incube.flooding.domain.club.service.*
 import team.themoment.sdk.response.CommonApiResponse
 import java.net.URLEncoder
@@ -36,6 +38,7 @@ class ClubController(
     private val downloadClubExcelService: DownloadClubExcelService,
     private val queryClubOpeningStatusService: QueryClubOpeningStatusService,
     private val updateClubOpeningPeriodService: UpdateClubOpeningPeriodService,
+    private val uploadClubProfileImageService: UploadClubProfileImageService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다.")
     @ResponseStatus(HttpStatus.CREATED)
@@ -93,6 +96,14 @@ class ClubController(
     fun getClub(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
+
+    @Operation(summary = "동아리 프로필 이미지 업로드", description = "multipart/form-data로 이미지를 업로드합니다.")
+    @PostMapping("/{clubId}/profile-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadClubProfileImage(
+        @PathVariable clubId: Long,
+        @RequestParam("image") image: MultipartFile,
+    ): CommonApiResponse<UploadClubProfileImageResponse> =
+        CommonApiResponse.success("OK", uploadClubProfileImageService.execute(clubId, image))
 
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")
