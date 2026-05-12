@@ -61,7 +61,7 @@ class UploadClubProfileImageServiceImpl(
                 }
 
                 override fun afterCompletion(status: Int) {
-                    if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
+                    if (status != TransactionSynchronization.STATUS_COMMITTED) {
                         fileStorageService.delete(currentImageUrl)
                     }
                 }

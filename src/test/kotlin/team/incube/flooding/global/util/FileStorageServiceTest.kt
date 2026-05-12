@@ -7,9 +7,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
+import java.io.IOException
+import java.io.InputStream
 import java.net.URI
 import java.nio.file.Files
 
@@ -69,6 +72,18 @@ class FileStorageServiceTest :
             }
         }
 
+        given("MIME 타입이 없는 파일이 주어졌을 때") {
+            `when`("저장하면") {
+                then("BAD_REQUEST 예외가 발생한다") {
+                    val file = MockMultipartFile("image", "profile.png", null, byteArrayOf(1))
+
+                    val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
+
+                    exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                }
+            }
+        }
+
         given("정상 이미지 파일이 주어졌을 때") {
             `when`("저장하면") {
                 then("이미지를 저장하고 접근 경로를 반환한다") {
@@ -79,6 +94,21 @@ class FileStorageServiceTest :
                     imageUrl shouldMatch Regex("^https://dev-api\\.example\\.com/images/clubs/[0-9a-f-]+\\.png$")
                     val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
                     Files.exists(uploadDir.resolve(savedPath)).shouldBeTrue()
+                }
+            }
+        }
+
+        given("파일 복사 중 예외가 발생했을 때") {
+            `when`("저장하면") {
+                then("부분 기록 파일을 정리하고 INTERNAL_SERVER_ERROR 예외가 발생한다") {
+                    val file = FailingMultipartFile()
+
+                    val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
+
+                    exception.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR
+                    Files.list(uploadDir.resolve("clubs")).use { files ->
+                        files.count() shouldBe 0
+                    }
                 }
             }
         }
@@ -97,3 +127,32 @@ class FileStorageServiceTest :
             }
         }
     })
+
+private class FailingMultipartFile : MultipartFile {
+    override fun getName(): String = "image"
+
+    override fun getOriginalFilename(): String = "profile.png"
+
+    override fun getContentType(): String = "image/png"
+
+    override fun isEmpty(): Boolean = false
+
+    override fun getSize(): Long = 1
+
+    override fun getBytes(): ByteArray = byteArrayOf(1)
+
+    override fun getInputStream(): InputStream =
+        object : InputStream() {
+            private var emitted = false
+
+            override fun read(): Int {
+                if (!emitted) {
+                    emitted = true
+                    return 1
+                }
+                throw IOException("copy failed")
+            }
+        }
+
+    override fun transferTo(dest: java.io.File) = Unit
+}

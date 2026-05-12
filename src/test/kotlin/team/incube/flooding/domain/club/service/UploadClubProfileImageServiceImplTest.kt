@@ -9,6 +9,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
 import team.incube.flooding.domain.club.entity.ClubStatus
 import team.incube.flooding.domain.club.entity.ClubType
@@ -30,6 +32,12 @@ class UploadClubProfileImageServiceImplTest :
         val service = UploadClubProfileImageServiceImpl(clubRepository, fileStorageService, currentUserProvider)
 
         beforeEach { clearAllMocks() }
+
+        afterEach {
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.clearSynchronization()
+            }
+        }
 
         fun user(
             id: Long,
@@ -104,6 +112,27 @@ class UploadClubProfileImageServiceImplTest :
                     response.imageUrl shouldBe "https://dev-api.example.com/images/clubs/profile.png"
                     targetClub.imageUrl shouldBe "https://dev-api.example.com/images/clubs/profile.png"
                     verify { fileStorageService.delete("https://dev-api.example.com/images/clubs/old.png") }
+                }
+            }
+
+            `when`("트랜잭션 상태를 알 수 없는 상태로 완료되면") {
+                then("새로 저장한 이미지 파일을 삭제한다") {
+                    val leader = user(1L, Role.GENERAL_STUDENT)
+                    val targetClub = club(leader)
+                    every { clubRepository.findById(1L) } returns Optional.of(targetClub)
+                    every { currentUserProvider.getCurrentUser() } returns leader
+                    every { fileStorageService.store(any(), "clubs") } returns
+                        "https://dev-api.example.com/images/clubs/profile.png"
+                    every { fileStorageService.delete(any()) } returns Unit
+                    TransactionSynchronizationManager.initSynchronization()
+
+                    service.execute(1L, image())
+                    TransactionSynchronizationManager
+                        .getSynchronizations()
+                        .single()
+                        .afterCompletion(TransactionSynchronization.STATUS_UNKNOWN)
+
+                    verify { fileStorageService.delete("https://dev-api.example.com/images/clubs/profile.png") }
                 }
             }
         }

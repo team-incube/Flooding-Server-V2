@@ -41,6 +41,9 @@ class FileStorageService(
                 Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING)
             }
         } catch (exception: IOException) {
+            runCatching {
+                Files.deleteIfExists(targetPath)
+            }
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
