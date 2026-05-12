@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.dormitory.study.adapter
 
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.ScanOptions
 import org.springframework.stereotype.Component
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import java.time.Clock
@@ -21,9 +22,15 @@ class StudyRedisAdapter(
         private const val ATTENDANCE_KEY = "study:attendance"
     }
 
-    private fun ttlUntilMidnight(): Duration {
-        val midnight = LocalDateTime.of(LocalDate.now(clock).plusDays(1), LocalTime.MIDNIGHT)
-        return Duration.between(LocalDateTime.now(clock), midnight)
+    private fun ttlUntil6AM(): Duration {
+        val now = LocalDateTime.now(clock)
+        val next6AM =
+            if (now.hour < 6) {
+                LocalDateTime.of(now.toLocalDate(), LocalTime.of(6, 0))
+            } else {
+                LocalDateTime.of(now.toLocalDate().plusDays(1), LocalTime.of(6, 0))
+            }
+        return Duration.between(now, next6AM)
     }
 
     fun saveApplication(
@@ -33,7 +40,7 @@ class StudyRedisAdapter(
         redisTemplate.opsForValue().set(
             "$APPLICATION_KEY:$userId",
             status.name,
-            ttlUntilMidnight(),
+            ttlUntil6AM(),
         )
     }
 
@@ -46,9 +53,7 @@ class StudyRedisAdapter(
 
     fun incrementCount(): Long {
         val count = redisTemplate.opsForValue().increment(COUNT_KEY) ?: 0
-        if (count == 1L) {
-            redisTemplate.expire(COUNT_KEY, ttlUntilMidnight())
-        }
+        redisTemplate.expire(COUNT_KEY, ttlUntil6AM())
         return count
     }
 
@@ -56,10 +61,7 @@ class StudyRedisAdapter(
 
     fun addApplicant(userId: Long) {
         redisTemplate.opsForSet().add(APPLICANTS_KEY, userId.toString())
-        val size = redisTemplate.opsForSet().size(APPLICANTS_KEY) ?: 0L
-        if (size == 1L) {
-            redisTemplate.expire(APPLICANTS_KEY, ttlUntilMidnight())
-        }
+        redisTemplate.expire(APPLICANTS_KEY, ttlUntil6AM())
     }
 
     fun removeApplicant(userId: Long) {
@@ -75,7 +77,7 @@ class StudyRedisAdapter(
 
     fun checkAttendance(userId: Long) {
         redisTemplate.opsForSet().add(ATTENDANCE_KEY, userId.toString())
-        redisTemplate.expire(ATTENDANCE_KEY, ttlUntilMidnight())
+        redisTemplate.expire(ATTENDANCE_KEY, ttlUntil6AM())
     }
 
     fun isAttendanceChecked(userId: Long): Boolean =
@@ -87,4 +89,24 @@ class StudyRedisAdapter(
             .members(ATTENDANCE_KEY)
             ?.map { it.toLong() }
             ?.toSet() ?: emptySet()
+
+    fun resetAll() {
+        val scanOptions =
+            ScanOptions
+                .scanOptions()
+                .match("$APPLICATION_KEY:*")
+                .count(100)
+                .build()
+        val applicationKeys = mutableListOf<String>()
+        redisTemplate.execute { connection ->
+            connection.scan(scanOptions).use { cursor ->
+                cursor.forEach { applicationKeys.add(String(it)) }
+            }
+            null
+        }
+        if (applicationKeys.isNotEmpty()) redisTemplate.delete(applicationKeys)
+        redisTemplate.delete(COUNT_KEY)
+        redisTemplate.delete(APPLICANTS_KEY)
+        redisTemplate.delete(ATTENDANCE_KEY)
+    }
 }

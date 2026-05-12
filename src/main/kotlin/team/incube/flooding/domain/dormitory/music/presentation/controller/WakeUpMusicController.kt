@@ -49,7 +49,7 @@ class WakeUpMusicController(
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?,
     ): CommonApiResponse<List<WakeUpMusicResponse>> =
-        CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now(clock)))
+        CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now(clock).plusDays(1)))
 
     @Operation(
         summary = "기상음악 신청",
