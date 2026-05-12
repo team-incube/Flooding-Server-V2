@@ -31,21 +31,35 @@ class DownloadClubExcelServiceImpl(
         }
 
         val workbook = XSSFWorkbook()
-        val womanStyle = createWomanStyle(workbook)
         val headerStyle = createHeaderStyle(workbook)
+        val defaultStyle = createDefaultStyle(workbook)
+        val womanStyle = createWomanStyle(workbook)
 
-        val majorClubs =
-            clubRepository
-                .findAllByType(ClubType.MAJOR_CLUB)
-                .sortedBy { it.name }
+        val majorClubs = clubRepository.findAllByType(ClubType.MAJOR_CLUB).sortedBy { it.name }
+        val allParticipants =
+            clubParticipantRepository
+                .findAllByClubType(ClubType.MAJOR_CLUB)
+                .sortedWith(
+                    compareBy(
+                        { it.user.studentNumber / 1000 },
+                        { (it.user.studentNumber % 1000) / 100 },
+                        { it.user.studentNumber % 100 },
+                    ),
+                )
 
-        val allParticipants = clubParticipantRepository.findAllByClubType(ClubType.MAJOR_CLUB)
-
-        createClubSheet(workbook, "총합 전공동아리 명단", majorClubs, allParticipants, womanStyle, headerStyle)
+        createClubSheet(workbook, "총합 전공동아리 명단", majorClubs, allParticipants, womanStyle, defaultStyle, headerStyle)
 
         for (grade in 1..3) {
             val gradeParticipants = allParticipants.filter { it.user.grade == grade }
-            createClubSheet(workbook, "${grade}학년 전공동아리 명단", majorClubs, gradeParticipants, womanStyle, headerStyle)
+            createClubSheet(
+                workbook,
+                "${grade}학년 전공동아리 명단",
+                majorClubs,
+                gradeParticipants,
+                womanStyle,
+                defaultStyle,
+                headerStyle,
+            )
         }
 
         createClubRoomSheet(workbook, majorClubs, headerStyle)
@@ -62,33 +76,28 @@ class DownloadClubExcelServiceImpl(
         majorClubs: List<ClubJpaEntity>,
         participants: List<ClubParticipantJpaEntity>,
         womanStyle: CellStyle,
+        defaultStyle: CellStyle,
         headerStyle: CellStyle,
     ) {
         val sheet = workbook.createSheet(sheetName)
-
         val headerRow = sheet.createRow(0)
+
         majorClubs.forEachIndexed { i, club ->
-            val cell = headerRow.createCell(i)
-            cell.setCellValue(club.name)
-            cell.setCellStyle(headerStyle)
+            headerRow.createCell(i).apply {
+                setCellValue(club.name)
+                setCellStyle(headerStyle)
+            }
         }
 
         if (majorClubs.isEmpty()) return
 
         val clubMap = participants.groupBy { it.club.id }
-        val maxRows = majorClubs.map { club -> clubMap[club.id]?.size ?: 0 }.maxOrNull() ?: 0
+        val maxRows = majorClubs.maxOfOrNull { club -> clubMap[club.id]?.size ?: 0 } ?: 0
 
         for (i in 0 until maxRows) {
             val row = sheet.createRow(i + 1)
             majorClubs.forEachIndexed { colIndex, club ->
-                val members =
-                    clubMap[club.id]?.sortedWith(
-                        compareBy(
-                            { it.user.studentNumber / 1000 },
-                            { (it.user.studentNumber % 1000) / 100 },
-                            { it.user.studentNumber % 100 },
-                        ),
-                    ) ?: emptyList()
+                val members = clubMap[club.id] ?: emptyList()
 
                 if (i < members.size) {
                     val user = members[i].user
@@ -97,11 +106,12 @@ class DownloadClubExcelServiceImpl(
 
                     if (user.sex == Sex.WOMAN) {
                         cell.setCellStyle(womanStyle)
+                    } else {
+                        cell.setCellStyle(defaultStyle)
                     }
                 }
             }
         }
-
         majorClubs.indices.forEach { sheet.autoSizeColumn(it) }
     }
 
@@ -112,12 +122,13 @@ class DownloadClubExcelServiceImpl(
     ) {
         val sheet = workbook.createSheet("활동실 안내")
         val headerRow = sheet.createRow(0)
-
         val headers = listOf("전공 동아리", "활동실", "담당 선생님")
+
         headers.forEachIndexed { i, text ->
-            val cell = headerRow.createCell(i)
-            cell.setCellValue(text)
-            cell.setCellStyle(headerStyle)
+            headerRow.createCell(i).apply {
+                setCellValue(text)
+                setCellStyle(headerStyle)
+            }
         }
 
         majorClubs.forEachIndexed { index, club ->
@@ -126,35 +137,30 @@ class DownloadClubExcelServiceImpl(
             row.createCell(1).setCellValue(club.clubRoom?.name ?: "미지정")
             row.createCell(2).setCellValue(club.clubRoom?.teacherName ?: "미지정")
         }
-
         headers.indices.forEach { sheet.autoSizeColumn(it) }
     }
 
-    private fun createWomanStyle(workbook: XSSFWorkbook): CellStyle =
+    private fun createDefaultStyle(workbook: XSSFWorkbook): CellStyle =
         workbook.createCellStyle().apply {
-            fillForegroundColor = IndexedColors.YELLOW.index
-            fillPattern = FillPatternType.SOLID_FOREGROUND
             borderBottom = BorderStyle.THIN
             borderTop = BorderStyle.THIN
             borderLeft = BorderStyle.THIN
             borderRight = BorderStyle.THIN
         }
 
+    private fun createWomanStyle(workbook: XSSFWorkbook): CellStyle =
+        createDefaultStyle(workbook).apply {
+            fillForegroundColor = IndexedColors.YELLOW.index
+            fillPattern = FillPatternType.SOLID_FOREGROUND
+        }
+
     private fun createHeaderStyle(workbook: XSSFWorkbook): CellStyle =
-        workbook.createCellStyle().apply {
+        createDefaultStyle(workbook).apply {
             fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
             fillPattern = FillPatternType.SOLID_FOREGROUND
             alignment = HorizontalAlignment.CENTER
             verticalAlignment = VerticalAlignment.CENTER
-            borderBottom = BorderStyle.THIN
-            borderTop = BorderStyle.THIN
-            borderLeft = BorderStyle.THIN
-            borderRight = BorderStyle.THIN
-
-            val font =
-                workbook.createFont().apply {
-                    bold = true
-                }
+            val font = workbook.createFont().apply { bold = true }
             setFont(font)
         }
 }
