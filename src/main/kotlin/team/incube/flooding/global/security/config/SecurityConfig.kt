@@ -64,7 +64,7 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.PUT, "/clubs/*")
                     .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
                 it
-                    .requestMatchers(HttpMethod.POST, "/clubs/*/profile-image")
+                    .requestMatchers(HttpMethod.POST, "/clubs/representative-image")
                     .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
                 it
                     .requestMatchers(

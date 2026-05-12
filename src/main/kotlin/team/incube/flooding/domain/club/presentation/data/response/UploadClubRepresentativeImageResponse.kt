@@ -1,5 +1,5 @@
 package team.incube.flooding.domain.club.presentation.data.response
 
-data class UploadClubProfileImageResponse(
+data class UploadClubRepresentativeImageResponse(
     val imageUrl: String,
 )
