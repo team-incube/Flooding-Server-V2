@@ -1,6 +1,8 @@
 package team.incube.flooding.domain.club.presentation.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
@@ -8,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
@@ -18,6 +21,7 @@ import team.incube.flooding.domain.club.presentation.data.response.GetClubListRe
 import team.incube.flooding.domain.club.presentation.data.response.GetClubOpeningStatusResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
+import team.incube.flooding.domain.club.presentation.data.response.UploadClubRepresentativeImageResponse
 import team.incube.flooding.domain.club.service.*
 import team.themoment.sdk.response.CommonApiResponse
 import java.net.URLEncoder
@@ -36,6 +40,7 @@ class ClubController(
     private val downloadClubExcelService: DownloadClubExcelService,
     private val queryClubOpeningStatusService: QueryClubOpeningStatusService,
     private val updateClubOpeningPeriodService: UpdateClubOpeningPeriodService,
+    private val uploadClubRepresentativeImageService: UploadClubRepresentativeImageService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다.")
     @ResponseStatus(HttpStatus.CREATED)
@@ -93,6 +98,23 @@ class ClubController(
     fun getClub(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
+
+    @Operation(
+        summary = "동아리 대표 이미지 업로드",
+        description = "multipart/form-data로 동아리 대표 이미지를 업로드하고, 동아리 개설/수정 요청에 사용할 imageUrl을 반환합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "업로드 성공"),
+        ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일"),
+        ApiResponse(responseCode = "403", description = "권한 없음"),
+        ApiResponse(responseCode = "413", description = "업로드 가능한 파일 크기 초과"),
+    )
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/representative-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadClubRepresentativeImage(
+        @RequestParam("image") image: MultipartFile,
+    ): CommonApiResponse<UploadClubRepresentativeImageResponse> =
+        CommonApiResponse.created("OK", uploadClubRepresentativeImageService.execute(image))
 
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")
