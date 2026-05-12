@@ -2,11 +2,10 @@ package team.incube.flooding.domain.club.presentation.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
@@ -96,16 +95,19 @@ class ClubController(
 
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")
-    fun exportAllMajorClubExcel(): ResponseEntity<ByteArray> {
+    fun exportAllMajorClubExcel(response: HttpServletResponse) {
         val fileBytes = downloadClubExcelService.execute()
         val fileName = "전공동아리_전체_명단.xlsx"
         val encodedFileName = URLEncoder.encode(fileName, "UTF-8").replace("+", "%20")
 
-        return ResponseEntity
-            .ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$encodedFileName\"")
-            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-            .body(fileBytes)
+        response.contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$encodedFileName\"")
+        response.setContentLength(fileBytes.size)
+
+        response.outputStream.use { outputStream ->
+            outputStream.write(fileBytes)
+            outputStream.flush()
+        }
     }
 
     @Operation(summary = "동아리 개설 신청 기간 조회", description = "현재 서버 시간(Clock)을 기준으로 동아리 개설 신청이 가능한 기간인지 확인합니다.")
