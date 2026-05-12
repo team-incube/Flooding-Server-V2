@@ -20,6 +20,7 @@ import team.incube.flooding.domain.club.presentation.data.response.PatchClubAppr
 import team.incube.flooding.domain.club.service.*
 import team.themoment.sdk.response.CommonApiResponse
 import java.net.URLEncoder
+import org.springframework.http.MediaType
 
 @Tag(name = "동아리", description = "동아리 관련 API")
 @RestController
