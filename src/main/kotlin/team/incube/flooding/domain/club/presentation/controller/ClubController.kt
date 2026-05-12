@@ -1,6 +1,8 @@
 package team.incube.flooding.domain.club.presentation.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
@@ -98,12 +100,20 @@ class ClubController(
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
 
     @Operation(summary = "동아리 프로필 이미지 업로드", description = "multipart/form-data로 이미지를 업로드합니다.")
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "업로드 성공"),
+        ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일"),
+        ApiResponse(responseCode = "403", description = "권한 없음"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 동아리"),
+        ApiResponse(responseCode = "413", description = "업로드 가능한 파일 크기 초과"),
+    )
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{clubId}/profile-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadClubProfileImage(
         @PathVariable clubId: Long,
         @RequestParam("image") image: MultipartFile,
     ): CommonApiResponse<UploadClubProfileImageResponse> =
-        CommonApiResponse.success("OK", uploadClubProfileImageService.execute(clubId, image))
+        CommonApiResponse.created("OK", uploadClubProfileImageService.execute(clubId, image))
 
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")

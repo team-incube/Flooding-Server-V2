@@ -50,6 +50,7 @@ class UploadClubProfileImageServiceImpl(
         currentImageUrl: String,
     ) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            // 테스트 또는 트랜잭션 프록시 밖 직접 호출 시 최소한 기존 파일 정리만 수행한다.
             previousImageUrl?.let { fileStorageService.delete(it) }
             return
         }

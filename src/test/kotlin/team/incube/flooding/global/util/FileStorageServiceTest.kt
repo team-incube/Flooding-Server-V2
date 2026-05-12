@@ -63,7 +63,7 @@ class FileStorageServiceTest :
         given("지원하지 않는 MIME 타입의 파일이 주어졌을 때") {
             `when`("저장하면") {
                 then("BAD_REQUEST 예외가 발생한다") {
-                    val file = MockMultipartFile("image", "profile.png", "text/plain", byteArrayOf(1))
+                    val file = MockMultipartFile("image", "profile.png", "text/plain", pngBytes())
 
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
@@ -75,7 +75,7 @@ class FileStorageServiceTest :
         given("MIME 타입이 없는 파일이 주어졌을 때") {
             `when`("저장하면") {
                 then("BAD_REQUEST 예외가 발생한다") {
-                    val file = MockMultipartFile("image", "profile.png", null, byteArrayOf(1))
+                    val file = MockMultipartFile("image", "profile.png", null, pngBytes())
 
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
@@ -87,13 +87,37 @@ class FileStorageServiceTest :
         given("정상 이미지 파일이 주어졌을 때") {
             `when`("저장하면") {
                 then("이미지를 저장하고 접근 경로를 반환한다") {
-                    val file = MockMultipartFile("image", "profile.png", "image/png", byteArrayOf(1, 2, 3))
+                    val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
 
                     val imageUrl = service.store(file, "clubs")
 
                     imageUrl shouldMatch Regex("^https://dev-api\\.example\\.com/images/clubs/[0-9a-f-]+\\.png$")
                     val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
                     Files.exists(uploadDir.resolve(savedPath)).shouldBeTrue()
+                }
+            }
+        }
+
+        given("이미지 확장자와 MIME 타입이지만 파일 시그니처가 다를 때") {
+            `when`("저장하면") {
+                then("BAD_REQUEST 예외가 발생한다") {
+                    val file = MockMultipartFile("image", "profile.png", "image/png", byteArrayOf(1, 2, 3))
+
+                    val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
+
+                    exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                }
+            }
+        }
+
+        given("상위 디렉터리로 벗어나는 subDir이 주어졌을 때") {
+            `when`("저장하면") {
+                then("BAD_REQUEST 예외가 발생한다") {
+                    val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
+
+                    val exception = shouldThrow<ExpectedException> { service.store(file, "../outside") }
+
+                    exception.statusCode shouldBe HttpStatus.BAD_REQUEST
                 }
             }
         }
@@ -116,7 +140,7 @@ class FileStorageServiceTest :
         given("저장된 이미지 URL이 주어졌을 때") {
             `when`("삭제하면") {
                 then("파일이 제거된다") {
-                    val file = MockMultipartFile("image", "profile.png", "image/png", byteArrayOf(1, 2, 3))
+                    val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
                     val imageUrl = service.store(file, "clubs")
                     val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
 
@@ -127,6 +151,19 @@ class FileStorageServiceTest :
             }
         }
     })
+
+private fun pngBytes(): ByteArray =
+    byteArrayOf(
+        0x89.toByte(),
+        0x50,
+        0x4E,
+        0x47,
+        0x0D,
+        0x0A,
+        0x1A,
+        0x0A,
+        0x00,
+    )
 
 private class FailingMultipartFile : MultipartFile {
     override fun getName(): String = "image"
@@ -139,7 +176,7 @@ private class FailingMultipartFile : MultipartFile {
 
     override fun getSize(): Long = 1
 
-    override fun getBytes(): ByteArray = byteArrayOf(1)
+    override fun getBytes(): ByteArray = pngBytes()
 
     override fun getInputStream(): InputStream =
         object : InputStream() {
