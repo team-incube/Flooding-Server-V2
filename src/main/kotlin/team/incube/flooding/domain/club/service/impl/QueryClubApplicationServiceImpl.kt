@@ -25,7 +25,7 @@ class QueryClubApplicationServiceImpl(
             throw ExpectedException("동아리 개설 신청 목록을 조회할 권한이 없습니다.", HttpStatus.FORBIDDEN)
         }
 
-        val clubs = clubJpaRepository.findAllByStatus(ClubStatus.NEW) ?: emptyList()
+        val clubs = clubJpaRepository.findAllByStatus(ClubStatus.NEW)
 
         return ClubApplicationListResponse(
             clubs =
@@ -36,7 +36,7 @@ class QueryClubApplicationServiceImpl(
                         leader = club.leader?.name ?: "정보 없음",
                         type = club.type,
                         description = club.description ?: "",
-                        imageUrl = club.imageUrl ?: "",
+                        imageUrl = club.imageUrl,
                         maxMember = club.maxMember,
                     )
                 },
