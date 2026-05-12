@@ -1,5 +1,6 @@
 package team.incube.flooding.global.util
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
@@ -17,6 +18,7 @@ import java.util.UUID
 class FileStorageService(
     private val fileStorageProperties: FileStorageProperties,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     private val allowedExtensions = setOf("jpg", "jpeg", "png", "webp")
     private val allowedContentTypes = setOf("image/jpeg", "image/png", "image/webp")
 
@@ -36,10 +38,6 @@ class FileStorageService(
             throw ExpectedException("파일 저장 경로가 올바르지 않습니다.", HttpStatus.BAD_REQUEST)
         }
 
-        if (!targetPath.startsWith(targetDir)) {
-            throw ExpectedException("파일 저장 경로가 올바르지 않습니다.", HttpStatus.BAD_REQUEST)
-        }
-
         try {
             Files.createDirectories(targetDir)
             file.inputStream.use { inputStream ->
@@ -48,6 +46,8 @@ class FileStorageService(
         } catch (exception: IOException) {
             runCatching {
                 Files.deleteIfExists(targetPath)
+            }.onFailure { deleteException ->
+                log.warn("Failed to delete partially stored image file. path={}", targetPath, deleteException)
             }
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -64,6 +64,8 @@ class FileStorageService(
 
         runCatching {
             Files.deleteIfExists(targetPath)
+        }.onFailure { exception ->
+            log.warn("Failed to delete stored image file. path={}", targetPath, exception)
         }
     }
 
@@ -100,11 +102,12 @@ class FileStorageService(
     }
 
     private fun hasValidImageSignature(file: MultipartFile): Boolean {
-        val bytes =
-            runCatching { file.bytes }
-                .getOrElse { throw ExpectedException("이미지 파일을 읽을 수 없습니다.", HttpStatus.BAD_REQUEST) }
+        val header =
+            runCatching {
+                file.inputStream.use { inputStream -> inputStream.readNBytes(IMAGE_SIGNATURE_READ_SIZE) }
+            }.getOrElse { throw ExpectedException("이미지 파일을 읽을 수 없습니다.", HttpStatus.BAD_REQUEST) }
 
-        return isJpeg(bytes) || isPng(bytes) || isWebp(bytes)
+        return isJpeg(header) || isPng(header) || isWebp(header)
     }
 
     private fun isJpeg(bytes: ByteArray): Boolean =
@@ -135,6 +138,8 @@ class FileStorageService(
     }
 
     companion object {
+        private const val IMAGE_SIGNATURE_READ_SIZE = 12
+
         private val PNG_SIGNATURE =
             byteArrayOf(
                 0x89.toByte(),

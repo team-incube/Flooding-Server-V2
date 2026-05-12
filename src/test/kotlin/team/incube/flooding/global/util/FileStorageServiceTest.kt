@@ -11,10 +11,12 @@ import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URI
 import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
 class FileStorageServiceTest :
     BehaviorSpec({
@@ -166,6 +168,8 @@ private fun pngBytes(): ByteArray =
     )
 
 private class FailingMultipartFile : MultipartFile {
+    private val openCount = AtomicInteger()
+
     override fun getName(): String = "image"
 
     override fun getOriginalFilename(): String = "profile.png"
@@ -178,18 +182,24 @@ private class FailingMultipartFile : MultipartFile {
 
     override fun getBytes(): ByteArray = pngBytes()
 
-    override fun getInputStream(): InputStream =
-        object : InputStream() {
-            private var emitted = false
+    override fun getInputStream(): InputStream {
+        if (openCount.incrementAndGet() == 1) {
+            return ByteArrayInputStream(pngBytes())
+        }
+
+        return object : InputStream() {
+            private val bytes = pngBytes()
+            private var index = 0
 
             override fun read(): Int {
-                if (!emitted) {
-                    emitted = true
-                    return 1
+                if (index < bytes.size) {
+                    return bytes[index++].toInt() and 0xFF
                 }
+
                 throw IOException("copy failed")
             }
         }
+    }
 
     override fun transferTo(dest: java.io.File) = Unit
 }
