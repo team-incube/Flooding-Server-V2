@@ -13,11 +13,8 @@ import team.incube.flooding.domain.dormitory.music.service.CancelLikeWakeUpMusic
 import team.incube.flooding.domain.dormitory.music.service.CancelWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.GetWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.LikeWakeUpMusicService
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 
 class WakeUpMusicControllerTest :
     BehaviorSpec({
@@ -26,11 +23,6 @@ class WakeUpMusicControllerTest :
         val getWakeUpMusicService = mockk<GetWakeUpMusicService>()
         val likeWakeUpMusicService = mockk<LikeWakeUpMusicService>()
         val cancelLikeWakeUpMusicService = mockk<CancelLikeWakeUpMusicService>()
-        val clock =
-            Clock.fixed(
-                Instant.parse("2026-05-10T15:30:00Z"),
-                ZoneId.of("Asia/Seoul"),
-            )
 
         val controller =
             WakeUpMusicController(
@@ -39,7 +31,6 @@ class WakeUpMusicControllerTest :
                 getWakeUpMusicService = getWakeUpMusicService,
                 likeWakeUpMusicService = likeWakeUpMusicService,
                 cancelLikeWakeUpMusicService = cancelLikeWakeUpMusicService,
-                clock = clock,
             )
 
         given("기상음악 신청이 성공할 때") {
@@ -69,17 +60,18 @@ class WakeUpMusicControllerTest :
 
         given("기상음악 목록 조회 시 날짜가 전달되지 않을 때") {
             val serviceResponse = emptyList<WakeUpMusicResponse>()
-            every { getWakeUpMusicService.execute(LocalDate.of(2026, 5, 11)) } returns serviceResponse
+            val today = LocalDate.now()
+            every { getWakeUpMusicService.execute(today) } returns serviceResponse
 
             `when`("컨트롤러가 기본 날짜로 목록을 조회하면") {
                 val response = controller.getWakeUpMusic(null)
 
-                then("Clock 기준 오늘 날짜로 조회한다") {
+                then("오늘 날짜로 조회한다") {
                     response.status shouldBe HttpStatus.OK
                     response.code shouldBe 200
                     response.message shouldBe "OK"
                     response.data shouldBe serviceResponse
-                    verify(exactly = 1) { getWakeUpMusicService.execute(LocalDate.of(2026, 5, 11)) }
+                    verify(exactly = 1) { getWakeUpMusicService.execute(today) }
                 }
             }
         }
