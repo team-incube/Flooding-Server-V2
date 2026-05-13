@@ -23,26 +23,28 @@ class GetWakeUpMusicServiceImplTest :
                     WakeUpMusicResponse(
                         id = 1L,
                         musicUrl = "https://youtube.com/watch?v=test",
-                        appliedAt = LocalDateTime.of(2026, 5, 11, 0, 0),
+                        appliedAt = LocalDateTime.of(2026, 5, 10, 23, 0),
                         likeCount = 2,
                     ),
                 )
             every {
-                wakeUpMusicRepository.findAllWithLikeCountByDate(
+                wakeUpMusicRepository.findAllWithLikeCountByWakeUpDate(
+                    targetDate,
+                    LocalDateTime.of(2026, 5, 10, 0, 0),
                     LocalDateTime.of(2026, 5, 11, 0, 0),
-                    LocalDateTime.of(2026, 5, 12, 0, 0),
                 )
             } returns expectedResponse
 
             When("서비스가 목록을 조회하면") {
                 val response = service.execute(targetDate)
 
-                Then("조회 날짜의 자정 범위를 사용한다") {
+                Then("재생 대상 날짜와 기존 데이터 fallback 범위를 함께 사용한다") {
                     response shouldBe expectedResponse
                     verify(exactly = 1) {
-                        wakeUpMusicRepository.findAllWithLikeCountByDate(
+                        wakeUpMusicRepository.findAllWithLikeCountByWakeUpDate(
+                            targetDate,
+                            LocalDateTime.of(2026, 5, 10, 0, 0),
                             LocalDateTime.of(2026, 5, 11, 0, 0),
-                            LocalDateTime.of(2026, 5, 12, 0, 0),
                         )
                     }
                 }
