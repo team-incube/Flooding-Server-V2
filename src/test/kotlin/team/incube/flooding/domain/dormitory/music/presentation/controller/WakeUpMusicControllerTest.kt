@@ -28,7 +28,7 @@ class WakeUpMusicControllerTest :
         val cancelLikeWakeUpMusicService = mockk<CancelLikeWakeUpMusicService>()
         val clock =
             Clock.fixed(
-                Instant.parse("2026-05-10T15:30:00Z"),
+                Instant.parse("2026-05-10T14:00:00Z"),
                 ZoneId.of("Asia/Seoul"),
             )
 
@@ -74,7 +74,7 @@ class WakeUpMusicControllerTest :
             `when`("컨트롤러가 기본 날짜로 목록을 조회하면") {
                 val response = controller.getWakeUpMusic(null)
 
-                then("Clock 기준 오늘 날짜로 조회한다") {
+                then("Clock 기준 내일 날짜로 조회한다") {
                     response.status shouldBe HttpStatus.OK
                     response.code shouldBe 200
                     response.message shouldBe "OK"

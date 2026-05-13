@@ -50,7 +50,7 @@ class ApplyWakeUpMusicServiceImplTest :
             When("신청 데이터를 저장하면") {
                 val response = service.execute(request)
 
-                Then("신청 시각과 재생 대상 날짜를 분리해 저장한다") {
+                Then("신청 시각이 저장된다") {
                     savedMusicSlot.captured.musicUrl shouldBe request.musicUrl
                     savedMusicSlot.captured.appliedAt shouldBe LocalDateTime.of(2026, 5, 10, 23, 0)
                     savedMusicSlot.captured.wakeUpDate shouldBe LocalDate.of(2026, 5, 11)

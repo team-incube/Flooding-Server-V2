@@ -18,7 +18,7 @@ interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
             m.id, m.musicUrl, m.appliedAt, COUNT(l.id)
         )
         FROM WakeUpMusicJpaEntity m
-        LEFT JOIN WakeUpMusicLikeJpaEntity l ON l.music = m
+        LEFT JOIN WakeUpMusicLikeJpaEntity l ON m.id = l.music.id
         WHERE m.wakeUpDate = :date
             OR (
                 m.wakeUpDate IS NULL
