@@ -12,6 +12,12 @@ import org.springframework.http.HttpStatus
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
 import team.incube.flooding.domain.club.entity.ClubStatus
 import team.incube.flooding.domain.club.entity.ClubType
+import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
+import team.incube.flooding.domain.club.repository.ClubFormFieldOptionRepository
+import team.incube.flooding.domain.club.repository.ClubFormFieldRepository
+import team.incube.flooding.domain.club.repository.ClubFormRepository
+import team.incube.flooding.domain.club.repository.ClubFormSubmissionRepository
+import team.incube.flooding.domain.club.repository.ClubParticipantRepository
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.impl.DeleteClubServiceImpl
 import team.incube.flooding.domain.user.entity.Role
@@ -24,8 +30,24 @@ import java.util.Optional
 class DeleteClubServiceTest :
     BehaviorSpec({
         val clubRepository = mockk<ClubRepository>()
+        val clubParticipantRepository = mockk<ClubParticipantRepository>()
+        val clubFormRepository = mockk<ClubFormRepository>()
+        val clubFormFieldRepository = mockk<ClubFormFieldRepository>()
+        val clubFormFieldOptionRepository = mockk<ClubFormFieldOptionRepository>()
+        val clubFormSubmissionRepository = mockk<ClubFormSubmissionRepository>()
+        val clubFormAnswerRepository = mockk<ClubFormAnswerRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
-        val service = DeleteClubServiceImpl(clubRepository, currentUserProvider)
+        val service =
+            DeleteClubServiceImpl(
+                clubRepository,
+                clubParticipantRepository,
+                clubFormRepository,
+                clubFormFieldRepository,
+                clubFormFieldOptionRepository,
+                clubFormSubmissionRepository,
+                clubFormAnswerRepository,
+                currentUserProvider,
+            )
 
         beforeEach { clearAllMocks() }
 
@@ -53,6 +75,15 @@ class DeleteClubServiceTest :
                 description = null,
                 maxMember = null,
             )
+
+        fun mockDeleteDependencies() {
+            justRun { clubFormAnswerRepository.deleteAllByClubId(1L) }
+            justRun { clubFormSubmissionRepository.deleteAllByClubId(1L) }
+            justRun { clubFormFieldOptionRepository.deleteAllByClubId(1L) }
+            justRun { clubFormFieldRepository.deleteAllByClubId(1L) }
+            justRun { clubFormRepository.deleteAllByClubId(1L) }
+            justRun { clubParticipantRepository.deleteAllByClubId(1L) }
+        }
 
         given("존재하지 않는 clubId로 요청할 때") {
             `when`("삭제하면") {
@@ -86,10 +117,17 @@ class DeleteClubServiceTest :
                     val leader = user(1L, Role.GENERAL_STUDENT)
                     every { clubRepository.findById(1L) } returns Optional.of(club(leader))
                     every { currentUserProvider.getCurrentUser() } returns leader
+                    mockDeleteDependencies()
                     justRun { clubRepository.delete(any()) }
 
                     service.execute(1L)
 
+                    verify(exactly = 1) { clubFormAnswerRepository.deleteAllByClubId(1L) }
+                    verify(exactly = 1) { clubFormSubmissionRepository.deleteAllByClubId(1L) }
+                    verify(exactly = 1) { clubFormFieldOptionRepository.deleteAllByClubId(1L) }
+                    verify(exactly = 1) { clubFormFieldRepository.deleteAllByClubId(1L) }
+                    verify(exactly = 1) { clubFormRepository.deleteAllByClubId(1L) }
+                    verify(exactly = 1) { clubParticipantRepository.deleteAllByClubId(1L) }
                     verify(exactly = 1) { clubRepository.delete(any()) }
                 }
             }
@@ -101,6 +139,7 @@ class DeleteClubServiceTest :
                     val admin = user(1L, Role.ADMIN)
                     every { clubRepository.findById(1L) } returns Optional.of(club(null))
                     every { currentUserProvider.getCurrentUser() } returns admin
+                    mockDeleteDependencies()
                     justRun { clubRepository.delete(any()) }
 
                     service.execute(1L)
@@ -116,6 +155,7 @@ class DeleteClubServiceTest :
                     val council = user(1L, Role.STUDENT_COUNCIL)
                     every { clubRepository.findById(1L) } returns Optional.of(club(null))
                     every { currentUserProvider.getCurrentUser() } returns council
+                    mockDeleteDependencies()
                     justRun { clubRepository.delete(any()) }
 
                     service.execute(1L)

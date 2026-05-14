@@ -11,4 +11,16 @@ interface ClubFormFieldRepository : JpaRepository<ClubFormFieldJpaEntity, Long> 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM ClubFormFieldJpaEntity f WHERE f.form.id = :formId")
     fun deleteAllByFormId(formId: Long)
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        """
+        DELETE FROM ClubFormFieldJpaEntity f
+        WHERE f.form.id IN (
+            SELECT form.id FROM ClubFormJpaEntity form
+            WHERE form.club.id = :clubId
+        )
+        """,
+    )
+    fun deleteAllByClubId(clubId: Long)
 }

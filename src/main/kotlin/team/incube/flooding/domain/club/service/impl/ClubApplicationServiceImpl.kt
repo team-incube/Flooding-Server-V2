@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
+import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
+import team.incube.flooding.domain.club.repository.ClubFormRepository
+import team.incube.flooding.domain.club.repository.ClubFormSubmissionRepository
 import team.incube.flooding.domain.club.repository.ClubJpaRepository
 import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
 import team.incube.flooding.domain.club.service.ClubApplicationService
@@ -16,6 +19,9 @@ import team.themoment.sdk.exception.ExpectedException
 class ClubApplicationServiceImpl(
     private val clubJpaRepository: ClubJpaRepository,
     private val userRepository: UserRepository,
+    private val clubFormRepository: ClubFormRepository,
+    private val clubFormSubmissionRepository: ClubFormSubmissionRepository,
+    private val clubFormAnswerRepository: ClubFormAnswerRepository,
     private val clubParticipantJpaRepository: ClubParticipantJpaRepository,
     private val currentUserProvider: CurrentUserProvider,
 ) : ClubApplicationService {
@@ -50,5 +56,13 @@ class ClubApplicationServiceImpl(
                 user = user,
             )
         clubParticipantJpaRepository.save(participant)
+
+        clubFormRepository
+            .findByClubIdAndIsActiveTrue(clubId)
+            ?.let { form -> clubFormSubmissionRepository.findByFormIdAndUserId(form.id, userId) }
+            ?.let { submission ->
+                clubFormAnswerRepository.deleteAllBySubmissionId(submission.id)
+                clubFormSubmissionRepository.delete(submission)
+            }
     }
 }
