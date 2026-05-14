@@ -22,16 +22,22 @@ class GetClubServiceImpl(
         val club =
             clubRepository.findByIdWithLeader(clubId)
                 ?: throw ExpectedException("존재하지 않는 동아리입니다.", HttpStatus.NOT_FOUND)
+        val participantMembers =
+            clubParticipantRepository
+                .findAllByClubId(clubId)
+                .map { p -> p.user }
         val members =
-            clubParticipantRepository.findAllByClubId(clubId).map { p ->
-                GetClubResponse.MemberSummary(
-                    id = p.user.id,
-                    name = p.user.name,
-                    studentNumber = p.user.studentNumber,
-                    sex = p.user.sex.name,
-                    specialty = p.user.specialty,
-                )
-            }
+            (listOfNotNull(club.leader) + participantMembers)
+                .distinctBy { it.id }
+                .map { user ->
+                    GetClubResponse.MemberSummary(
+                        id = user.id,
+                        name = user.name,
+                        studentNumber = user.studentNumber,
+                        sex = user.sex.name,
+                        specialty = user.specialty,
+                    )
+                }
         val projects =
             club.dataGsmClubId?.let { dgId ->
                 runCatching { dataGsmProjectClient.getProjectsByClubId(dgId) }.getOrElse { emptyList() }
