@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.club.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
@@ -18,4 +19,8 @@ interface ClubParticipantRepository : JpaRepository<ClubParticipantJpaEntity, Cl
 
     @Query("SELECT p FROM ClubParticipantJpaEntity p JOIN FETCH p.user WHERE p.club.id = :clubId")
     fun findAllByClubId(clubId: Long): List<ClubParticipantJpaEntity>
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM ClubParticipantJpaEntity p WHERE p.club.id = :clubId")
+    fun deleteAllByClubId(clubId: Long)
 }
