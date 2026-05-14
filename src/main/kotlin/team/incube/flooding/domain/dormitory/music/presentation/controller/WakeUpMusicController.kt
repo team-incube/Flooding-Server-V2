@@ -22,7 +22,6 @@ import team.incube.flooding.domain.dormitory.music.service.CancelWakeUpMusicServ
 import team.incube.flooding.domain.dormitory.music.service.GetWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.LikeWakeUpMusicService
 import team.themoment.sdk.response.CommonApiResponse
-import java.time.Clock
 import java.time.LocalDate
 
 @Tag(name = "기상음악", description = "기상음악 신청 관련 API")
@@ -34,7 +33,6 @@ class WakeUpMusicController(
     private val getWakeUpMusicService: GetWakeUpMusicService,
     private val likeWakeUpMusicService: LikeWakeUpMusicService,
     private val cancelLikeWakeUpMusicService: CancelLikeWakeUpMusicService,
-    private val clock: Clock,
 ) {
     @Operation(
         summary = "기상음악 목록 조회",
@@ -49,7 +47,7 @@ class WakeUpMusicController(
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?,
     ): CommonApiResponse<List<WakeUpMusicResponse>> =
-        CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now(clock).plusDays(1)))
+        CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now()))
 
     @Operation(
         summary = "기상음악 신청",
