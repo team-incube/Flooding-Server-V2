@@ -35,7 +35,11 @@ interface ClubFormSubmissionRepository : JpaRepository<ClubFormSubmissionJpaEnti
         userId: Long,
     ): ClubFormSubmissionJpaEntity?
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
+    @Query("DELETE FROM ClubFormSubmissionJpaEntity s WHERE s.id = :submissionId")
+    fun deleteBySubmissionId(submissionId: Long)
+
+    @Modifying
     @Query(
         """
         DELETE FROM ClubFormSubmissionJpaEntity s

@@ -10,7 +10,7 @@ interface ClubFormRepository : JpaRepository<ClubFormJpaEntity, Long> {
 
     fun findAllByClubIdAndIsActiveTrue(clubId: Long): List<ClubFormJpaEntity>
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
     @Query("DELETE FROM ClubFormJpaEntity f WHERE f.club.id = :clubId")
     fun deleteAllByClubId(clubId: Long)
 }

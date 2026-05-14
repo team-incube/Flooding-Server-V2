@@ -15,8 +15,8 @@ import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
 import team.incube.flooding.domain.club.repository.ClubFormRepository
 import team.incube.flooding.domain.club.repository.ClubFormSubmissionRepository
-import team.incube.flooding.domain.club.repository.ClubJpaRepository
-import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
+import team.incube.flooding.domain.club.repository.ClubParticipantRepository
+import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.impl.ClubApplicationServiceImpl
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
@@ -27,21 +27,21 @@ import java.util.Optional
 
 class ClubApplicationServiceTest :
     BehaviorSpec({
-        val clubJpaRepository = mockk<ClubJpaRepository>()
+        val clubRepository = mockk<ClubRepository>()
         val userRepository = mockk<UserRepository>()
         val clubFormRepository = mockk<ClubFormRepository>()
         val clubFormSubmissionRepository = mockk<ClubFormSubmissionRepository>()
         val clubFormAnswerRepository = mockk<ClubFormAnswerRepository>()
-        val clubParticipantJpaRepository = mockk<ClubParticipantJpaRepository>()
+        val clubParticipantRepository = mockk<ClubParticipantRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
         val service =
             ClubApplicationServiceImpl(
-                clubJpaRepository,
+                clubRepository,
                 userRepository,
                 clubFormRepository,
                 clubFormSubmissionRepository,
                 clubFormAnswerRepository,
-                clubParticipantJpaRepository,
+                clubParticipantRepository,
                 currentUserProvider,
             )
 
@@ -79,21 +79,21 @@ class ClubApplicationServiceTest :
                     val form = ClubFormJpaEntity(id = 10L, club = club, title = "신청 폼", description = null)
                     val submission = ClubFormSubmissionJpaEntity(id = 100L, form = form, user = applicant)
 
-                    every { clubJpaRepository.findById(1L) } returns Optional.of(club)
+                    every { clubRepository.findById(1L) } returns Optional.of(club)
                     every { currentUserProvider.getCurrentUser() } returns leader
-                    every { clubParticipantJpaRepository.existsById(any()) } returns false
+                    every { clubParticipantRepository.existsById(any()) } returns false
                     every { userRepository.findById(2L) } returns Optional.of(applicant)
-                    every { clubParticipantJpaRepository.save(any()) } answers { firstArg<ClubParticipantJpaEntity>() }
+                    every { clubParticipantRepository.save(any()) } answers { firstArg<ClubParticipantJpaEntity>() }
                     every { clubFormRepository.findByClubIdAndIsActiveTrue(1L) } returns form
                     every { clubFormSubmissionRepository.findByFormIdAndUserId(10L, 2L) } returns submission
                     justRun { clubFormAnswerRepository.deleteAllBySubmissionId(100L) }
-                    justRun { clubFormSubmissionRepository.delete(submission) }
+                    justRun { clubFormSubmissionRepository.deleteBySubmissionId(100L) }
 
                     service.execute(1L, 2L)
 
-                    verify(exactly = 1) { clubParticipantJpaRepository.save(any()) }
+                    verify(exactly = 1) { clubParticipantRepository.save(any()) }
                     verify(exactly = 1) { clubFormAnswerRepository.deleteAllBySubmissionId(100L) }
-                    verify(exactly = 1) { clubFormSubmissionRepository.delete(submission) }
+                    verify(exactly = 1) { clubFormSubmissionRepository.deleteBySubmissionId(100L) }
                 }
             }
         }

@@ -11,11 +11,11 @@ interface ClubFormAnswerRepository : JpaRepository<ClubFormAnswerJpaEntity, Long
     )
     fun findAllBySubmissionIdIn(submissionIds: List<Long>): List<ClubFormAnswerJpaEntity>
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
     @Query("DELETE FROM ClubFormAnswerJpaEntity a WHERE a.submission.id = :submissionId")
     fun deleteAllBySubmissionId(submissionId: Long)
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
     @Query(
         """
         DELETE FROM ClubFormAnswerJpaEntity a

@@ -20,7 +20,7 @@ interface ClubParticipantRepository : JpaRepository<ClubParticipantJpaEntity, Cl
     @Query("SELECT p FROM ClubParticipantJpaEntity p JOIN FETCH p.user WHERE p.club.id = :clubId")
     fun findAllByClubId(clubId: Long): List<ClubParticipantJpaEntity>
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
     @Query("DELETE FROM ClubParticipantJpaEntity p WHERE p.club.id = :clubId")
     fun deleteAllByClubId(clubId: Long)
 }
