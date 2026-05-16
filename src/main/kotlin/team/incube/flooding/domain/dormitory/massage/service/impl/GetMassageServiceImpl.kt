@@ -4,10 +4,12 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.massage.adapter.MassageRedisAdapter
 import team.incube.flooding.domain.dormitory.massage.config.MassageProperties
+import team.incube.flooding.domain.dormitory.massage.entity.MassageApplicationStatus
 import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageListResponse
 import team.incube.flooding.domain.dormitory.massage.presentation.data.response.GetMassageResponse
 import team.incube.flooding.domain.dormitory.massage.service.GetMassageService
 import team.incube.flooding.domain.user.repository.UserRepository
+import team.incube.flooding.global.security.util.CurrentUserProvider
 import java.time.Clock
 import java.time.LocalTime
 
@@ -17,10 +19,18 @@ class GetMassageServiceImpl(
     private val massageRedisAdapter: MassageRedisAdapter,
     private val userRepository: UserRepository,
     private val massageProperties: MassageProperties,
+    private val currentUserProvider: CurrentUserProvider,
     private val clock: Clock,
 ) : GetMassageService {
     override fun execute(): GetMassageListResponse {
+        val currentUser = currentUserProvider.getCurrentUser()
         val isApplicationOpen = !LocalTime.now(clock).isBefore(massageProperties.openTime)
+        val myApplicationStatus =
+            when {
+                massageRedisAdapter.isReapplyBlocked(currentUser.id) -> MassageApplicationStatus.CANCELLED
+                massageRedisAdapter.isApply(currentUser.id) -> MassageApplicationStatus.APPLIED
+                else -> null
+            }
         val queue = massageRedisAdapter.getQueue()
         val applicants =
             if (queue.isEmpty()) {
@@ -35,6 +45,7 @@ class GetMassageServiceImpl(
             }
         return GetMassageListResponse(
             isApplicationOpen = isApplicationOpen,
+            myApplicationStatus = myApplicationStatus,
             applicants = applicants,
         )
     }
