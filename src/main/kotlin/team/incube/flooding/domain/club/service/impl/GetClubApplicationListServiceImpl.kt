@@ -41,7 +41,7 @@ class GetClubApplicationListServiceImpl(
 
         val form =
             clubFormRepository.findByClubIdAndIsActiveTrue(clubId)
-                ?: throw ExpectedException("생성된 폼이 없습니다.", HttpStatus.NOT_FOUND)
+                ?: return GetClubApplicationListResponse(emptyList())
 
         val submissions = submissionRepository.findAllByFormIdWithUser(form.id)
         if (submissions.isEmpty()) return GetClubApplicationListResponse(emptyList())

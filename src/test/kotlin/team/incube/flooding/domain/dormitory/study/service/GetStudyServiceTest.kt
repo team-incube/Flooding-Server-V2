@@ -33,7 +33,7 @@ class GetStudyServiceTest :
         val studyProperties =
             StudyProperties(
                 openTime = LocalTime.of(20, 0),
-                closeTime = LocalTime.of(23, 59),
+                closeTime = LocalTime.of(3, 0),
                 maxCount = 50,
                 lockKey = "study:lock",
             )
