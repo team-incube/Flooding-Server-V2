@@ -2,6 +2,7 @@ package team.incube.flooding.domain.dormitory.music.service
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -16,37 +17,50 @@ class GetWakeUpMusicServiceImplTest :
         val wakeUpMusicRepository = mockk<WakeUpMusicRepository>()
         val service = GetWakeUpMusicServiceImpl(wakeUpMusicRepository)
 
-        Given("특정 날짜의 기상음악을 조회할 때") {
-            val targetDate = LocalDate.of(2026, 5, 11)
-            val expectedResponse =
-                listOf(
-                    WakeUpMusicResponse(
-                        id = 1L,
-                        musicUrl = "https://youtube.com/watch?v=test",
-                        appliedAt = LocalDateTime.of(2026, 5, 10, 23, 0),
-                        likeCount = 2,
-                    ),
-                )
-            every {
-                wakeUpMusicRepository.findAllWithLikeCountByWakeUpDate(
-                    targetDate,
-                    LocalDateTime.of(2026, 5, 10, 0, 0),
-                    LocalDateTime.of(2026, 5, 11, 0, 0),
-                )
-            } returns expectedResponse
+        beforeEach { clearAllMocks() }
 
-            When("서비스가 목록을 조회하면") {
-                val response = service.execute(targetDate)
-
-                Then("재생 대상 날짜와 기존 데이터 fallback 범위를 함께 사용한다") {
-                    response shouldBe expectedResponse
-                    verify(exactly = 1) {
-                        wakeUpMusicRepository.findAllWithLikeCountByWakeUpDate(
-                            targetDate,
-                            LocalDateTime.of(2026, 5, 10, 0, 0),
-                            LocalDateTime.of(2026, 5, 11, 0, 0),
+        given("날짜가 2026-05-14일 때") {
+            `when`("execute를 호출하면") {
+                then("해당 날짜의 00:00 ~ 익일 00:00 범위로 조회한다") {
+                    val date = LocalDate.of(2026, 5, 14)
+                    val expectedStart = LocalDateTime.of(2026, 5, 14, 0, 0)
+                    val expectedEnd = LocalDateTime.of(2026, 5, 15, 0, 0)
+                    val mockResponse =
+                        listOf(
+                            WakeUpMusicResponse(
+                                id = 1L,
+                                musicUrl = "https://youtube.com/watch?v=abc",
+                                appliedAt = LocalDateTime.of(2026, 5, 14, 10, 0),
+                                likeCount = 3,
+                            ),
                         )
+
+                    every { wakeUpMusicRepository.findAllWithLikeCountByDate(expectedStart, expectedEnd) } returns
+                        mockResponse
+
+                    val result = service.execute(date)
+
+                    verify(exactly = 1) {
+                        wakeUpMusicRepository.findAllWithLikeCountByDate(expectedStart, expectedEnd)
                     }
+                    result shouldBe mockResponse
+                }
+            }
+        }
+
+        given("해당 날짜에 신청된 기상음악이 없을 때") {
+            `when`("execute를 호출하면") {
+                then("빈 리스트가 반환된다") {
+                    val date = LocalDate.of(2026, 5, 14)
+                    val expectedStart = LocalDateTime.of(2026, 5, 14, 0, 0)
+                    val expectedEnd = LocalDateTime.of(2026, 5, 15, 0, 0)
+
+                    every { wakeUpMusicRepository.findAllWithLikeCountByDate(expectedStart, expectedEnd) } returns
+                        emptyList()
+
+                    val result = service.execute(date)
+
+                    result shouldBe emptyList()
                 }
             }
         }
