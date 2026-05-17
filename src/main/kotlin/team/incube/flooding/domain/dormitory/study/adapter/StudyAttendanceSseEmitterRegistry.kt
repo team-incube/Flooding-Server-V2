@@ -33,4 +33,20 @@ class StudyAttendanceSseEmitterRegistry {
             }
         }
     }
+
+    @Async
+    fun broadcastCancel(event: StudyAttendanceEventResponse) {
+        emitters.forEach { emitter ->
+            try {
+                emitter.send(
+                    SseEmitter
+                        .event()
+                        .name("cancel-attendance")
+                        .data(event),
+                )
+            } catch (e: Exception) {
+                emitter.completeWithError(e)
+            }
+        }
+    }
 }
