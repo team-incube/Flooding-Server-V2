@@ -21,6 +21,7 @@ import team.incube.flooding.domain.dormitory.study.service.GetStudyService
 import team.incube.flooding.domain.dormitory.study.service.StudyApplicationService
 import team.incube.flooding.domain.dormitory.study.service.SubscribeStudyAttendanceService
 import team.incube.flooding.domain.dormitory.study.service.UnbanStudyService
+import team.incube.flooding.domain.dormitory.study.service.UncheckStudyAttendanceService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "자습", description = "자습 신청 관련 API")
@@ -34,6 +35,7 @@ class StudyController(
     private val getStudyService: GetStudyService,
     private val subscribeStudyAttendanceService: SubscribeStudyAttendanceService,
     private val checkStudyAttendanceService: CheckStudyAttendanceService,
+    private val uncheckStudyAttendanceService: UncheckStudyAttendanceService,
 ) {
     @Operation(
         summary = "자습 신청자 목록 조회",
@@ -101,6 +103,22 @@ class StudyController(
         @Parameter(description = "체크인할 학생의 ID") @PathVariable userId: Long,
     ): CommonApiResponse<Nothing> {
         checkStudyAttendanceService.execute(userId)
+        return CommonApiResponse.success("OK")
+    }
+
+    @Operation(
+        summary = "자습 체크인 해제",
+        description = "자습 체크인된 학생의 체크인을 해제합니다. 관리자 또는 기자위 권한이 필요합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "체크인 해제 성공"),
+        ApiResponse(responseCode = "404", description = "존재하지 않는 학생 또는 체크인 기록 없음"),
+    )
+    @DeleteMapping("/attendance/{userId}")
+    fun uncheckAttendance(
+        @Parameter(description = "체크인 해제할 학생의 ID") @PathVariable userId: Long,
+    ): CommonApiResponse<Nothing> {
+        uncheckStudyAttendanceService.execute(userId)
         return CommonApiResponse.success("OK")
     }
 

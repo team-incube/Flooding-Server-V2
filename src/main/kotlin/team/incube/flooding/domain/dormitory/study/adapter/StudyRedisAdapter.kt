@@ -83,6 +83,10 @@ class StudyRedisAdapter(
     fun isAttendanceChecked(userId: Long): Boolean =
         redisTemplate.opsForSet().isMember(ATTENDANCE_KEY, userId.toString()) ?: false
 
+    fun cancelAttendance(userId: Long) {
+        redisTemplate.opsForSet().remove(ATTENDANCE_KEY, userId.toString())
+    }
+
     fun getAttendanceIds(): Set<Long> =
         redisTemplate
             .opsForSet()

@@ -20,12 +20,24 @@ class StudyAttendanceSseEmitterRegistry {
 
     @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
+        broadcastEvent("attendance", event)
+    }
+
+    @Async
+    fun broadcastCancel(event: StudyAttendanceEventResponse) {
+        broadcastEvent("cancel-attendance", event)
+    }
+
+    private fun broadcastEvent(
+        name: String,
+        event: StudyAttendanceEventResponse,
+    ) {
         emitters.forEach { emitter ->
             try {
                 emitter.send(
                     SseEmitter
                         .event()
-                        .name("attendance")
+                        .name(name)
                         .data(event),
                 )
             } catch (e: Exception) {
