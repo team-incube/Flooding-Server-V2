@@ -11,7 +11,7 @@ import team.incube.flooding.domain.user.repository.UserRepository
 import team.themoment.sdk.exception.ExpectedException
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 class UncheckStudyAttendanceServiceImpl(
     private val userRepository: UserRepository,
     private val studyRedisAdapter: StudyRedisAdapter,
