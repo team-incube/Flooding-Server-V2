@@ -27,11 +27,11 @@ class UploadClubRepresentativeImageServiceImplTest :
             `when`("정상 이미지 파일을 전달하면") {
                 then("저장된 이미지 URL을 반환한다") {
                     every { fileStorageService.store(any(), CLUB_IMAGE_SUB_DIR) } returns
-                        "https://dev-api.example.com/images/clubs/representative.png"
+                        "https://image-dev.flooding.kr/clubs/representative.png"
 
                     val response = service.execute(image())
 
-                    response.imageUrl shouldBe "https://dev-api.example.com/images/clubs/representative.png"
+                    response.imageUrl shouldBe "https://image-dev.flooding.kr/clubs/representative.png"
                     verify(exactly = 1) { fileStorageService.store(any(), CLUB_IMAGE_SUB_DIR) }
                 }
             }
