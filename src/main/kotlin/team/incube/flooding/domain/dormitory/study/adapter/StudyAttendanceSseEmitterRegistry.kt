@@ -22,10 +22,12 @@ class StudyAttendanceSseEmitterRegistry {
     @Scheduled(fixedDelay = 30_000L)
     fun sendHeartbeat() {
         emitters.forEach { emitter ->
-            try {
-                emitter.send(SseEmitter.event().comment("heartbeat"))
-            } catch (e: Exception) {
-                emitter.completeWithError(e)
+            synchronized(emitter) {
+                try {
+                    emitter.send(SseEmitter.event().comment("heartbeat"))
+                } catch (e: Exception) {
+                    emitter.completeWithError(e)
+                }
             }
         }
     }
@@ -45,15 +47,17 @@ class StudyAttendanceSseEmitterRegistry {
         event: StudyAttendanceEventResponse,
     ) {
         emitters.forEach { emitter ->
-            try {
-                emitter.send(
-                    SseEmitter
-                        .event()
-                        .name(name)
-                        .data(event),
-                )
-            } catch (e: Exception) {
-                emitter.completeWithError(e)
+            synchronized(emitter) {
+                try {
+                    emitter.send(
+                        SseEmitter
+                            .event()
+                            .name(name)
+                            .data(event),
+                    )
+                } catch (e: Exception) {
+                    emitter.completeWithError(e)
+                }
             }
         }
     }
