@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.dormitory.music.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicLikeJpaEntity
 
 interface WakeUpMusicLikeRepository : JpaRepository<WakeUpMusicLikeJpaEntity, Long> {
@@ -17,4 +18,10 @@ interface WakeUpMusicLikeRepository : JpaRepository<WakeUpMusicLikeJpaEntity, Lo
     fun countByMusicId(musicId: Long): Long
 
     fun deleteAllByMusicIdIn(musicIds: List<Long>)
+
+    @Query("SELECT l.music.id FROM WakeUpMusicLikeJpaEntity l WHERE l.user.id = :userId AND l.music.id IN :musicIds")
+    fun findLikedMusicIdsByUserIdAndMusicIdIn(
+        userId: Long,
+        musicIds: List<Long>,
+    ): List<Long>
 }

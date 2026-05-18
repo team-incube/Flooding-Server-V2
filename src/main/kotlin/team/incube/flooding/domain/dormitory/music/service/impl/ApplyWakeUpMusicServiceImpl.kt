@@ -48,6 +48,7 @@ class ApplyWakeUpMusicServiceImpl(
             musicUrl = saved.musicUrl,
             appliedAt = saved.appliedAt,
             likeCount = 0,
+            isLiked = false,
         )
     }
 }
