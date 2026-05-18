@@ -4,20 +4,21 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
-import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
+import software.amazon.awssdk.core.exception.SdkException
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
 import java.io.IOException
 import java.io.PushbackInputStream
-import java.net.URI
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.util.UUID
 
 @Component
 class FileStorageService(
     private val fileStorageProperties: FileStorageProperties,
+    private val s3Client: S3Client,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -27,57 +28,47 @@ class FileStorageService(
     ): String {
         val extension = validateAndGetExtension(file)
         val fileName = "${UUID.randomUUID()}.$extension"
-        val uploadRoot = Paths.get(fileStorageProperties.uploadDir).toAbsolutePath().normalize()
-        val targetDir = uploadRoot.resolve(subDir).normalize()
-        val targetPath = targetDir.resolve(fileName).normalize()
+        val objectKey = getObjectKey(subDir, fileName)
 
-        if (!targetDir.startsWith(uploadRoot)) {
-            throw ExpectedException("파일 저장 경로가 올바르지 않습니다.", HttpStatus.BAD_REQUEST)
-        }
-
-        var stored = false
         try {
-            Files.createDirectories(targetDir)
             file.inputStream.use { rawInputStream ->
                 val inputStream = PushbackInputStream(rawInputStream, IMAGE_SIGNATURE_READ_SIZE)
                 validateImageSignature(inputStream)
-                Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING)
-                stored = true
+                s3Client.putObject(
+                    PutObjectRequest
+                        .builder()
+                        .bucket(fileStorageProperties.bucket)
+                        .key(objectKey)
+                        .contentType(file.contentType)
+                        .cacheControl("public, max-age=31536000, immutable")
+                        .build(),
+                    RequestBody.fromInputStream(inputStream, file.size),
+                )
             }
         } catch (exception: ExpectedException) {
             throw exception
         } catch (exception: IOException) {
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
-        } catch (exception: SecurityException) {
+        } catch (exception: SdkException) {
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
-        } finally {
-            if (!stored) {
-                deletePartiallyStoredFile(targetPath)
-            }
         }
 
-        return "${fileStorageProperties.baseUrl.trimEnd('/')}$IMAGE_URL_PREFIX/$subDir/$fileName"
+        return "${fileStorageProperties.publicBaseUrl.trimEnd('/')}/$objectKey"
     }
 
     fun delete(imageUrl: String?) {
-        val relativePath = getStoredRelativePath(imageUrl) ?: return
-        val uploadRoot = Paths.get(fileStorageProperties.uploadDir).toAbsolutePath().normalize()
-        val targetPath = uploadRoot.resolve(relativePath).normalize()
-
-        if (!targetPath.startsWith(uploadRoot)) return
+        val objectKey = getStoredObjectKey(imageUrl) ?: return
 
         runCatching {
-            Files.deleteIfExists(targetPath)
+            s3Client.deleteObject(
+                DeleteObjectRequest
+                    .builder()
+                    .bucket(fileStorageProperties.bucket)
+                    .key(objectKey)
+                    .build(),
+            )
         }.onFailure { exception ->
-            log.warn("저장된 이미지 파일 삭제에 실패했습니다. path={}", targetPath, exception)
-        }
-    }
-
-    private fun deletePartiallyStoredFile(targetPath: java.nio.file.Path) {
-        runCatching {
-            Files.deleteIfExists(targetPath)
-        }.onFailure { exception ->
-            log.warn("부분 저장된 이미지 파일 삭제에 실패했습니다. path={}", targetPath, exception)
+            log.warn("R2 이미지 삭제에 실패했습니다. key={}", objectKey, exception)
         }
     }
 
@@ -96,6 +87,19 @@ class FileStorageService(
         }
 
         return extension
+    }
+
+    private fun getObjectKey(
+        subDir: String,
+        fileName: String,
+    ): String {
+        val segments = subDir.trim('/').split("/")
+
+        if (segments.isEmpty() || segments.any { it.isBlank() || it == "." || it == ".." || it.contains("\\") }) {
+            throw ExpectedException("파일 저장 경로가 올바르지 않습니다.", HttpStatus.BAD_REQUEST)
+        }
+
+        return "${segments.joinToString("/")}/$fileName"
     }
 
     private fun getExtension(file: MultipartFile): String {
@@ -146,16 +150,23 @@ class FileStorageService(
             bytes.copyOfRange(0, 4).contentEquals("RIFF".toByteArray()) &&
             bytes.copyOfRange(8, 12).contentEquals("WEBP".toByteArray())
 
-    private fun getStoredRelativePath(imageUrl: String?): String? {
+    private fun getStoredObjectKey(imageUrl: String?): String? {
         if (imageUrl.isNullOrBlank()) return null
 
-        val path =
-            runCatching { URI.create(imageUrl).path }
-                .getOrDefault(imageUrl)
+        val publicBaseUrl = fileStorageProperties.publicBaseUrl.trimEnd('/')
 
-        if (!path.startsWith("$IMAGE_URL_PREFIX/")) return null
+        if (!imageUrl.startsWith("$publicBaseUrl/")) return null
 
-        return path.removePrefix("$IMAGE_URL_PREFIX/")
+        val objectKey =
+            imageUrl
+                .removePrefix("$publicBaseUrl/")
+                .substringBefore("?")
+                .substringBefore("#")
+
+        if (objectKey.isBlank()) return null
+        if (objectKey.split("/").any { it.isBlank() || it == "." || it == ".." || it.contains("\\") }) return null
+
+        return objectKey
     }
 
     companion object {

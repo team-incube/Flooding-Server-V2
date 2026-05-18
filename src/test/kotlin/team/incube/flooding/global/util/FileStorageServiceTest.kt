@@ -2,39 +2,50 @@ package team.incube.flooding.global.util
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.web.multipart.MultipartFile
-import team.incube.flooding.global.config.FileStorageConstants.IMAGE_URL_PREFIX
+import software.amazon.awssdk.core.exception.SdkClientException
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
 import java.io.IOException
 import java.io.InputStream
-import java.net.URI
-import java.nio.file.Files
 
 class FileStorageServiceTest :
     BehaviorSpec({
-        lateinit var uploadDir: java.nio.file.Path
+        lateinit var s3Client: S3Client
         lateinit var service: FileStorageService
 
         beforeEach {
-            uploadDir = Files.createTempDirectory("flooding-upload-test")
+            s3Client = mockk()
             service =
                 FileStorageService(
                     FileStorageProperties(
-                        uploadDir = uploadDir.toString(),
-                        baseUrl = "https://dev-api.example.com",
+                        bucket = "flooding-dev-images",
+                        endpoint = "https://account-id.r2.cloudflarestorage.com",
+                        accessKey = "access-key",
+                        secretKey = "secret-key",
+                        publicBaseUrl = "https://image-dev.flooding.kr",
                     ),
+                    s3Client,
                 )
         }
 
-        afterEach {
-            uploadDir.toFile().deleteRecursively()
-        }
+        afterEach { clearAllMocks() }
 
         given("빈 파일이 주어졌을 때") {
             `when`("저장하면") {
@@ -44,6 +55,7 @@ class FileStorageServiceTest :
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                    verify(exactly = 0) { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) }
                 }
             }
         }
@@ -56,6 +68,7 @@ class FileStorageServiceTest :
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                    verify(exactly = 0) { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) }
                 }
             }
         }
@@ -68,6 +81,7 @@ class FileStorageServiceTest :
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                    verify(exactly = 0) { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) }
                 }
             }
         }
@@ -80,20 +94,25 @@ class FileStorageServiceTest :
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                    verify(exactly = 0) { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) }
                 }
             }
         }
 
         given("정상 이미지 파일이 주어졌을 때") {
             `when`("저장하면") {
-                then("이미지를 저장하고 접근 경로를 반환한다") {
+                then("R2에 이미지를 저장하고 공개 URL을 반환한다") {
+                    val requestSlot = slot<PutObjectRequest>()
+                    every { s3Client.putObject(capture(requestSlot), any<RequestBody>()) } returns
+                        PutObjectResponse.builder().eTag("etag").build()
                     val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
 
                     val imageUrl = service.store(file, "clubs")
 
-                    imageUrl shouldMatch Regex("^https://dev-api\\.example\\.com/images/clubs/[0-9a-f-]+\\.png$")
-                    val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
-                    Files.exists(uploadDir.resolve(savedPath)).shouldBeTrue()
+                    imageUrl shouldMatch Regex("^https://image-dev\\.flooding\\.kr/clubs/[0-9a-f-]+\\.png$")
+                    requestSlot.captured.bucket() shouldBe "flooding-dev-images"
+                    requestSlot.captured.key() shouldMatch Regex("^clubs/[0-9a-f-]+\\.png$")
+                    requestSlot.captured.contentType() shouldBe "image/png"
                 }
             }
         }
@@ -101,12 +120,17 @@ class FileStorageServiceTest :
         given("한 번만 열 수 있는 이미지 스트림이 주어졌을 때") {
             `when`("저장하면") {
                 then("같은 스트림으로 검증과 저장을 수행한다") {
+                    every { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) } answers {
+                        secondArg<RequestBody>().contentStreamProvider().newStream().use { inputStream ->
+                            inputStream.readAllBytes() shouldBe pngBytes()
+                        }
+                        PutObjectResponse.builder().eTag("etag").build()
+                    }
                     val file = SingleUseMultipartFile()
 
                     val imageUrl = service.store(file, "clubs")
 
-                    val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
-                    Files.readAllBytes(uploadDir.resolve(savedPath)) shouldBe pngBytes()
+                    imageUrl shouldMatch Regex("^https://image-dev\\.flooding\\.kr/clubs/[0-9a-f-]+\\.png$")
                 }
             }
         }
@@ -119,6 +143,7 @@ class FileStorageServiceTest :
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                    verify(exactly = 0) { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) }
                 }
             }
         }
@@ -131,51 +156,46 @@ class FileStorageServiceTest :
                     val exception = shouldThrow<ExpectedException> { service.store(file, "../outside") }
 
                     exception.statusCode shouldBe HttpStatus.BAD_REQUEST
+                    verify(exactly = 0) { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) }
                 }
             }
         }
 
-        given("파일 복사 중 예외가 발생했을 때") {
+        given("R2 저장 중 예외가 발생했을 때") {
             `when`("저장하면") {
-                then("부분 기록 파일을 정리하고 INTERNAL_SERVER_ERROR 예외가 발생한다") {
-                    val file = FailingMultipartFile()
+                then("INTERNAL_SERVER_ERROR 예외가 발생한다") {
+                    every { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) } throws
+                        SdkClientException.create("upload failed")
+                    val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
 
                     val exception = shouldThrow<ExpectedException> { service.store(file, "clubs") }
 
                     exception.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR
-                    Files.list(uploadDir.resolve("clubs")).use { files ->
-                        files.count() shouldBe 0
-                    }
                 }
             }
         }
 
         given("저장된 이미지 URL이 주어졌을 때") {
             `when`("삭제하면") {
-                then("파일이 제거된다") {
-                    val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
-                    val imageUrl = service.store(file, "clubs")
-                    val savedPath = URI.create(imageUrl).path.removePrefix("$IMAGE_URL_PREFIX/")
+                then("R2 object가 제거된다") {
+                    val requestSlot = slot<DeleteObjectRequest>()
+                    every { s3Client.deleteObject(capture(requestSlot)) } returns DeleteObjectResponse.builder().build()
 
-                    service.delete(imageUrl)
+                    service.delete("https://image-dev.flooding.kr/clubs/test.png")
 
-                    Files.notExists(uploadDir.resolve(savedPath)).shouldBeTrue()
+                    requestSlot.captured.bucket() shouldBe "flooding-dev-images"
+                    requestSlot.captured.key() shouldBe "clubs/test.png"
                 }
             }
         }
 
-        given("업로드 루트를 벗어나는 이미지 URL이 주어졌을 때") {
+        given("공개 URL 기준을 벗어나는 이미지 URL이 주어졌을 때") {
             `when`("삭제하면") {
-                then("업로드 루트 밖 파일은 삭제하지 않는다") {
-                    val outsidePath = Files.createTempFile(uploadDir.parent, "outside", ".png")
+                then("R2 삭제 요청을 보내지 않는다") {
+                    service.delete("https://image-dev.flooding.kr/../outside.png")
+                    service.delete("https://other.example.com/clubs/test.png")
 
-                    try {
-                        service.delete("$IMAGE_URL_PREFIX/../${outsidePath.fileName}")
-
-                        Files.exists(outsidePath).shouldBeTrue()
-                    } finally {
-                        Files.deleteIfExists(outsidePath)
-                    }
+                    verify(exactly = 0) { s3Client.deleteObject(any<DeleteObjectRequest>()) }
                 }
             }
         }
@@ -223,36 +243,6 @@ private class SingleUseMultipartFile : MultipartFile {
         opened = true
         return pngBytes().inputStream()
     }
-
-    override fun transferTo(dest: java.io.File) = Unit
-}
-
-private class FailingMultipartFile : MultipartFile {
-    override fun getName(): String = "image"
-
-    override fun getOriginalFilename(): String = "profile.png"
-
-    override fun getContentType(): String = "image/png"
-
-    override fun isEmpty(): Boolean = false
-
-    override fun getSize(): Long = 1
-
-    override fun getBytes(): ByteArray = pngBytes()
-
-    override fun getInputStream(): InputStream =
-        object : InputStream() {
-            private val bytes = pngBytes()
-            private var index = 0
-
-            override fun read(): Int {
-                if (index < bytes.size) {
-                    return bytes[index++].toInt() and 0xFF
-                }
-
-                throw IOException("copy failed")
-            }
-        }
 
     override fun transferTo(dest: java.io.File) = Unit
 }
