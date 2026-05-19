@@ -48,8 +48,10 @@ class FileStorageService(
         } catch (exception: ExpectedException) {
             throw exception
         } catch (exception: IOException) {
+            log.error("파일 저장 중 IO 예외가 발생했습니다. objectKey={}", objectKey, exception)
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
         } catch (exception: SdkException) {
+            log.error("R2 파일 저장 중 SDK 예외가 발생했습니다. objectKey={}", objectKey, exception)
             throw ExpectedException("파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
