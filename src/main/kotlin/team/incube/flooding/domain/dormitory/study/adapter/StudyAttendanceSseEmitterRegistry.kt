@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.study.adapter
 
+import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -74,7 +75,7 @@ class StudyAttendanceSseEmitterRegistry {
                         SseEmitter
                             .event()
                             .name(name)
-                            .data(event),
+                            .data(event, MediaType.APPLICATION_JSON),
                     )
                 } catch (e: Exception) {
                     emitter.completeWithError(e)
