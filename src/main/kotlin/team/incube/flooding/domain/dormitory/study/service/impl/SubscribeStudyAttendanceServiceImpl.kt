@@ -8,6 +8,7 @@ import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
 import team.incube.flooding.domain.dormitory.study.service.SubscribeStudyAttendanceService
 import team.incube.flooding.domain.user.repository.UserRepository
+import team.incube.flooding.global.security.util.CurrentUserProvider
 import tools.jackson.databind.ObjectMapper
 
 @Service
@@ -17,8 +18,10 @@ class SubscribeStudyAttendanceServiceImpl(
     private val userRepository: UserRepository,
     private val sseEmitterRegistry: StudyAttendanceSseEmitterRegistry,
     private val objectMapper: ObjectMapper,
+    private val currentUserProvider: CurrentUserProvider,
 ) : SubscribeStudyAttendanceService {
     override fun execute(): SseEmitter {
+        val currentUser = currentUserProvider.getCurrentUser()
         val emitter = SseEmitter(1_800_000L)
         return sseEmitterRegistry.registerWithInitialSend(emitter) {
             emitter.send(SseEmitter.event().name("connect").data("connected"))
@@ -30,6 +33,7 @@ class SubscribeStudyAttendanceServiceImpl(
                 } else {
                     userRepository
                         .findAllById(attendanceIds)
+                        .filter { it.id != currentUser.id }
                         .sortedBy { it.studentNumber }
                         .map { StudyAttendanceEventResponse(name = it.name, studentNumber = it.studentNumber) }
                 }
