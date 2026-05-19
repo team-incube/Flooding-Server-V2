@@ -12,11 +12,32 @@ class StudyAttendanceSseEmitterRegistry {
     private val emitters = CopyOnWriteArrayList<SseEmitter>()
 
     fun register(emitter: SseEmitter): SseEmitter {
+        registerCallbacks(emitter)
         emitters.add(emitter)
+        return emitter
+    }
+
+    fun registerWithInitialSend(
+        emitter: SseEmitter,
+        initialSend: () -> Unit,
+    ): SseEmitter {
+        registerCallbacks(emitter)
+        emitters.add(emitter)
+        synchronized(emitter) {
+            try {
+                initialSend()
+            } catch (e: Exception) {
+                emitters.remove(emitter)
+                emitter.completeWithError(e)
+            }
+        }
+        return emitter
+    }
+
+    private fun registerCallbacks(emitter: SseEmitter) {
         emitter.onCompletion { emitters.remove(emitter) }
         emitter.onTimeout { emitters.remove(emitter) }
         emitter.onError { emitters.remove(emitter) }
-        return emitter
     }
 
     @Scheduled(fixedDelay = 30_000L)
