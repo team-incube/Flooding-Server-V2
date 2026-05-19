@@ -49,7 +49,6 @@ class SecurityConfig(
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 it.requestMatchers(*IMAGE_RESOURCE_PATTERNS).permitAll()
-                it.requestMatchers(HttpMethod.GET, "/dormitory/music").permitAll()
                 // ai
                 it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()
