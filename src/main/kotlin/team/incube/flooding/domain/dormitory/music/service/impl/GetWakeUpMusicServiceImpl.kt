@@ -21,10 +21,11 @@ class GetWakeUpMusicServiceImpl(
         val endOfDay = date.plusDays(1).atStartOfDay()
         val musicList = wakeUpMusicRepository.findAllWithLikeCountByDate(startOfDay, endOfDay)
         if (musicList.isEmpty()) return emptyList()
-        val user = currentUserProvider.getCurrentUser()
+        val currentUser = runCatching { currentUserProvider.getCurrentUser() }.getOrNull()
+        if (currentUser == null) return musicList
         val likedIds =
             wakeUpMusicLikeRepository
-                .findLikedMusicIdsByUserIdAndMusicIdIn(user.id, musicList.map { it.id })
+                .findLikedMusicIdsByUserIdAndMusicIdIn(currentUser.id, musicList.map { it.id })
                 .toSet()
         return musicList.map { it.copy(isLiked = it.id in likedIds) }
     }
