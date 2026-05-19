@@ -8,6 +8,7 @@ import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
 import team.incube.flooding.domain.dormitory.study.service.SubscribeStudyAttendanceService
 import team.incube.flooding.domain.user.repository.UserRepository
+import tools.jackson.databind.ObjectMapper
 
 @Service
 @Transactional(readOnly = true)
@@ -15,6 +16,7 @@ class SubscribeStudyAttendanceServiceImpl(
     private val studyRedisAdapter: StudyRedisAdapter,
     private val userRepository: UserRepository,
     private val sseEmitterRegistry: StudyAttendanceSseEmitterRegistry,
+    private val objectMapper: ObjectMapper,
 ) : SubscribeStudyAttendanceService {
     override fun execute(): SseEmitter {
         val emitter = SseEmitter(1_800_000L)
@@ -36,7 +38,7 @@ class SubscribeStudyAttendanceServiceImpl(
                 SseEmitter
                     .event()
                     .name("init")
-                    .data(initList),
+                    .data(objectMapper.writeValueAsString(initList)),
             )
         }
     }

@@ -5,10 +5,13 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
+import tools.jackson.databind.ObjectMapper
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Component
-class StudyAttendanceSseEmitterRegistry {
+class StudyAttendanceSseEmitterRegistry(
+    private val objectMapper: ObjectMapper,
+) {
     private val emitters = CopyOnWriteArrayList<SseEmitter>()
 
     fun register(emitter: SseEmitter): SseEmitter {
@@ -55,17 +58,29 @@ class StudyAttendanceSseEmitterRegistry {
 
     @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
-        broadcastEvent("attendance", event)
+        val json =
+            try {
+                objectMapper.writeValueAsString(event)
+            } catch (e: Exception) {
+                return
+            }
+        broadcastEvent("attendance", json)
     }
 
     @Async
     fun broadcastCancel(event: StudyAttendanceEventResponse) {
-        broadcastEvent("cancel-attendance", event)
+        val json =
+            try {
+                objectMapper.writeValueAsString(event)
+            } catch (e: Exception) {
+                return
+            }
+        broadcastEvent("cancel-attendance", json)
     }
 
     private fun broadcastEvent(
         name: String,
-        event: StudyAttendanceEventResponse,
+        json: String,
     ) {
         emitters.forEach { emitter ->
             synchronized(emitter) {
@@ -74,7 +89,7 @@ class StudyAttendanceSseEmitterRegistry {
                         SseEmitter
                             .event()
                             .name(name)
-                            .data(event),
+                            .data(json),
                     )
                 } catch (e: Exception) {
                     emitter.completeWithError(e)
