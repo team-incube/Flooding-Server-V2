@@ -22,12 +22,11 @@ class StudyAttendanceSseEmitterRegistry {
         initialSend: () -> Unit,
     ): SseEmitter {
         registerCallbacks(emitter)
-        emitters.add(emitter)
         synchronized(emitter) {
             try {
                 initialSend()
+                emitters.add(emitter)
             } catch (e: Exception) {
-                emitters.remove(emitter)
                 emitter.completeWithError(e)
             }
         }
