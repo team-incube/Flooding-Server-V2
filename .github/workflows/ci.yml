@@ -166,8 +166,8 @@ jobs:
             --arg message "${{ steps.msg.outputs.first_line }}" \
             --argjson color "$COLOR" \
             '{
-              content: "<@&1445205580598874162> <@&1445206322730504253>",
-              allowed_mentions: {roles: ["1445205580598874162", "1445206322730504253"]},
+              content: "<@&1445206322730504253>",
+              allowed_mentions: {roles: ["1445206322730504253"]},
               embeds: [{
                 title: "[CI/CD] Flooding-Server-V2",
                 color: $color,
