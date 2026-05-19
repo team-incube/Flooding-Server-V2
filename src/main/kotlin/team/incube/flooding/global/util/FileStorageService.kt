@@ -26,8 +26,8 @@ class FileStorageService(
         file: MultipartFile,
         subDir: String,
     ): String {
-        val extension = validateAndGetExtension(file)
-        val fileName = "${UUID.randomUUID()}.$extension"
+        val image = validateAndGetImage(file)
+        val fileName = "${UUID.randomUUID()}.${image.extension}"
         val objectKey = getObjectKey(subDir, fileName)
 
         try {
@@ -39,7 +39,7 @@ class FileStorageService(
                         .builder()
                         .bucket(fileStorageProperties.bucket)
                         .key(objectKey)
-                        .contentType(file.contentType)
+                        .contentType(image.contentType)
                         .cacheControl("public, max-age=31536000, immutable")
                         .build(),
                     RequestBody.fromInputStream(inputStream, file.size),
@@ -74,7 +74,7 @@ class FileStorageService(
         }
     }
 
-    private fun validateAndGetExtension(file: MultipartFile): String {
+    private fun validateAndGetImage(file: MultipartFile): ValidatedImage {
         if (file.isEmpty) {
             throw ExpectedException("이미지 파일이 비어 있습니다.", HttpStatus.BAD_REQUEST)
         }
@@ -84,11 +84,15 @@ class FileStorageService(
             throw ExpectedException("지원하지 않는 이미지 확장자입니다.", HttpStatus.BAD_REQUEST)
         }
 
-        if (file.contentType !in allowedContentTypes) {
+        val contentType =
+            file.contentType
+                ?: throw ExpectedException("지원하지 않는 이미지 형식입니다.", HttpStatus.BAD_REQUEST)
+
+        if (contentType !in allowedContentTypes) {
             throw ExpectedException("지원하지 않는 이미지 형식입니다.", HttpStatus.BAD_REQUEST)
         }
 
-        return extension
+        return ValidatedImage(extension, contentType)
     }
 
     private fun getObjectKey(
@@ -97,7 +101,7 @@ class FileStorageService(
     ): String {
         val segments = subDir.trim('/').split("/")
 
-        if (segments.isEmpty() || segments.any { it.isBlank() || it == "." || it == ".." || it.contains("\\") }) {
+        if (segments.any { it.isBlank() || it == "." || it == ".." || it.contains("\\") }) {
             throw ExpectedException("파일 저장 경로가 올바르지 않습니다.", HttpStatus.BAD_REQUEST)
         }
 
@@ -188,4 +192,9 @@ class FileStorageService(
                 0x0A,
             )
     }
+
+    private data class ValidatedImage(
+        val extension: String,
+        val contentType: String,
+    )
 }
