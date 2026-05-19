@@ -58,12 +58,24 @@ class StudyAttendanceSseEmitterRegistry(
 
     @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
-        broadcastEvent("attendance", objectMapper.writeValueAsString(event))
+        val json =
+            try {
+                objectMapper.writeValueAsString(event)
+            } catch (e: Exception) {
+                return
+            }
+        broadcastEvent("attendance", json)
     }
 
     @Async
     fun broadcastCancel(event: StudyAttendanceEventResponse) {
-        broadcastEvent("cancel-attendance", objectMapper.writeValueAsString(event))
+        val json =
+            try {
+                objectMapper.writeValueAsString(event)
+            } catch (e: Exception) {
+                return
+            }
+        broadcastEvent("cancel-attendance", json)
     }
 
     private fun broadcastEvent(
