@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.study.service.impl
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +19,8 @@ class CheckStudyAttendanceServiceImpl(
     private val userRepository: UserRepository,
     private val sseEmitterRegistry: StudyAttendanceSseEmitterRegistry,
 ) : CheckStudyAttendanceService {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun execute(userId: Long) {
         val user =
             userRepository
@@ -33,8 +36,10 @@ class CheckStudyAttendanceServiceImpl(
         }
 
         studyRedisAdapter.checkAttendance(userId)
+        log.info("checkAttendance Redis 반영 완료, broadcast 호출 직전: userId={}", userId)
         sseEmitterRegistry.broadcast(
             StudyAttendanceEventResponse(userId = user.id, name = user.name, studentNumber = user.studentNumber),
         )
+        log.info("broadcast 호출 직후 (비동기 위임 완료): userId={}", userId)
     }
 }
