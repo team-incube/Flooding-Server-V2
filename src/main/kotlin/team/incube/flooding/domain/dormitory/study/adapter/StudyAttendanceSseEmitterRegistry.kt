@@ -46,6 +46,28 @@ class StudyAttendanceSseEmitterRegistry(
         emitter.onError { emitters.remove(emitter) }
     }
 
+    @Async
+    fun sendInitialData(
+        emitter: SseEmitter,
+        initList: List<StudyAttendanceEventResponse>,
+    ) {
+        synchronized(emitter) {
+            try {
+                emitter.send(SseEmitter.event().name("connect").data("connected"))
+                val json = objectMapper.writeValueAsString(initList)
+                emitter.send(
+                    SseEmitter
+                        .event()
+                        .name("init")
+                        .data(json),
+                )
+            } catch (e: Exception) {
+                emitters.remove(emitter)
+                emitter.completeWithError(e)
+            }
+        }
+    }
+
     @Scheduled(fixedDelay = 30_000L)
     fun sendHeartbeat() {
         emitters.forEach { emitter ->
