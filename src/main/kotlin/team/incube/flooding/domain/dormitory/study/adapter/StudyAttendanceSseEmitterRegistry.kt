@@ -34,15 +34,7 @@ class StudyAttendanceSseEmitterRegistry {
 
     @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
-        emitters.forEach { emitter ->
-            synchronized(emitter) {
-                try {
-                    emitter.send(SseEmitter.event().data(event))
-                } catch (e: Exception) {
-                    emitter.completeWithError(e)
-                }
-            }
-        }
+        broadcastEvent("attendance", event)
     }
 
     @Async
