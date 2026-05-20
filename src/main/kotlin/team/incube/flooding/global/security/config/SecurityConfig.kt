@@ -13,7 +13,6 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import team.incube.flooding.domain.user.entity.Role
-import team.incube.flooding.global.config.FileStorageConstants.IMAGE_RESOURCE_PATTERNS
 import team.incube.flooding.global.security.filter.JwtAuthenticationFilter
 
 @Configuration
@@ -48,7 +47,6 @@ class SecurityConfig(
                 it.requestMatchers("/error").permitAll()
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                it.requestMatchers(*IMAGE_RESOURCE_PATTERNS).permitAll()
                 // ai
                 it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()

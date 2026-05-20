@@ -62,6 +62,11 @@ dependencies {
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.4.1")
     implementation("com.github.themoment-team:the-sdk:1.4")
 
+    // Object Storage
+    implementation(platform("software.amazon.awssdk:bom:2.44.3"))
+    implementation("software.amazon.awssdk:s3")
+    implementation("software.amazon.awssdk:url-connection-client")
+
     // Test
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")

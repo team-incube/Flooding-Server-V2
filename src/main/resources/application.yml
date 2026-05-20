@@ -104,5 +104,9 @@ jwt:
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
 file:
-  upload-dir: ${FILE_UPLOAD_DIR:./uploads}
-  base-url: ${FILE_BASE_URL:http://localhost:8080}
+  bucket: ${R2_BUCKET}
+  endpoint: ${R2_ENDPOINT}
+  access-key: ${R2_ACCESS_KEY}
+  secret-key: ${R2_SECRET_KEY}
+  public-base-url: ${R2_PUBLIC_BASE_URL}
+  region: ${R2_REGION:auto}
