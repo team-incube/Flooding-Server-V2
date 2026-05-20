@@ -98,7 +98,7 @@ ai:
     base-url: ${AI_SONG_URL:http://localhost:8082}
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:local-dev-secret-key-must-be-at-least-256bits-long}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
