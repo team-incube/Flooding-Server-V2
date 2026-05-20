@@ -29,7 +29,7 @@ class UncheckStudyAttendanceServiceImpl(
 
         studyRedisAdapter.cancelAttendance(userId)
         sseEmitterRegistry.broadcastCancel(
-            StudyAttendanceEventResponse(name = user.name, studentNumber = user.studentNumber),
+            StudyAttendanceEventResponse(userId = user.id, name = user.name, studentNumber = user.studentNumber),
         )
     }
 }

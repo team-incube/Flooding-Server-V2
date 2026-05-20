@@ -34,7 +34,7 @@ class CheckStudyAttendanceServiceImpl(
 
         studyRedisAdapter.checkAttendance(userId)
         sseEmitterRegistry.broadcast(
-            StudyAttendanceEventResponse(name = user.name, studentNumber = user.studentNumber),
+            StudyAttendanceEventResponse(userId = user.id, name = user.name, studentNumber = user.studentNumber),
         )
     }
 }
