@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.study.adapter
 
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -12,11 +13,13 @@ import java.util.concurrent.CopyOnWriteArrayList
 class StudyAttendanceSseEmitterRegistry(
     private val objectMapper: ObjectMapper,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     private val emitters = CopyOnWriteArrayList<SseEmitter>()
 
     fun register(emitter: SseEmitter): SseEmitter {
         registerCallbacks(emitter)
         emitters.add(emitter)
+        log.info("SSE emitter 등록: emitters.size={}", emitters.size)
         return emitter
     }
 
@@ -58,6 +61,7 @@ class StudyAttendanceSseEmitterRegistry(
 
     @Async
     fun broadcast(event: StudyAttendanceEventResponse) {
+        log.info("broadcast 진입: emitters.size={}, event={}", emitters.size, event)
         val json =
             try {
                 objectMapper.writeValueAsString(event)
@@ -69,6 +73,7 @@ class StudyAttendanceSseEmitterRegistry(
 
     @Async
     fun broadcastCancel(event: StudyAttendanceEventResponse) {
+        log.info("broadcastCancel 진입: emitters.size={}, event={}", emitters.size, event)
         val json =
             try {
                 objectMapper.writeValueAsString(event)
@@ -82,6 +87,7 @@ class StudyAttendanceSseEmitterRegistry(
         name: String,
         json: String,
     ) {
+        log.info("broadcastEvent: name={}, emitters.size={}", name, emitters.size)
         emitters.forEach { emitter ->
             synchronized(emitter) {
                 try {
@@ -91,7 +97,9 @@ class StudyAttendanceSseEmitterRegistry(
                             .name(name)
                             .data(json),
                     )
+                    log.info("send 성공: name={}", name)
                 } catch (e: Exception) {
+                    log.error("send 실패: name={}, json={}", name, json, e)
                     emitter.completeWithError(e)
                 }
             }

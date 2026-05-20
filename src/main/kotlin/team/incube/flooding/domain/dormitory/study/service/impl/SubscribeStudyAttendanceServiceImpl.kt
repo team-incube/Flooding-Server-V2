@@ -35,7 +35,13 @@ class SubscribeStudyAttendanceServiceImpl(
                         .findAllById(attendanceIds)
                         .filter { it.id != currentUser.id }
                         .sortedBy { it.studentNumber }
-                        .map { StudyAttendanceEventResponse(name = it.name, studentNumber = it.studentNumber) }
+                        .map {
+                            StudyAttendanceEventResponse(
+                                userId = it.id,
+                                name = it.name,
+                                studentNumber = it.studentNumber,
+                            )
+                        }
                 }
 
             emitter.send(

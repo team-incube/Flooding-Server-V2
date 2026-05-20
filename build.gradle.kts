@@ -93,6 +93,19 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val envFile = rootProject.file(".env")
+    if (envFile.exists()) {
+        envFile
+            .readLines()
+            .filter { line -> line.isNotBlank() && !line.startsWith("#") && "=" in line }
+            .forEach { line ->
+                val (key, value) = line.split("=", limit = 2)
+                environment(key.trim(), value.trim())
+            }
+    }
+}
+
 ktlint {
     version.set("1.8.0")
 }

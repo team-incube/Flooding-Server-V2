@@ -77,6 +77,7 @@ class UncheckStudyAttendanceServiceTest :
                     justRun {
                         sseEmitterRegistry.broadcastCancel(
                             StudyAttendanceEventResponse(
+                                userId = targetUser.id,
                                 name = targetUser.name,
                                 studentNumber = targetUser.studentNumber,
                             ),
@@ -89,6 +90,7 @@ class UncheckStudyAttendanceServiceTest :
                     verify(exactly = 1) {
                         sseEmitterRegistry.broadcastCancel(
                             StudyAttendanceEventResponse(
+                                userId = targetUser.id,
                                 name = targetUser.name,
                                 studentNumber = targetUser.studentNumber,
                             ),

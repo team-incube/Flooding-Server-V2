@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.study.service.impl
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,6 +18,8 @@ class UncheckStudyAttendanceServiceImpl(
     private val studyRedisAdapter: StudyRedisAdapter,
     private val sseEmitterRegistry: StudyAttendanceSseEmitterRegistry,
 ) : UncheckStudyAttendanceService {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun execute(userId: Long) {
         val user =
             userRepository
@@ -28,8 +31,10 @@ class UncheckStudyAttendanceServiceImpl(
         }
 
         studyRedisAdapter.cancelAttendance(userId)
+        log.info("cancelAttendance Redis 반영 완료, broadcastCancel 호출 직전: userId={}", userId)
         sseEmitterRegistry.broadcastCancel(
-            StudyAttendanceEventResponse(name = user.name, studentNumber = user.studentNumber),
+            StudyAttendanceEventResponse(userId = user.id, name = user.name, studentNumber = user.studentNumber),
         )
+        log.info("broadcastCancel 호출 직후 (비동기 위임 완료): userId={}", userId)
     }
 }
