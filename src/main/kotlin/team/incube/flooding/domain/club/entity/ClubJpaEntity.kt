@@ -22,7 +22,7 @@ class ClubJpaEntity(
     var imageUrl: String?,
     @field:Column(name = "status", nullable = false, length = 20)
     @field:Enumerated(EnumType.STRING)
-    val status: ClubStatus,
+    var status: ClubStatus,
     @field:Column(name = "description", length = 1000)
     var description: String?,
     @field:Column(name = "max_member")
