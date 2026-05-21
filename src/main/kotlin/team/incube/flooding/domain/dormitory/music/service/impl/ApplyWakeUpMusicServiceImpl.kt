@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.music.service.impl
 
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
@@ -10,6 +11,7 @@ import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicReposit
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.global.client.YoutubeClient
 import team.incube.flooding.global.security.util.CurrentUserProvider
+import team.themoment.sdk.exception.ExpectedException
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -36,19 +38,21 @@ class ApplyWakeUpMusicServiceImpl(
             wakeUpMusicRepository.deleteAllInBatch(toDelete)
         }
 
-        val videoInfo = youtubeClient.getVideoInfo(request.musicUrl)
+        val videoInfo =
+            youtubeClient.getVideoInfo(request.musicUrl)
+                ?: throw ExpectedException("YouTube 영상 정보를 가져오지 못했습니다. URL을 확인해주세요.", HttpStatus.BAD_REQUEST)
 
         val saved =
             wakeUpMusicRepository.save(
                 WakeUpMusicJpaEntity(
                     user = user,
                     musicUrl = request.musicUrl,
-                    title = videoInfo?.title,
-                    artist = videoInfo?.artist,
-                    duration = videoInfo?.duration,
-                    durationText = videoInfo?.durationText,
-                    thumbnailUrl = videoInfo?.thumbnailUrl,
-                    videoUrl = videoInfo?.videoUrl,
+                    title = videoInfo.title,
+                    artist = videoInfo.artist,
+                    duration = videoInfo.duration,
+                    durationText = videoInfo.durationText,
+                    thumbnailUrl = videoInfo.thumbnailUrl,
+                    videoUrl = videoInfo.videoUrl,
                     appliedAt = LocalDateTime.now(clock),
                 ),
             )

@@ -22,26 +22,26 @@ class YoutubeClient(
     fun getVideoInfo(videoUrl: String): VideoInfo? {
         val videoId = extractVideoId(videoUrl) ?: return null
         return runCatching {
-            youtubeApiClient
-                .getVideos(part = "snippet,contentDetails", id = videoId)
-                .items
-                ?.firstOrNull()
-                ?.let { item ->
-                    val snippet = item.snippet ?: return@let null
-                    val isoDuration = item.contentDetails?.duration ?: "PT0S"
-                    VideoInfo(
-                        title = snippet.title,
-                        artist = snippet.channelTitle,
-                        duration = isoDuration,
-                        durationText = formatDuration(isoDuration),
-                        thumbnailUrl =
-                            snippet.thumbnails?.maxres?.url
-                                ?: snippet.thumbnails?.high?.url
-                                ?: snippet.thumbnails?.default?.url
-                                ?: "",
-                        videoUrl = "https://www.youtube.com/watch?v=$videoId",
-                    )
-                }
+            val response = youtubeApiClient.getVideos(part = "snippet,contentDetails", id = videoId)
+            val item = response.items?.firstOrNull()
+            if (item == null) {
+                log.warn("YouTube API 응답에 영상 정보 없음: videoId=$videoId")
+                return@runCatching null
+            }
+            val snippet = item.snippet ?: return@runCatching null
+            val isoDuration = item.contentDetails?.duration ?: "PT0S"
+            VideoInfo(
+                title = snippet.title,
+                artist = snippet.channelTitle,
+                duration = isoDuration,
+                durationText = formatDuration(isoDuration),
+                thumbnailUrl =
+                    snippet.thumbnails?.maxres?.url
+                        ?: snippet.thumbnails?.high?.url
+                        ?: snippet.thumbnails?.default?.url
+                        ?: "",
+                videoUrl = "https://www.youtube.com/watch?v=$videoId",
+            )
         }.onFailure { log.error("YouTube 영상 정보 조회 실패: videoId=$videoId", it) }
             .getOrNull()
     }
