@@ -8,6 +8,7 @@ import team.incube.flooding.domain.dormitory.music.presentation.data.response.Wa
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
+import team.incube.flooding.global.client.YoutubeClient
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import java.time.Clock
 import java.time.LocalDateTime
@@ -17,6 +18,7 @@ class ApplyWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
     private val wakeUpMusicLikeRepository: WakeUpMusicLikeRepository,
     private val currentUserProvider: CurrentUserProvider,
+    private val youtubeClient: YoutubeClient,
     private val clock: Clock,
 ) : ApplyWakeUpMusicService {
     companion object {
@@ -34,11 +36,18 @@ class ApplyWakeUpMusicServiceImpl(
             wakeUpMusicRepository.deleteAllInBatch(toDelete)
         }
 
+        val videoInfo = youtubeClient.getVideoInfo(request.musicUrl)
+
         val saved =
             wakeUpMusicRepository.save(
                 WakeUpMusicJpaEntity(
                     user = user,
                     musicUrl = request.musicUrl,
+                    title = videoInfo?.title,
+                    artist = videoInfo?.artist,
+                    duration = videoInfo?.duration,
+                    durationText = videoInfo?.durationText,
+                    thumbnailUrl = videoInfo?.thumbnailUrl,
                     appliedAt = LocalDateTime.now(clock),
                 ),
             )

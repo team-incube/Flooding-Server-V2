@@ -27,6 +27,12 @@ class WakeUpMusicJpaEntity(
     val title: String? = null,
     @field:Column(name = "artist", nullable = true)
     val artist: String? = null,
+    @field:Column(name = "duration", nullable = true)
+    val duration: String? = null,
+    @field:Column(name = "duration_text", nullable = true)
+    val durationText: String? = null,
+    @field:Column(name = "thumbnail_url", nullable = true)
+    val thumbnailUrl: String? = null,
     @field:Column(name = "applied_at", nullable = false)
     val appliedAt: LocalDateTime,
 )
