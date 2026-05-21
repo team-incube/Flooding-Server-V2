@@ -1,23 +1,14 @@
 package team.incube.flooding.global.client
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestClient
 import java.net.URI
 
 @Component
 class YoutubeClient(
-    @Value("\${youtube.api-key}") private val apiKey: String,
+    private val youtubeApiClient: YoutubeApiClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    private val restClient: RestClient by lazy {
-        RestClient
-            .builder()
-            .baseUrl("https://www.googleapis.com/youtube/v3")
-            .build()
-    }
 
     data class VideoInfo(
         val title: String,
@@ -30,18 +21,9 @@ class YoutubeClient(
     fun getVideoInfo(videoUrl: String): VideoInfo? {
         val videoId = extractVideoId(videoUrl) ?: return null
         return runCatching {
-            restClient
-                .get()
-                .uri {
-                    it
-                        .path("/videos")
-                        .queryParam("part", "snippet,contentDetails")
-                        .queryParam("id", videoId)
-                        .queryParam("key", apiKey)
-                        .build()
-                }.retrieve()
-                .body(YoutubeResponse::class.java)
-                ?.items
+            youtubeApiClient
+                .getVideos(part = "snippet,contentDetails", id = videoId)
+                .items
                 ?.firstOrNull()
                 ?.let { item ->
                     val snippet = item.snippet ?: return@let null
@@ -81,11 +63,7 @@ class YoutubeClient(
                 ?.groupValues
                 ?.get(1)
                 ?.toLongOrNull() ?: 0L
-        return if (hours > 0) {
-            "%d:%02d:%02d".format(hours, minutes, seconds)
-        } else {
-            "%d:%02d".format(minutes, seconds)
-        }
+        return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds) else "%d:%02d".format(minutes, seconds)
     }
 
     private fun extractVideoId(url: String): String? =
@@ -113,33 +91,4 @@ class YoutubeClient(
                 }
             }
         }.getOrNull()
-
-    private data class YoutubeResponse(
-        val items: List<YoutubeItem>?,
-    )
-
-    private data class YoutubeItem(
-        val snippet: YoutubeSnippet?,
-        val contentDetails: YoutubeContentDetails?,
-    )
-
-    private data class YoutubeSnippet(
-        val title: String,
-        val channelTitle: String,
-        val thumbnails: YoutubeThumbnails?,
-    )
-
-    private data class YoutubeContentDetails(
-        val duration: String?,
-    )
-
-    private data class YoutubeThumbnails(
-        val default: YoutubeThumbnail?,
-        val high: YoutubeThumbnail?,
-        val maxres: YoutubeThumbnail?,
-    )
-
-    private data class YoutubeThumbnail(
-        val url: String?,
-    )
 }
