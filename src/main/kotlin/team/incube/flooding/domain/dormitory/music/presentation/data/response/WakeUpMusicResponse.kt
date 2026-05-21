@@ -5,10 +5,13 @@ import java.time.LocalDateTime
 data class WakeUpMusicResponse(
     val id: Long,
     val musicUrl: String,
+    val title: String?,
+    val artist: String?,
+    val duration: String?,
+    val durationText: String?,
+    val thumbnailUrl: String?,
+    val videoUrl: String?,
     val appliedAt: LocalDateTime,
     val likeCount: Long,
-    val isLiked: Boolean,
-) {
-    constructor(id: Long, musicUrl: String, appliedAt: LocalDateTime, likeCount: Long) :
-        this(id, musicUrl, appliedAt, likeCount, false)
-}
+    val isLiked: Boolean = false,
+)

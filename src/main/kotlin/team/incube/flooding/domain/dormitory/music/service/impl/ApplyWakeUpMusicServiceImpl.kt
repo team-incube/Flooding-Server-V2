@@ -56,6 +56,12 @@ class ApplyWakeUpMusicServiceImpl(
         return WakeUpMusicResponse(
             id = saved.id,
             musicUrl = saved.musicUrl,
+            title = saved.title,
+            artist = saved.artist,
+            duration = saved.duration,
+            durationText = saved.durationText,
+            thumbnailUrl = saved.thumbnailUrl,
+            videoUrl = saved.videoUrl,
             appliedAt = saved.appliedAt,
             likeCount = 0,
             isLiked = false,
