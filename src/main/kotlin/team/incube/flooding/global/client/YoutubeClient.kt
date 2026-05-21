@@ -16,6 +16,7 @@ class YoutubeClient(
         val duration: String,
         val durationText: String,
         val thumbnailUrl: String,
+        val videoUrl: String,
     )
 
     fun getVideoInfo(videoUrl: String): VideoInfo? {
@@ -38,6 +39,7 @@ class YoutubeClient(
                                 ?: snippet.thumbnails?.high?.url
                                 ?: snippet.thumbnails?.default?.url
                                 ?: "",
+                        videoUrl = "https://www.youtube.com/watch?v=$videoId",
                     )
                 }
         }.onFailure { log.error("YouTube 영상 정보 조회 실패: videoId=$videoId", it) }

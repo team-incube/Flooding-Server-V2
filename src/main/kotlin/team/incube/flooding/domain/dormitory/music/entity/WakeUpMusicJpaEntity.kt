@@ -33,6 +33,8 @@ class WakeUpMusicJpaEntity(
     val durationText: String? = null,
     @field:Column(name = "thumbnail_url", nullable = true)
     val thumbnailUrl: String? = null,
+    @field:Column(name = "video_url", nullable = true)
+    val videoUrl: String? = null,
     @field:Column(name = "applied_at", nullable = false)
     val appliedAt: LocalDateTime,
 )

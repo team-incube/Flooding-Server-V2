@@ -48,6 +48,7 @@ class ApplyWakeUpMusicServiceImpl(
                     duration = videoInfo?.duration,
                     durationText = videoInfo?.durationText,
                     thumbnailUrl = videoInfo?.thumbnailUrl,
+                    videoUrl = videoInfo?.videoUrl,
                     appliedAt = LocalDateTime.now(clock),
                 ),
             )
