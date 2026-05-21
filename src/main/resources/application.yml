@@ -41,6 +41,7 @@ sdk:
     not-logging-urls:
       - "/v3/api-docs/**"
       - "/swagger-ui/**"
+      - "/dormitory/studies/attendance"
 
   response:
     enabled: true

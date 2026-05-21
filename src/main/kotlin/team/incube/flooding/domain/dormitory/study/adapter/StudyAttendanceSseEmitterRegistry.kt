@@ -46,6 +46,38 @@ class StudyAttendanceSseEmitterRegistry(
         emitter.onError { emitters.remove(emitter) }
     }
 
+    @Async
+    fun sendInitialData(
+        emitter: SseEmitter,
+        initList: List<StudyAttendanceEventResponse>,
+    ) {
+        val json =
+            try {
+                objectMapper.writeValueAsString(initList)
+            } catch (e: Exception) {
+                log.error("SSE 초기 데이터 직렬화 실패", e)
+                emitters.remove(emitter)
+                emitter.completeWithError(e)
+                return
+            }
+
+        synchronized(emitter) {
+            try {
+                emitter.send(SseEmitter.event().name("connect").data("connected"))
+                emitter.send(
+                    SseEmitter
+                        .event()
+                        .name("init")
+                        .data(json),
+                )
+            } catch (e: Exception) {
+                log.error("SSE 초기 데이터 전송 실패", e)
+                emitters.remove(emitter)
+                emitter.completeWithError(e)
+            }
+        }
+    }
+
     @Scheduled(fixedDelay = 30_000L)
     fun sendHeartbeat() {
         emitters.forEach { emitter ->
