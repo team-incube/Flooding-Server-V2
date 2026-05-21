@@ -99,6 +99,9 @@ ai:
   song:
     base-url: ${AI_SONG_URL:http://localhost:8082}
 
+youtube:
+  api-key: ${YOUTUBE_API_KEY}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
