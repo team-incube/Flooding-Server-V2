@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -59,7 +60,7 @@ class WakeUpMusicController(
     )
     @PostMapping
     fun applyWakeUpMusic(
-        @RequestBody request: ApplyWakeUpMusicByUrlRequest,
+        @Valid @RequestBody request: ApplyWakeUpMusicByUrlRequest,
     ): CommonApiResponse<WakeUpMusicResponse> =
         CommonApiResponse.success("OK", applyWakeUpMusicService.execute(request))
 
