@@ -8,6 +8,7 @@ import team.incube.flooding.domain.homebase.entity.HomebaseMemberJpaEntity
 import team.incube.flooding.domain.homebase.entity.HomebaseReservationJpaEntity
 import team.incube.flooding.domain.homebase.repository.HomebaseMemberRepository
 import team.themoment.sdk.exception.ExpectedException
+import java.time.LocalDate
 
 @Service
 class HomebaseMemberService(
@@ -34,6 +35,7 @@ class HomebaseMemberService(
 
     @Transactional(readOnly = true)
     fun validateStudentDuplicate(
+        reservationDate: LocalDate,
         startPeriod: Int,
         endPeriod: Int,
         members: List<MemberDto>,
@@ -43,6 +45,7 @@ class HomebaseMemberService(
         val existingStudents =
             memberRepository.findExistingStudentNumbersInPeriod(
                 studentNumbers,
+                reservationDate,
                 startPeriod,
                 endPeriod,
                 reservationId,

@@ -12,4 +12,6 @@ interface ClubParticipantJpaRepository : JpaRepository<ClubParticipantJpaEntity,
     fun findAllByClubType(
         @Param("clubType") clubType: ClubType,
     ): List<ClubParticipantJpaEntity>
+
+    fun findAllByClubId(clubId: Long): List<ClubParticipantJpaEntity>
 }

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubApprovalStatus
+import team.incube.flooding.domain.club.entity.ClubStatus
 import team.incube.flooding.domain.club.event.ClubApprovedEvent
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
@@ -35,6 +36,7 @@ class PatchClubApprovalServiceImpl(
         club.approvalStatus = newApprovalStatus
 
         if (newApprovalStatus == ClubApprovalStatus.APPROVED) {
+            club.status = ClubStatus.MAINTAIN
             eventPublisher.publishEvent(ClubApprovedEvent(clubId))
         }
 

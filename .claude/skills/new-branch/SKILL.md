@@ -7,9 +7,15 @@ Create a new git branch and switch to it, following the project branch naming co
 
 Steps:
 1. If the purpose of the branch is unclear, ask the user before proceeding
-2. Determine the appropriate type and write a concise kebab-case description in English
-3. Run `git checkout -b type/description`
-4. Confirm with `git branch --show-current`
+2. Check for uncommitted changes with `git status --porcelain -uno`
+   - If output is non-empty, stop immediately and print:
+     "uncommitted changes가 있습니다. 커밋하거나 stash 후 다시 실행하세요."
+3. Switch to develop and pull the latest changes:
+   `git checkout develop`
+   `git pull --rebase origin develop`
+4. Determine the appropriate type and write a concise kebab-case description in English
+5. Run `git checkout -b type/description`
+6. Confirm with `git branch --show-current`
 
 Branch name format: `type/description`
 

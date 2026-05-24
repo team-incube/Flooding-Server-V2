@@ -1,5 +1,6 @@
 package team.incube.flooding.global.security.config
 
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -43,54 +44,63 @@ class SecurityConfig(
             .httpBasic { it.disable() }
             .authorizeHttpRequests {
                 it.requestMatchers("/actuator/**").permitAll()
+                it.requestMatchers("/error").permitAll()
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 // ai
-                it.requestMatchers(HttpMethod.POST, "/ai/chat").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.POST, "/ai/song").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()
 
                 // club
                 it
+                    .requestMatchers(HttpMethod.GET, "/clubs/opening/requests")
+                    .hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+                it
+                    .requestMatchers(HttpMethod.PATCH, "/clubs/*/approval")
+                    .hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+                it
+                    .requestMatchers(HttpMethod.PUT, "/clubs/*")
+                    .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
+                it
+                    .requestMatchers(HttpMethod.POST, "/clubs/representative-image")
+                    .hasAnyRole(Role.ADMIN.name, Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name)
+                it
                     .requestMatchers(
-                        HttpMethod.PATCH,
-                        "/clubs/*/approval",
-                    ).hasAnyRole(Role.ADMIN.name, Role.STUDENT_COUNCIL.name)
+                        HttpMethod.POST,
+                        "/clubs/*/autonomous/applications",
+                        "/clubs/*/applications",
+                    ).hasAnyRole(Role.GENERAL_STUDENT.name, Role.STUDENT_COUNCIL.name, Role.ADMIN.name)
 
                 // study
-                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers(HttpMethod.POST, "/dormitory/studies").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/studies").authenticated()
                 it
                     .requestMatchers(
                         HttpMethod.POST,
                         "/dormitory/studies/ban/**",
                     ).hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
-
-                // massage
-                it.requestMatchers(HttpMethod.POST, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
-                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").hasRole(Role.GENERAL_STUDENT.name)
+                it
+                    .requestMatchers(
+                        HttpMethod.DELETE,
+                        "/dormitory/studies/ban/**",
+                    ).hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
+                    .requestMatchers(HttpMethod.GET, "/dormitory/studies/attendance")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
+                    .requestMatchers(HttpMethod.POST, "/dormitory/studies/attendance/*")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
+                    .requestMatchers(HttpMethod.DELETE, "/dormitory/studies/attendance/*")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 // music
-                it
-                    .requestMatchers(
-                        HttpMethod.GET,
-                        "/dormitory/music",
-                    ).hasAnyRole(Role.GENERAL_STUDENT.name, Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
-                it.requestMatchers(HttpMethod.POST, "/dormitory/music").hasRole(Role.GENERAL_STUDENT.name)
-                it
-                    .requestMatchers(
-                        HttpMethod.DELETE,
-                        "/dormitory/music/{musicId}",
-                    ).hasAnyRole(Role.GENERAL_STUDENT.name, Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
-                it
-                    .requestMatchers(
-                        HttpMethod.POST,
-                        "/dormitory/music/{musicId}/like",
-                    ).hasRole(Role.GENERAL_STUDENT.name)
-                it
-                    .requestMatchers(
-                        HttpMethod.DELETE,
-                        "/dormitory/music/{musicId}/like",
-                    ).hasRole(Role.GENERAL_STUDENT.name)
+                it.requestMatchers("/dormitory/music/**").authenticated()
+
+                // massage
+                it.requestMatchers(HttpMethod.GET, "/dormitory/massages").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/dormitory/massages").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/massages").authenticated()
 
                 // penalty
                 it
@@ -109,6 +119,10 @@ class SecurityConfig(
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 it.anyRequest().authenticated()
+            }.exceptionHandling {
+                it.authenticationEntryPoint { _, response, _ ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                }
             }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
 }

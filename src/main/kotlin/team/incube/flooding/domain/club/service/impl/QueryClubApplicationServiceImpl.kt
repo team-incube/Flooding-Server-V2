@@ -33,9 +33,7 @@ class QueryClubApplicationServiceImpl(
                     ClubApplicationResponse(
                         id = club.id,
                         name = club.name,
-                        leader =
-                            club.leader?.name
-                                ?: throw ExpectedException("동아리장 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+                        leader = club.leader?.name ?: "정보 없음",
                         type = club.type,
                         description = club.description ?: "",
                         imageUrl = club.imageUrl,

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicRequest
+import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.CancelLikeWakeUpMusicService
@@ -59,11 +60,9 @@ class WakeUpMusicController(
     )
     @PostMapping
     fun applyWakeUpMusic(
-        @RequestBody request: ApplyWakeUpMusicRequest,
-    ): CommonApiResponse<Nothing> {
-        applyWakeUpMusicService.execute(request)
-        return CommonApiResponse.success("OK")
-    }
+        @Valid @RequestBody request: ApplyWakeUpMusicByUrlRequest,
+    ): CommonApiResponse<WakeUpMusicResponse> =
+        CommonApiResponse.success("OK", applyWakeUpMusicService.execute(request))
 
     @Operation(
         summary = "기상음악 취소",

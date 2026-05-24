@@ -138,11 +138,11 @@ jobs:
       environment: ${{ github.ref_name == 'master' && 'prod' || 'dev' }}
     secrets: inherit
 
-  # ── 4. Slack notification ────────────────────────────────────
+  # ── 4. Discord notification ───────────────────────────────────
   notify:
-    name: Slack Notify
+    name: Discord Notify
     runs-on: [self-hosted, flooding]
-    needs: [test, build]
+    needs: [test, build, trigger-cd]
     if: always()
     steps:
       - name: Sanitize commit message
@@ -151,22 +151,34 @@ jobs:
           MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
           echo "first_line=${MSG}" >> $GITHUB_OUTPUT
 
-      - name: Send Slack notification
-        uses: slackapi/slack-github-action@v1
-        with:
-          payload: |
-            {
-              "text": "*[CI/CD] Flooding-Server-V2*",
-              "attachments": [{
-                "color": "${{ (needs.build.result == 'success') && 'good' || 'danger' }}",
-                "fields": [
-                  { "title": "Status",  "value": "${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}", "short": true },
-                  { "title": "Branch",  "value": "${{ github.ref_name }}", "short": true },
-                  { "title": "Commit",  "value": "${{ github.sha }}", "short": true },
-                  { "title": "Message", "value": "${{ steps.msg.outputs.first_line }}", "short": false }
+      - name: Install jq
+        run: which jq || sudo apt-get install -y jq
+
+      - name: Send Discord notification
+        run: |
+          STATUS="${{ (needs.build.result == 'success') && '✅ SUCCESS' || '❌ FAILED' }}"
+          COLOR="${{ (needs.build.result == 'success') && '5763719' || '15548997' }}"
+          COMMIT_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          PAYLOAD=$(jq -n \
+            --arg status  "$STATUS" \
+            --arg branch  "${{ github.ref_name }}" \
+            --arg commit  "$COMMIT_SHORT" \
+            --arg message "${{ steps.msg.outputs.first_line }}" \
+            --argjson color "$COLOR" \
+            '{
+              content: "<@&1445206322730504253>",
+              allowed_mentions: {roles: ["1445206322730504253"]},
+              embeds: [{
+                title: "[CI/CD] Flooding-Server-V2",
+                color: $color,
+                fields: [
+                  {name: "Status",  value: $status,  inline: true},
+                  {name: "Branch",  value: $branch,  inline: true},
+                  {name: "Commit",  value: $commit,  inline: true},
+                  {name: "Message", value: $message, inline: false}
                 ]
               }]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+            }')
+          curl -fsSL -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"

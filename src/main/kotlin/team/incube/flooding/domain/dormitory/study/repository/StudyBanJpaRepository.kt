@@ -9,4 +9,14 @@ interface StudyBanJpaRepository : JpaRepository<StudyBanJpaEntity, Long> {
         userId: Long,
         now: LocalDateTime,
     ): Boolean
+
+    fun findByUserIdAndBannedUntilAfter(
+        userId: Long,
+        now: LocalDateTime,
+    ): StudyBanJpaEntity?
+
+    fun findAllByUserIdInAndBannedUntilAfter(
+        userIds: Collection<Long>,
+        now: LocalDateTime,
+    ): List<StudyBanJpaEntity>
 }

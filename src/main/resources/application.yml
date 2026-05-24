@@ -2,6 +2,11 @@ spring:
   application:
     name: flooding-server-v2
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -9,6 +14,7 @@ spring:
     driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
@@ -35,6 +41,7 @@ sdk:
     not-logging-urls:
       - "/v3/api-docs/**"
       - "/swagger-ui/**"
+      - "/dormitory/studies/attendance"
 
   response:
     enabled: true
@@ -42,6 +49,7 @@ sdk:
       - "/v3/api-docs/**"
       - "/v3/api-docs"
       - "/swagger-ui/**"
+      - "/dormitory/studies/attendance"
 
   swagger:
     enabled: true
@@ -91,7 +99,18 @@ ai:
   song:
     base-url: ${AI_SONG_URL:http://localhost:8082}
 
+youtube:
+  api-key: ${YOUTUBE_API_KEY}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+file:
+  bucket: ${R2_BUCKET}
+  endpoint: ${R2_ENDPOINT}
+  access-key: ${R2_ACCESS_KEY}
+  secret-key: ${R2_SECRET_KEY}
+  public-base-url: ${R2_PUBLIC_BASE_URL}
+  region: ${R2_REGION:auto}

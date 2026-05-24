@@ -4,14 +4,19 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.dormitory.study.repository.StudyBanJpaRepository
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.presentation.data.response.SearchUsersResponse
 import team.incube.flooding.domain.user.repository.UserRepository
 import team.incube.flooding.domain.user.service.SearchUsersService
+import java.time.Clock
+import java.time.LocalDateTime
 
 @Service
 class SearchUsersServiceImpl(
     private val userRepository: UserRepository,
+    private val studyBanJpaRepository: StudyBanJpaRepository,
+    private val clock: Clock,
 ) : SearchUsersService {
     @Transactional(readOnly = true)
     override fun execute(
@@ -20,14 +25,21 @@ class SearchUsersServiceImpl(
         pageable: Pageable,
     ): Page<SearchUsersResponse> {
         val (start, end) = parseStudentNumberPrefix(studentNumber)
-        return userRepository
-            .searchUsers(
-                name = name?.trim()?.takeIf { it.isNotEmpty() },
+        val nameLike = name?.trim()?.takeIf { it.isNotEmpty() }?.let { "%$it%" } ?: "%"
+        val page =
+            userRepository.searchUsers(
+                nameLike = nameLike,
                 studentNumberStart = start,
                 studentNumberEnd = end,
                 excludedRole = Role.ADMIN,
                 pageable = pageable,
-            ).map(SearchUsersResponse::from)
+            )
+        val bannedUserIds =
+            studyBanJpaRepository
+                .findAllByUserIdInAndBannedUntilAfter(page.map { it.id }.toList(), LocalDateTime.now(clock))
+                .map { it.user.id }
+                .toSet()
+        return page.map { SearchUsersResponse.from(it, it.id in bannedUserIds) }
     }
 
     private fun parseStudentNumberPrefix(input: String?): Pair<Int?, Int?> {

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.club.entity.ClubFormAnswerJpaEntity
 import team.incube.flooding.domain.club.entity.ClubFormSubmissionJpaEntity
+import team.incube.flooding.domain.club.entity.ClubParticipantId
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubApplicationRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateClubApplicationResponse
@@ -12,6 +13,7 @@ import team.incube.flooding.domain.club.repository.ClubFormAnswerRepository
 import team.incube.flooding.domain.club.repository.ClubFormFieldRepository
 import team.incube.flooding.domain.club.repository.ClubFormRepository
 import team.incube.flooding.domain.club.repository.ClubFormSubmissionRepository
+import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
 import team.incube.flooding.domain.club.service.CreateClubApplicationService
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
@@ -22,6 +24,7 @@ class CreateClubApplicationServiceImpl(
     private val clubFormFieldRepository: ClubFormFieldRepository,
     private val clubFormSubmissionRepository: ClubFormSubmissionRepository,
     private val clubFormAnswerRepository: ClubFormAnswerRepository,
+    private val clubParticipantJpaRepository: ClubParticipantJpaRepository,
     private val currentUserProvider: CurrentUserProvider,
 ) : CreateClubApplicationService {
     @Transactional
@@ -37,6 +40,10 @@ class CreateClubApplicationServiceImpl(
 
         if (form.club.type != ClubType.MAJOR_CLUB) {
             throw ExpectedException("전공 동아리만 폼으로 신청할 수 있습니다.", HttpStatus.BAD_REQUEST)
+        }
+
+        if (clubParticipantJpaRepository.existsById(ClubParticipantId(club = form.club.id, user = user.id))) {
+            throw ExpectedException("이미 가입된 동아리입니다.", HttpStatus.CONFLICT)
         }
 
         if (clubFormSubmissionRepository.existsByFormIdAndUserId(form.id, user.id)) {

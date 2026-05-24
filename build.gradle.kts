@@ -16,12 +16,6 @@ ext {
     set("spring-security.version", "7.0.4")
 }
 
-dependencyManagement {
-    dependencies {
-        dependency("tools.jackson.core:jackson-core:3.1.1")
-    }
-}
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(24)
@@ -61,11 +55,17 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // External SDK
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.4.1")
     implementation("com.github.themoment-team:the-sdk:1.4")
+
+    // Object Storage
+    implementation(platform("software.amazon.awssdk:bom:2.44.3"))
+    implementation("software.amazon.awssdk:s3")
+    implementation("software.amazon.awssdk:url-connection-client")
 
     // Test
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
@@ -96,6 +96,19 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val envFile = rootProject.file(".env")
+    if (envFile.exists()) {
+        envFile
+            .readLines()
+            .filter { line -> line.isNotBlank() && !line.startsWith("#") && "=" in line }
+            .forEach { line ->
+                val (key, value) = line.split("=", limit = 2)
+                environment(key.trim(), value.trim())
+            }
+    }
 }
 
 ktlint {

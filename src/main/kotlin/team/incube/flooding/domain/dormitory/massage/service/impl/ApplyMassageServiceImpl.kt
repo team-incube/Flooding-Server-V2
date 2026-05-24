@@ -23,9 +23,9 @@ class ApplyMassageServiceImpl(
 
         val now = LocalTime.now()
 
-        if (now.isBefore(massageProperties.openTime)) {
-            throw ExpectedException("안마의자 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
-        }
+    if (now.isBefore(massageProperties.openTime)) {
+        throw ExpectedException("안마의자 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
+    }
 
         val lock = redissonClient.getLock(massageProperties.lockKey)
         val acquired = lock.tryLock(5, 3, TimeUnit.SECONDS)
@@ -36,6 +36,10 @@ class ApplyMassageServiceImpl(
         try {
             if (massageRedisAdapter.isApply(user.id)) {
                 throw ExpectedException("이미 신청하였습니다.", HttpStatus.CONFLICT)
+            }
+
+            if (massageRedisAdapter.isReapplyBlocked(user.id)) {
+                throw ExpectedException("당일 취소한 안마의자는 다시 신청할 수 없습니다.", HttpStatus.CONFLICT)
             }
 
             if (massageRedisAdapter.getCount() >= massageProperties.maxCount) {

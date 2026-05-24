@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import team.incube.flooding.domain.club.entity.ClubAutonomousApplicationJpaEntity
+import team.incube.flooding.domain.club.entity.ClubParticipantJpaEntity
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
 import team.incube.flooding.domain.club.repository.ClubAutonomousApplicationRepository
+import team.incube.flooding.domain.club.repository.ClubParticipantJpaRepository
 import team.incube.flooding.domain.club.repository.ClubRepository
 import team.incube.flooding.domain.club.service.CreateAutonomousClubApplicationService
 import team.incube.flooding.global.security.util.CurrentUserProvider
@@ -18,6 +20,7 @@ import java.util.concurrent.TimeUnit
 class CreateAutonomousClubApplicationServiceImpl(
     private val clubRepository: ClubRepository,
     private val clubAutonomousApplicationRepository: ClubAutonomousApplicationRepository,
+    private val clubParticipantJpaRepository: ClubParticipantJpaRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val redissonClient: RedissonClient,
     private val transactionTemplate: TransactionTemplate,
@@ -47,11 +50,17 @@ class CreateAutonomousClubApplicationServiceImpl(
                     club.maxMember
                         ?: throw ExpectedException("정원이 설정되지 않은 동아리입니다.", HttpStatus.BAD_REQUEST)
 
+                val participants = clubParticipantJpaRepository.findAllByClubId(clubId)
+
+                if (participants.any { it.user.id == user.id }) {
+                    throw ExpectedException("이미 가입된 동아리입니다.", HttpStatus.CONFLICT)
+                }
+
                 if (clubAutonomousApplicationRepository.existsByClubIdAndUserId(clubId, user.id)) {
                     throw ExpectedException("이미 신청한 동아리입니다.", HttpStatus.CONFLICT)
                 }
 
-                if (clubAutonomousApplicationRepository.countByClubId(clubId) >= maxMember) {
+                if (participants.size >= maxMember) {
                     throw ExpectedException("신청 정원이 마감되었습니다.", HttpStatus.CONFLICT)
                 }
 
@@ -59,6 +68,8 @@ class CreateAutonomousClubApplicationServiceImpl(
                     clubAutonomousApplicationRepository.save(
                         ClubAutonomousApplicationJpaEntity(club = club, user = user),
                     )
+
+                clubParticipantJpaRepository.save(ClubParticipantJpaEntity(club = club, user = user))
 
                 CreateAutonomousClubApplicationResponse(applicationId = application.id)
             }!!

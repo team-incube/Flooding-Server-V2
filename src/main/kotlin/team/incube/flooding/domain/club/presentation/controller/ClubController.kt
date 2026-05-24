@@ -1,21 +1,27 @@
 package team.incube.flooding.domain.club.presentation.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.request.CreateClubRequest
 import team.incube.flooding.domain.club.presentation.data.request.PatchClubApprovalRequest
 import team.incube.flooding.domain.club.presentation.data.request.PutClubRequest
+import team.incube.flooding.domain.club.presentation.data.request.UpdateClubOpeningPeriodRequest
 import team.incube.flooding.domain.club.presentation.data.response.CreateAutonomousClubApplicationResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
+import team.incube.flooding.domain.club.presentation.data.response.GetClubOpeningStatusResponse
 import team.incube.flooding.domain.club.presentation.data.response.GetClubResponse
 import team.incube.flooding.domain.club.presentation.data.response.PatchClubApprovalResponse
+import team.incube.flooding.domain.club.presentation.data.response.UploadClubRepresentativeImageResponse
 import team.incube.flooding.domain.club.service.*
 import team.themoment.sdk.response.CommonApiResponse
 import java.net.URLEncoder
@@ -32,6 +38,9 @@ class ClubController(
     private val putClubService: PutClubService,
     private val getClubService: GetClubService,
     private val downloadClubExcelService: DownloadClubExcelService,
+    private val queryClubOpeningStatusService: QueryClubOpeningStatusService,
+    private val updateClubOpeningPeriodService: UpdateClubOpeningPeriodService,
+    private val uploadClubRepresentativeImageService: UploadClubRepresentativeImageService,
 ) {
     @Operation(summary = "동아리 개설 신청", description = "새로운 동아리 개설을 신청합니다.")
     @ResponseStatus(HttpStatus.CREATED)
@@ -86,21 +95,58 @@ class ClubController(
 
     @Operation(summary = "동아리 단건 조회", description = "동아리 상세 정보를 조회합니다.")
     @GetMapping("/{clubId}")
-    suspend fun getClub(
+    fun getClub(
         @PathVariable clubId: Long,
     ): CommonApiResponse<GetClubResponse> = CommonApiResponse.success("OK", getClubService.execute(clubId))
 
+    @Operation(
+        summary = "동아리 대표 이미지 업로드",
+        description = "multipart/form-data로 동아리 대표 이미지를 업로드하고, 동아리 개설/수정 요청에 사용할 imageUrl을 반환합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "업로드 성공"),
+        ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일"),
+        ApiResponse(responseCode = "403", description = "권한 없음"),
+        ApiResponse(responseCode = "413", description = "업로드 가능한 파일 크기 초과"),
+    )
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/representative-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadClubRepresentativeImage(
+        @RequestParam("image") image: MultipartFile,
+    ): CommonApiResponse<UploadClubRepresentativeImageResponse> =
+        CommonApiResponse.created("OK", uploadClubRepresentativeImageService.execute(image))
+
     @Operation(summary = "전공동아리 전체 명단 엑셀 조회", description = "모든 전공동아리 정보를 엑셀로 내보냅니다.")
     @GetMapping("/export")
-    fun exportAllMajorClubExcel(): ResponseEntity<ByteArray> {
+    fun exportAllMajorClubExcel(response: HttpServletResponse) {
         val fileBytes = downloadClubExcelService.execute()
         val fileName = "전공동아리_전체_명단.xlsx"
         val encodedFileName = URLEncoder.encode(fileName, "UTF-8").replace("+", "%20")
 
-        return ResponseEntity
-            .ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$encodedFileName\"")
-            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-            .body(fileBytes)
+        response.contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$encodedFileName\"")
+        response.setContentLength(fileBytes.size)
+
+        response.outputStream.use { outputStream ->
+            outputStream.write(fileBytes)
+            outputStream.flush()
+        }
+    }
+
+    @Operation(summary = "동아리 개설 신청 기간 조회", description = "현재 서버 시간(Clock)을 기준으로 동아리 개설 신청이 가능한 기간인지 확인합니다.")
+    @GetMapping("/opening-status")
+    fun getClubOpeningStatus(): CommonApiResponse<GetClubOpeningStatusResponse> =
+        CommonApiResponse.success("OK", queryClubOpeningStatusService.execute())
+
+    @Operation(
+        summary = "동아리 개설 신청 기간 설정",
+        description = "관리자(ADMIN) 권한이 필요합니다. 동아리 개설 신청의 시작 일시와 종료 일시를 설정하며, 기존에 설정된 기간이 있다면 최신 정보로 덮어씌웁니다.",
+    )
+    @PatchMapping("/opening-period")
+    fun updateClubOpeningPeriod(
+        @Valid @RequestBody request: UpdateClubOpeningPeriodRequest,
+    ): CommonApiResponse<Nothing> {
+        updateClubOpeningPeriodService.execute(request)
+        return CommonApiResponse.success("OK")
     }
 }
