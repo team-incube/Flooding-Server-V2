@@ -94,6 +94,9 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.DELETE, "/dormitory/studies/attendance/*")
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
+                // music
+                it.requestMatchers("/dormitory/music/**").authenticated()
+
                 // massage
                 it.requestMatchers(HttpMethod.GET, "/dormitory/massages").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/dormitory/massages").authenticated()
