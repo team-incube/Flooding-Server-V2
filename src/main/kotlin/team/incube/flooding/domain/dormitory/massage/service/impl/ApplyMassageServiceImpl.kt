@@ -23,9 +23,9 @@ class ApplyMassageServiceImpl(
 
         val now = LocalTime.now()
 
-//        if (now.isBefore(massageProperties.openTime)) {
-//            throw ExpectedException("안마의자 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
-//        }
+    if (now.isBefore(massageProperties.openTime)) {
+        throw ExpectedException("안마의자 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
+    }
 
         val lock = redissonClient.getLock(massageProperties.lockKey)
         val acquired = lock.tryLock(5, 3, TimeUnit.SECONDS)
