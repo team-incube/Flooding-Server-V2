@@ -12,7 +12,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
 import java.io.IOException
-import java.io.PushbackInputStream
 import java.util.UUID
 
 @Component
@@ -31,20 +30,18 @@ class FileStorageService(
         val objectKey = getObjectKey(subDir, fileName)
 
         try {
-            file.inputStream.use { rawInputStream ->
-                val inputStream = PushbackInputStream(rawInputStream, IMAGE_SIGNATURE_READ_SIZE)
-                validateImageSignature(inputStream)
-                s3Client.putObject(
-                    PutObjectRequest
-                        .builder()
-                        .bucket(fileStorageProperties.bucket)
-                        .key(objectKey)
-                        .contentType(image.contentType)
-                        .cacheControl("public, max-age=31536000, immutable")
-                        .build(),
-                    RequestBody.fromInputStream(inputStream, file.size),
-                )
-            }
+            val fileBytes = file.bytes
+            validateImageSignature(fileBytes)
+            s3Client.putObject(
+                PutObjectRequest
+                    .builder()
+                    .bucket(fileStorageProperties.bucket)
+                    .key(objectKey)
+                    .contentType(image.contentType)
+                    .cacheControl("public, max-age=31536000, immutable")
+                    .build(),
+                RequestBody.fromBytes(fileBytes),
+            )
         } catch (exception: ExpectedException) {
             throw exception
         } catch (exception: IOException) {
@@ -121,18 +118,9 @@ class FileStorageService(
         return extension
     }
 
-    private fun validateImageSignature(inputStream: PushbackInputStream) {
-        val header =
-            runCatching {
-                val bytes = ByteArray(IMAGE_SIGNATURE_READ_SIZE)
-                val bytesRead = inputStream.readNBytes(bytes, 0, IMAGE_SIGNATURE_READ_SIZE)
-
-                if (bytesRead > 0) {
-                    inputStream.unread(bytes, 0, bytesRead)
-                }
-
-                bytes.copyOf(bytesRead)
-            }.getOrElse { throw ExpectedException("이미지 파일을 읽을 수 없습니다.", HttpStatus.BAD_REQUEST) }
+    private fun validateImageSignature(bytes: ByteArray) {
+        val readSize = minOf(bytes.size, IMAGE_SIGNATURE_READ_SIZE)
+        val header = bytes.copyOf(readSize)
 
         if (!hasValidImageSignature(header)) {
             throw ExpectedException("지원하지 않는 이미지 형식입니다.", HttpStatus.BAD_REQUEST)

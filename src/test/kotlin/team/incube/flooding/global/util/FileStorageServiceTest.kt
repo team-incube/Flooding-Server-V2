@@ -11,7 +11,6 @@ import io.mockk.slot
 import io.mockk.verify
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
-import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
@@ -21,8 +20,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import team.incube.flooding.global.config.FileStorageProperties
 import team.themoment.sdk.exception.ExpectedException
-import java.io.IOException
-import java.io.InputStream
 
 class FileStorageServiceTest :
     BehaviorSpec({
@@ -116,16 +113,16 @@ class FileStorageServiceTest :
             }
         }
 
-        given("한 번만 열 수 있는 이미지 스트림이 주어졌을 때") {
+        given("정상 이미지 bytes가 주어졌을 때") {
             `when`("저장하면") {
-                then("같은 스트림으로 검증과 저장을 수행한다") {
+                then("검증한 bytes를 R2 업로드 본문으로 사용한다") {
                     every { s3Client.putObject(any<PutObjectRequest>(), any<RequestBody>()) } answers {
                         secondArg<RequestBody>().contentStreamProvider().newStream().use { inputStream ->
                             inputStream.readAllBytes() shouldBe pngBytes()
                         }
                         PutObjectResponse.builder().eTag("etag").build()
                     }
-                    val file = SingleUseMultipartFile()
+                    val file = MockMultipartFile("image", "profile.png", "image/png", pngBytes())
 
                     val imageUrl = service.store(file, "clubs")
 
@@ -219,29 +216,3 @@ private fun pngBytes(): ByteArray =
         0x00,
         0x00,
     )
-
-private class SingleUseMultipartFile : MultipartFile {
-    private var opened = false
-
-    override fun getName(): String = "image"
-
-    override fun getOriginalFilename(): String = "profile.png"
-
-    override fun getContentType(): String = "image/png"
-
-    override fun isEmpty(): Boolean = false
-
-    override fun getSize(): Long = pngBytes().size.toLong()
-
-    override fun getBytes(): ByteArray = pngBytes()
-
-    override fun getInputStream(): InputStream {
-        if (opened) {
-            throw IOException("stream already consumed")
-        }
-        opened = true
-        return pngBytes().inputStream()
-    }
-
-    override fun transferTo(dest: java.io.File) = Unit
-}
