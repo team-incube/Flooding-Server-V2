@@ -15,6 +15,7 @@ import team.incube.flooding.domain.dormitory.music.service.impl.ApplyWakeUpMusic
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
 import team.incube.flooding.domain.user.entity.UserJpaEntity
+import team.incube.flooding.global.client.YoutubeClient
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import java.time.Clock
 import java.time.Instant
@@ -26,6 +27,7 @@ class ApplyWakeUpMusicServiceImplTest :
         val wakeUpMusicRepository = mockk<WakeUpMusicRepository>()
         val wakeUpMusicLikeRepository = mockk<WakeUpMusicLikeRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
+        val youtubeClient = mockk<YoutubeClient>()
         val clock = Clock.fixed(Instant.parse("2026-05-14T01:00:00Z"), ZoneId.of("Asia/Seoul"))
 
         val service =
@@ -33,6 +35,7 @@ class ApplyWakeUpMusicServiceImplTest :
                 wakeUpMusicRepository = wakeUpMusicRepository,
                 wakeUpMusicLikeRepository = wakeUpMusicLikeRepository,
                 currentUserProvider = currentUserProvider,
+                youtubeClient = youtubeClient,
                 clock = clock,
             )
 
@@ -49,6 +52,18 @@ class ApplyWakeUpMusicServiceImplTest :
 
         beforeEach { clearAllMocks() }
 
+        fun stubYoutubeInfo(url: String) {
+            every { youtubeClient.getVideoInfo(url) } returns
+                YoutubeClient.VideoInfo(
+                    title = "테스트 음악",
+                    artist = "테스트 채널",
+                    duration = "PT3M21S",
+                    durationText = "3:21",
+                    thumbnailUrl = "https://img.youtube.com/vi/test/maxresdefault.jpg",
+                    videoUrl = "https://www.youtube.com/watch?v=test",
+                )
+        }
+
         given("신청 이력이 없을 때") {
             `when`("execute를 호출하면") {
                 then("기상음악이 저장되고 응답이 반환된다") {
@@ -58,14 +73,21 @@ class ApplyWakeUpMusicServiceImplTest :
 
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns emptyList()
+                    stubYoutubeInfo(request.musicUrl)
                     every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
 
                     val result = service.execute(request)
 
                     verify(exactly = 1) { wakeUpMusicRepository.save(any()) }
                     slot.captured.musicUrl shouldBe request.musicUrl
+                    slot.captured.title shouldBe "테스트 음악"
+                    slot.captured.artist shouldBe "테스트 채널"
+                    slot.captured.durationText shouldBe "3:21"
+                    slot.captured.thumbnailUrl shouldBe "https://img.youtube.com/vi/test/maxresdefault.jpg"
+                    slot.captured.videoUrl shouldBe "https://www.youtube.com/watch?v=test"
                     slot.captured.appliedAt shouldBe fixedNow
                     result.musicUrl shouldBe request.musicUrl
+                    result.title shouldBe "테스트 음악"
                     result.likeCount shouldBe 0
                 }
             }
@@ -90,6 +112,7 @@ class ApplyWakeUpMusicServiceImplTest :
                     every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns histories
                     every { wakeUpMusicLikeRepository.deleteAllByMusicIdIn(listOf(1L)) } returns Unit
                     every { wakeUpMusicRepository.deleteAllInBatch(listOf(histories[0])) } returns Unit
+                    stubYoutubeInfo(request.musicUrl)
                     every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
 
                     service.execute(request)
@@ -118,6 +141,7 @@ class ApplyWakeUpMusicServiceImplTest :
 
                     every { currentUserProvider.getCurrentUser() } returns user
                     every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns histories
+                    stubYoutubeInfo(request.musicUrl)
                     every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
 
                     service.execute(request)
