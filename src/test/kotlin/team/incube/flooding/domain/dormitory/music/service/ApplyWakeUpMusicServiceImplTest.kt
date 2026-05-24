@@ -79,14 +79,14 @@ class ApplyWakeUpMusicServiceImplTest :
                     val result = service.execute(request)
 
                     verify(exactly = 1) { wakeUpMusicRepository.save(any()) }
-                    slot.captured.musicUrl shouldBe request.musicUrl
+                    slot.captured.musicUrl shouldBe "https://www.youtube.com/watch?v=test"
                     slot.captured.title shouldBe "테스트 음악"
                     slot.captured.artist shouldBe "테스트 채널"
                     slot.captured.durationText shouldBe "3:21"
                     slot.captured.thumbnailUrl shouldBe "https://img.youtube.com/vi/test/maxresdefault.jpg"
                     slot.captured.videoUrl shouldBe "https://www.youtube.com/watch?v=test"
                     slot.captured.appliedAt shouldBe fixedNow
-                    result.musicUrl shouldBe request.musicUrl
+                    result.musicUrl shouldBe "https://www.youtube.com/watch?v=test"
                     result.title shouldBe "테스트 음악"
                     result.likeCount shouldBe 0
                 }
