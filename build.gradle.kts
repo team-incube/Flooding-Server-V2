@@ -58,10 +58,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-    // OpenFeign
-    implementation(platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0"))
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
-
     // External SDK
     implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.4.1")
     implementation("com.github.themoment-team:the-sdk:1.4")

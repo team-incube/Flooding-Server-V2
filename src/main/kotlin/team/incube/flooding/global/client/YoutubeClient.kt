@@ -1,14 +1,22 @@
 package team.incube.flooding.global.client
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
 import java.net.URI
 
 @Component
-class YoutubeClient(
-    private val youtubeApiClient: YoutubeApiClient,
+class YoutubeClient internal constructor(
+    @Value("\${youtube.api-key}") private val apiKey: String,
+    baseUrl: String = "https://www.googleapis.com/youtube/v3",
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val restClient: RestClient =
+        RestClient
+            .builder()
+            .baseUrl(baseUrl)
+            .build()
 
     data class VideoInfo(
         val title: String,
@@ -22,8 +30,19 @@ class YoutubeClient(
     fun getVideoInfo(videoUrl: String): VideoInfo? {
         val videoId = extractVideoId(videoUrl) ?: return null
         return runCatching {
-            val response = youtubeApiClient.getVideos(part = "snippet,contentDetails", id = videoId)
-            val item = response.items?.firstOrNull()
+            val response =
+                restClient
+                    .get()
+                    .uri {
+                        it
+                            .path("/videos")
+                            .queryParam("part", "snippet,contentDetails")
+                            .queryParam("id", videoId)
+                            .queryParam("key", apiKey)
+                            .build()
+                    }.retrieve()
+                    .body(YoutubeVideoListResponse::class.java)
+            val item = response?.items?.firstOrNull()
             if (item == null) {
                 log.warn("YouTube API 응답에 영상 정보 없음: videoId=$videoId")
                 return@runCatching null
@@ -93,4 +112,33 @@ class YoutubeClient(
                 }
             }
         }.getOrNull()
+
+    private data class YoutubeVideoListResponse(
+        val items: List<YoutubeVideoItem>?,
+    )
+
+    private data class YoutubeVideoItem(
+        val snippet: YoutubeSnippet?,
+        val contentDetails: YoutubeContentDetails?,
+    )
+
+    private data class YoutubeSnippet(
+        val title: String,
+        val channelTitle: String,
+        val thumbnails: YoutubeThumbnails?,
+    )
+
+    private data class YoutubeContentDetails(
+        val duration: String?,
+    )
+
+    private data class YoutubeThumbnails(
+        val default: YoutubeThumbnail?,
+        val high: YoutubeThumbnail?,
+        val maxres: YoutubeThumbnail?,
+    )
+
+    private data class YoutubeThumbnail(
+        val url: String?,
+    )
 }
