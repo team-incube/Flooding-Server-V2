@@ -48,10 +48,20 @@ class YoutubeClient internal constructor(
                 return@runCatching null
             }
             val snippet = item.snippet ?: return@runCatching null
+            val title =
+                snippet.title ?: run {
+                    log.warn("YouTube API snippet에 title 없음: videoId=$videoId")
+                    return@runCatching null
+                }
+            val channelTitle =
+                snippet.channelTitle ?: run {
+                    log.warn("YouTube API snippet에 channelTitle 없음: videoId=$videoId")
+                    return@runCatching null
+                }
             val isoDuration = item.contentDetails?.duration ?: "PT0S"
             VideoInfo(
-                title = snippet.title,
-                artist = snippet.channelTitle,
+                title = title,
+                artist = channelTitle,
                 duration = isoDuration,
                 durationText = formatDuration(isoDuration),
                 thumbnailUrl =
@@ -123,8 +133,8 @@ class YoutubeClient internal constructor(
     )
 
     private data class YoutubeSnippet(
-        val title: String,
-        val channelTitle: String,
+        val title: String?,
+        val channelTitle: String?,
         val thumbnails: YoutubeThumbnails?,
     )
 
