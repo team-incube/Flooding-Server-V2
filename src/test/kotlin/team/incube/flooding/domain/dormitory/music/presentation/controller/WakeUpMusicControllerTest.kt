@@ -39,6 +39,12 @@ class WakeUpMusicControllerTest :
                 WakeUpMusicResponse(
                     id = 1L,
                     musicUrl = request.musicUrl,
+                    title = "테스트 음악",
+                    artist = "테스트 채널",
+                    duration = "PT3M21S",
+                    durationText = "3:21",
+                    thumbnailUrl = "https://img.youtube.com/vi/test/maxresdefault.jpg",
+                    videoUrl = "https://www.youtube.com/watch?v=test",
                     appliedAt = appliedAt,
                     likeCount = 0,
                 )
