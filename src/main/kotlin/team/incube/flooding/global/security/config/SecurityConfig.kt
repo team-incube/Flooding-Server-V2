@@ -95,7 +95,11 @@ class SecurityConfig(
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
                 // music
-                it.requestMatchers("/dormitory/music/**").authenticated()
+                it.requestMatchers(HttpMethod.GET, "/dormitory/music").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/dormitory/music").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/*").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/dormitory/music/*/like").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/*/like").authenticated()
 
                 // massage
                 it.requestMatchers(HttpMethod.GET, "/dormitory/massages").authenticated()
