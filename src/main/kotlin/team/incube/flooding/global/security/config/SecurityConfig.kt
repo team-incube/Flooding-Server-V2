@@ -14,11 +14,13 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.global.security.filter.JwtAuthenticationFilter
+import team.incube.flooding.global.security.handler.CustomAccessDeniedHandler
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val customAccessDeniedHandler: CustomAccessDeniedHandler,
 ) {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
@@ -127,6 +129,7 @@ class SecurityConfig(
                 it.authenticationEntryPoint { _, response, _ ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
                 }
+                it.accessDeniedHandler(customAccessDeniedHandler)
             }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
 }
