@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.stereotype.Component
+import team.incube.flooding.domain.user.entity.UserJpaEntity
 
 @Component
 class CustomAccessDeniedHandler : AccessDeniedHandler {
@@ -18,11 +19,16 @@ class CustomAccessDeniedHandler : AccessDeniedHandler {
         ex: AccessDeniedException,
     ) {
         val authentication = SecurityContextHolder.getContext().authentication
+        val userIdentifier =
+            when (val principal = authentication?.principal) {
+                is UserJpaEntity -> "User(id=${principal.id})"
+                else -> authentication?.name ?: "anonymous"
+            }
         log.warn(
             "403 Forbidden: method={}, uri={}, user={}, authorities={}, message={}",
             request.method,
             request.requestURI,
-            authentication?.name ?: "anonymous",
+            userIdentifier,
             authentication?.authorities ?: "none",
             ex.message,
         )
