@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
-import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.global.client.YoutubeClient
@@ -19,16 +18,11 @@ import java.time.LocalDateTime
 @Service
 class ApplyWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
-    private val wakeUpMusicLikeRepository: WakeUpMusicLikeRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val youtubeClient: YoutubeClient,
     private val clock: Clock,
 ) : ApplyWakeUpMusicService {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    companion object {
-        private const val MAX_HISTORY_SIZE = 5
-    }
 
     @Transactional
     override fun execute(request: ApplyWakeUpMusicByUrlRequest): WakeUpMusicResponse {
@@ -36,10 +30,9 @@ class ApplyWakeUpMusicServiceImpl(
         log.info("기상음악 신청 시작: userId={}, role={}, musicUrl={}", user.id, user.role, request.musicUrl)
 
         val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
-        if (histories.size >= MAX_HISTORY_SIZE) {
-            val toDelete = histories.take(histories.size - MAX_HISTORY_SIZE + 1)
-            wakeUpMusicLikeRepository.deleteAllByMusicIdIn(toDelete.map { it.id })
-            wakeUpMusicRepository.deleteAllInBatch(toDelete)
+        if (histories.isNotEmpty()) {
+            log.warn("기상음악 신청 거절 - 이미 신청됨: userId={}, musicId={}", user.id, histories.first().id)
+            throw ExpectedException("이미 기상음악을 신청했습니다.", HttpStatus.CONFLICT)
         }
 
         val videoInfo =
