@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.music.service.impl
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +24,8 @@ class ApplyWakeUpMusicServiceImpl(
     private val youtubeClient: YoutubeClient,
     private val clock: Clock,
 ) : ApplyWakeUpMusicService {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object {
         private const val MAX_HISTORY_SIZE = 5
     }
@@ -30,6 +33,7 @@ class ApplyWakeUpMusicServiceImpl(
     @Transactional
     override fun execute(request: ApplyWakeUpMusicByUrlRequest): WakeUpMusicResponse {
         val user = currentUserProvider.getCurrentUser()
+        log.info("기상음악 신청 시작: userId={}, role={}, musicUrl={}", user.id, user.role, request.musicUrl)
 
         val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
         if (histories.size >= MAX_HISTORY_SIZE) {
@@ -40,7 +44,10 @@ class ApplyWakeUpMusicServiceImpl(
 
         val videoInfo =
             youtubeClient.getVideoInfo(request.musicUrl)
-                ?: throw ExpectedException("YouTube 영상 정보를 가져오지 못했습니다. URL을 확인해주세요.", HttpStatus.BAD_REQUEST)
+                ?: run {
+                    log.warn("YouTube 영상 정보 조회 실패: userId={}, musicUrl={}", user.id, request.musicUrl)
+                    throw ExpectedException("YouTube 영상 정보를 가져오지 못했습니다. URL을 확인해주세요.", HttpStatus.BAD_REQUEST)
+                }
 
         val saved =
             wakeUpMusicRepository.save(
@@ -56,6 +63,7 @@ class ApplyWakeUpMusicServiceImpl(
                     appliedAt = LocalDateTime.now(clock),
                 ),
             )
+        log.info("기상음악 신청 완료: userId={}, musicId={}, title={}", user.id, saved.id, saved.title)
 
         return WakeUpMusicResponse(
             id = saved.id,
