@@ -42,7 +42,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1") {
+        exclude(group = "com.fasterxml.jackson.dataformat", module = "jackson-dataformat-xml")
+    }
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
