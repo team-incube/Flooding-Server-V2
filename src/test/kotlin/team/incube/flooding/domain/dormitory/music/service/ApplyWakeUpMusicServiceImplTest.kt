@@ -83,11 +83,11 @@ class ApplyWakeUpMusicServiceImplTest :
                     } returns
                         false
                     stubYoutubeInfo(request.musicUrl)
-                    every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
+                    every { wakeUpMusicRepository.saveAndFlush(capture(slot)) } answers { slot.captured }
 
                     val result = service.execute(request)
 
-                    verify(exactly = 1) { wakeUpMusicRepository.save(any()) }
+                    verify(exactly = 1) { wakeUpMusicRepository.saveAndFlush(any()) }
                     slot.captured.musicUrl shouldBe "https://www.youtube.com/watch?v=test"
                     slot.captured.title shouldBe "테스트 음악"
                     slot.captured.artist shouldBe "테스트 채널"
@@ -124,7 +124,7 @@ class ApplyWakeUpMusicServiceImplTest :
 
                     exception.statusCode shouldBe HttpStatus.CONFLICT
                     verify(exactly = 0) { youtubeClient.getVideoInfo(any()) }
-                    verify(exactly = 0) { wakeUpMusicRepository.save(any()) }
+                    verify(exactly = 0) { wakeUpMusicRepository.saveAndFlush(any()) }
                 }
             }
         }

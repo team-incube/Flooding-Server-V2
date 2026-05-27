@@ -47,7 +47,7 @@ class ApplyWakeUpMusicServiceImpl(
 
         val saved =
             try {
-                wakeUpMusicRepository.save(
+                wakeUpMusicRepository.saveAndFlush(
                     WakeUpMusicJpaEntity(
                         user = user,
                         musicUrl = videoInfo.videoUrl,
