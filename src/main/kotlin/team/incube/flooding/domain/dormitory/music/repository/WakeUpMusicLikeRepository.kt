@@ -17,6 +17,8 @@ interface WakeUpMusicLikeRepository : JpaRepository<WakeUpMusicLikeJpaEntity, Lo
 
     fun countByMusicId(musicId: Long): Long
 
+    fun deleteAllByMusicId(musicId: Long)
+
     fun deleteAllByMusicIdIn(musicIds: List<Long>)
 
     @Query("SELECT l.music.id FROM WakeUpMusicLikeJpaEntity l WHERE l.user.id = :userId AND l.music.id IN :musicIds")
