@@ -64,15 +64,24 @@ class ApplyWakeUpMusicServiceImplTest :
                 )
         }
 
-        given("신청 이력이 없을 때") {
+        given("오늘 신청 이력이 없을 때") {
             `when`("execute를 호출하면") {
                 then("기상음악이 저장되고 응답이 반환된다") {
                     val request = ApplyWakeUpMusicByUrlRequest("https://youtube.com/watch?v=abc")
                     val fixedNow = LocalDateTime.now(clock)
+                    val startOfDay = fixedNow.toLocalDate().atStartOfDay()
+                    val endOfDay = startOfDay.plusDays(1)
                     val slot = slot<WakeUpMusicJpaEntity>()
 
                     every { currentUserProvider.getCurrentUser() } returns user
-                    every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns emptyList()
+                    every {
+                        wakeUpMusicRepository.existsByUserIdAndAppliedAtBetween(
+                            user.id,
+                            startOfDay,
+                            endOfDay,
+                        )
+                    } returns
+                        false
                     stubYoutubeInfo(request.musicUrl)
                     every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
 
@@ -93,22 +102,23 @@ class ApplyWakeUpMusicServiceImplTest :
             }
         }
 
-        given("이미 신청 이력이 있을 때") {
+        given("오늘 이미 신청 이력이 있을 때") {
             `when`("execute를 호출하면") {
                 then("CONFLICT 예외가 발생한다") {
                     val request = ApplyWakeUpMusicByUrlRequest("https://youtube.com/watch?v=new")
-                    val histories =
-                        listOf(
-                            WakeUpMusicJpaEntity(
-                                id = 1L,
-                                user = user,
-                                musicUrl = "https://youtube.com/watch?v=existing",
-                                appliedAt = LocalDateTime.now(clock).minusDays(1),
-                            ),
-                        )
+                    val fixedNow = LocalDateTime.now(clock)
+                    val startOfDay = fixedNow.toLocalDate().atStartOfDay()
+                    val endOfDay = startOfDay.plusDays(1)
 
                     every { currentUserProvider.getCurrentUser() } returns user
-                    every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns histories
+                    every {
+                        wakeUpMusicRepository.existsByUserIdAndAppliedAtBetween(
+                            user.id,
+                            startOfDay,
+                            endOfDay,
+                        )
+                    } returns
+                        true
 
                     val exception = shouldThrow<ExpectedException> { service.execute(request) }
 

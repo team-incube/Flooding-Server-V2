@@ -11,6 +11,12 @@ interface WakeUpMusicRepository : JpaRepository<WakeUpMusicJpaEntity, Long> {
 
     fun findAllByUserIdOrderByAppliedAtAsc(userId: Long): List<WakeUpMusicJpaEntity>
 
+    fun existsByUserIdAndAppliedAtBetween(
+        userId: Long,
+        start: LocalDateTime,
+        end: LocalDateTime,
+    ): Boolean
+
     @Query(
         """
         SELECT new team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse(
