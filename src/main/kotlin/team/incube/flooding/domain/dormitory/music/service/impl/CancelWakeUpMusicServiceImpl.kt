@@ -3,6 +3,7 @@ package team.incube.flooding.domain.dormitory.music.service.impl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.CancelWakeUpMusicService
 import team.incube.flooding.domain.user.entity.Role
@@ -12,6 +13,7 @@ import team.themoment.sdk.exception.ExpectedException
 @Service
 class CancelWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
+    private val wakeUpMusicLikeRepository: WakeUpMusicLikeRepository,
     private val currentUserProvider: CurrentUserProvider,
 ) : CancelWakeUpMusicService {
     @Transactional
@@ -27,6 +29,7 @@ class CancelWakeUpMusicServiceImpl(
             throw ExpectedException("본인의 신청만 취소할 수 있습니다.", HttpStatus.FORBIDDEN)
         }
 
+        wakeUpMusicLikeRepository.deleteAllByMusicId(musicId)
         wakeUpMusicRepository.delete(music)
     }
 }
