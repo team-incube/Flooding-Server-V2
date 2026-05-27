@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -58,7 +59,7 @@ class WakeUpMusicController(
         ApiResponse(responseCode = "200", description = "기상음악 신청 성공"),
         ApiResponse(responseCode = "409", description = "이미 기상음악을 신청함"),
     )
-    @PostMapping
+    @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun applyWakeUpMusic(
         @Valid @RequestBody request: ApplyWakeUpMusicByUrlRequest,
     ): CommonApiResponse<WakeUpMusicResponse> =
