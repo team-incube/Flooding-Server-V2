@@ -38,6 +38,9 @@ class WakeUpMusicControllerTest :
             val serviceResponse =
                 WakeUpMusicResponse(
                     id = 1L,
+                    userId = 1L,
+                    userName = "테스트",
+                    studentNumber = 1101,
                     musicUrl = request.musicUrl,
                     title = "테스트 음악",
                     artist = "테스트 채널",
