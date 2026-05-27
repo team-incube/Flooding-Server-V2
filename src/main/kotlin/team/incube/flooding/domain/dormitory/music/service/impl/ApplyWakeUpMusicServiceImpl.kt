@@ -29,9 +29,11 @@ class ApplyWakeUpMusicServiceImpl(
         val user = currentUserProvider.getCurrentUser()
         log.info("기상음악 신청 시작: userId={}, role={}, musicUrl={}", user.id, user.role, request.musicUrl)
 
-        val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
-        if (histories.isNotEmpty()) {
-            log.warn("기상음악 신청 거절 - 이미 신청됨: userId={}, musicId={}", user.id, histories.first().id)
+        val now = LocalDateTime.now(clock)
+        val startOfDay = now.toLocalDate().atStartOfDay()
+        val endOfDay = startOfDay.plusDays(1)
+        if (wakeUpMusicRepository.existsByUserIdAndAppliedAtBetween(user.id, startOfDay, endOfDay)) {
+            log.warn("기상음악 신청 거절 - 오늘 이미 신청됨: userId={}", user.id)
             throw ExpectedException("이미 기상음악을 신청했습니다.", HttpStatus.CONFLICT)
         }
 
