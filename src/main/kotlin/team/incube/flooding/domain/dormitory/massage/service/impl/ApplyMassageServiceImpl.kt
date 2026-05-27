@@ -8,6 +8,7 @@ import team.incube.flooding.domain.dormitory.massage.config.MassageProperties
 import team.incube.flooding.domain.dormitory.massage.service.ApplyMassageService
 import team.incube.flooding.global.security.util.CurrentUserProvider
 import team.themoment.sdk.exception.ExpectedException
+import java.time.Clock
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 
@@ -17,13 +18,14 @@ class ApplyMassageServiceImpl(
     private val massageProperties: MassageProperties,
     private val currentUserProvider: CurrentUserProvider,
     private val redissonClient: RedissonClient,
+    private val clock: Clock,
 ) : ApplyMassageService {
     override fun execute() {
         val user = currentUserProvider.getCurrentUser()
 
-        val now = LocalTime.now()
+        val now = LocalTime.now(clock)
 
-        if (now.isBefore(massageProperties.openTime) || !now.isBefore(massageProperties.closeTime)) {
+        if (now < massageProperties.openTime || now >= massageProperties.closeTime) {
             throw ExpectedException("안마의자 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
         }
 
