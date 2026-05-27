@@ -62,8 +62,7 @@ class WakeUpMusicController(
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun applyWakeUpMusic(
         @Valid @RequestBody request: ApplyWakeUpMusicByUrlRequest,
-    ): CommonApiResponse<WakeUpMusicResponse> =
-        CommonApiResponse.success("OK", applyWakeUpMusicService.execute(request))
+    ): WakeUpMusicResponse = applyWakeUpMusicService.execute(request)
 
     @Operation(
         summary = "기상음악 취소",
