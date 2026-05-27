@@ -68,6 +68,7 @@ class ApplyWakeUpMusicServiceImpl(
 
         return WakeUpMusicResponse(
             id = saved.id,
+            userId = user.id,
             musicUrl = saved.musicUrl,
             title = saved.title,
             artist = saved.artist,

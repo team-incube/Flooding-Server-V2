@@ -40,6 +40,7 @@ class GetWakeUpMusicServiceImplTest :
                         listOf(
                             WakeUpMusicResponse(
                                 id = 1L,
+                                userId = 1L,
                                 musicUrl = "https://youtube.com/watch?v=abc",
                                 title = "테스트 음악",
                                 artist = "테스트 채널",
@@ -95,6 +96,7 @@ class GetWakeUpMusicServiceImplTest :
                         listOf(
                             WakeUpMusicResponse(
                                 id = 1L,
+                                userId = 1L,
                                 musicUrl = "https://youtube.com/watch?v=abc",
                                 title = "테스트 음악 A",
                                 artist = "테스트 채널",
@@ -108,6 +110,7 @@ class GetWakeUpMusicServiceImplTest :
                             ),
                             WakeUpMusicResponse(
                                 id = 2L,
+                                userId = 2L,
                                 musicUrl = "https://youtube.com/watch?v=def",
                                 title = "테스트 음악 B",
                                 artist = "테스트 채널",
