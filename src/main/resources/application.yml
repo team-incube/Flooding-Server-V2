@@ -70,6 +70,7 @@ study:
 
 massage:
   open-time : "${MASSAGE_OPEN_TIME:20:20}"
+  close-time : "${MASSAGE_CLOSE_TIME:21:00}"
   max-count : ${MASSAGE_MAX_COUNT:5}
   lock-key: ${MASSAGE_KEY:lock}
 
