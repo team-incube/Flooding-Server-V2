@@ -1,6 +1,7 @@
 package team.incube.flooding.domain.dormitory.music.service.impl
 
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -45,19 +46,24 @@ class ApplyWakeUpMusicServiceImpl(
                 }
 
         val saved =
-            wakeUpMusicRepository.save(
-                WakeUpMusicJpaEntity(
-                    user = user,
-                    musicUrl = videoInfo.videoUrl,
-                    title = videoInfo.title,
-                    artist = videoInfo.artist,
-                    duration = videoInfo.duration,
-                    durationText = videoInfo.durationText,
-                    thumbnailUrl = videoInfo.thumbnailUrl,
-                    videoUrl = videoInfo.videoUrl,
-                    appliedAt = LocalDateTime.now(clock),
-                ),
-            )
+            try {
+                wakeUpMusicRepository.saveAndFlush(
+                    WakeUpMusicJpaEntity(
+                        user = user,
+                        musicUrl = videoInfo.videoUrl,
+                        title = videoInfo.title,
+                        artist = videoInfo.artist,
+                        duration = videoInfo.duration,
+                        durationText = videoInfo.durationText,
+                        thumbnailUrl = videoInfo.thumbnailUrl,
+                        videoUrl = videoInfo.videoUrl,
+                        appliedAt = LocalDateTime.now(clock),
+                    ),
+                )
+            } catch (e: DataIntegrityViolationException) {
+                log.warn("기상음악 신청 DB 제약 위반: userId={}", user.id, e)
+                throw ExpectedException("이미 기상음악을 신청했습니다.", HttpStatus.CONFLICT)
+            }
         log.info("기상음악 신청 완료: userId={}, musicId={}, title={}", user.id, saved.id, saved.title)
 
         return WakeUpMusicResponse(
