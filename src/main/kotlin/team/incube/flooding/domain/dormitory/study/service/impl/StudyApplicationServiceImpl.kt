@@ -43,8 +43,15 @@ class StudyApplicationServiceImpl(
             }
 
         if (outOfRange) {
-            log.warn("자습 신청 가능 시간 아님: userId={}, now={}, openTime={}, closeTime={}", user.id, now, studyProperties.openTime, studyProperties.closeTime)
-            throw ExpectedException("자습 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST) }
+            log.warn(
+                "자습 신청 가능 시간 아님: userId={}, now={}, openTime={}, closeTime={}",
+                user.id,
+                now,
+                studyProperties.openTime,
+                studyProperties.closeTime,
+            )
+            throw ExpectedException("자습 신청 시간이 아닙니다.", HttpStatus.BAD_REQUEST)
+        }
 
         if (studyRedisAdapter.getApplicationStatus(user.id) == StudyApplicationStatus.BANNED ||
             studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now(clock))
