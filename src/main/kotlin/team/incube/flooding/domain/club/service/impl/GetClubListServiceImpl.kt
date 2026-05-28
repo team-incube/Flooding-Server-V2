@@ -19,14 +19,12 @@ class GetClubListServiceImpl(
         type: ClubType,
         name: String?,
     ): GetClubListResponse {
-        val allClubs =
+        val approvedClubs =
             if (name.isNullOrBlank()) {
-                clubRepository.findAllByType(type)
+                clubRepository.findAllByTypeAndApprovalStatus(type, ClubApprovalStatus.APPROVED)
             } else {
-                clubRepository.findAllByTypeAndKeyword(type, name.trim())
+                clubRepository.findAllByTypeAndKeywordAndApprovalStatus(type, name.trim(), ClubApprovalStatus.APPROVED)
             }
-
-        val approvedClubs = allClubs.filter { it.approvalStatus == ClubApprovalStatus.APPROVED }
 
         if (approvedClubs.isEmpty()) {
             return GetClubListResponse(clubs = emptyList())
