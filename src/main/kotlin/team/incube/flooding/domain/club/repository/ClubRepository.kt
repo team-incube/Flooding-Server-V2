@@ -2,6 +2,7 @@ package team.incube.flooding.domain.club.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import team.incube.flooding.domain.club.entity.ClubApprovalStatus
 import team.incube.flooding.domain.club.entity.ClubJpaEntity
 import team.incube.flooding.domain.club.entity.ClubType
 
@@ -26,4 +27,25 @@ interface ClubRepository : JpaRepository<ClubJpaEntity, Long> {
     ): List<ClubJpaEntity>
 
     fun findAllByDataGsmClubIdIsNotNull(): List<ClubJpaEntity>
+
+    fun findAllByTypeAndApprovalStatus(
+        type: ClubType,
+        approvalStatus: ClubApprovalStatus,
+    ): List<ClubJpaEntity>
+
+    @Query(
+        """
+        SELECT c FROM ClubJpaEntity c
+        LEFT JOIN c.leader l
+        WHERE c.type = :type
+        AND c.approvalStatus = :approvalStatus
+        AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+             OR LOWER(l.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """,
+    )
+    fun findAllByTypeAndKeywordAndApprovalStatus(
+        type: ClubType,
+        keyword: String,
+        approvalStatus: ClubApprovalStatus,
+    ): List<ClubJpaEntity>
 }

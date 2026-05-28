@@ -2,6 +2,7 @@ package team.incube.flooding.domain.club.service.impl
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.club.entity.ClubApprovalStatus
 import team.incube.flooding.domain.club.entity.ClubType
 import team.incube.flooding.domain.club.presentation.data.response.GetClubListResponse
 import team.incube.flooding.domain.club.repository.ClubParticipantRepository
@@ -18,22 +19,25 @@ class GetClubListServiceImpl(
         type: ClubType,
         name: String?,
     ): GetClubListResponse {
-        val clubs =
+        val approvedClubs =
             if (name.isNullOrBlank()) {
-                clubRepository.findAllByType(type)
+                clubRepository.findAllByTypeAndApprovalStatus(type, ClubApprovalStatus.APPROVED)
             } else {
-                clubRepository.findAllByTypeAndKeyword(type, name.trim())
+                clubRepository.findAllByTypeAndKeywordAndApprovalStatus(type, name.trim(), ClubApprovalStatus.APPROVED)
             }
-        if (clubs.isEmpty()) {
+
+        if (approvedClubs.isEmpty()) {
             return GetClubListResponse(clubs = emptyList())
         }
+
         val countMap =
             clubParticipantRepository
-                .countGroupByClubIdIn(clubs.map { it.id })
+                .countGroupByClubIdIn(approvedClubs.map { it.id })
                 .associate { it.clubId to it.count }
+
         return GetClubListResponse(
             clubs =
-                clubs.map { club ->
+                approvedClubs.map { club ->
                     GetClubListResponse.ClubSummary(
                         id = club.id,
                         name = club.name,
