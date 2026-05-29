@@ -74,7 +74,7 @@ class GetNeisTimetablesServiceImpl(
             }
         }
 
-        return periodMap.keys.sorted().map { periodMap[it]!!.copy(period = it) }
+        return periodMap.toSortedMap().values.toList()
     }
 
     @Suppress("DEPRECATION")
