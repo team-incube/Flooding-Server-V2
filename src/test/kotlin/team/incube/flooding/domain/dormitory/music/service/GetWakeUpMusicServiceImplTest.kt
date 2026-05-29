@@ -41,6 +41,8 @@ class GetWakeUpMusicServiceImplTest :
                             WakeUpMusicResponse(
                                 id = 1L,
                                 userId = 1L,
+                                userName = "테스트",
+                                studentNumber = 1101,
                                 musicUrl = "https://youtube.com/watch?v=abc",
                                 title = "테스트 음악",
                                 artist = "테스트 채널",
@@ -97,6 +99,8 @@ class GetWakeUpMusicServiceImplTest :
                             WakeUpMusicResponse(
                                 id = 1L,
                                 userId = 1L,
+                                userName = "테스트 A",
+                                studentNumber = 1101,
                                 musicUrl = "https://youtube.com/watch?v=abc",
                                 title = "테스트 음악 A",
                                 artist = "테스트 채널",
@@ -111,6 +115,8 @@ class GetWakeUpMusicServiceImplTest :
                             WakeUpMusicResponse(
                                 id = 2L,
                                 userId = 2L,
+                                userName = "테스트 B",
+                                studentNumber = 1102,
                                 musicUrl = "https://youtube.com/watch?v=def",
                                 title = "테스트 음악 B",
                                 artist = "테스트 채널",

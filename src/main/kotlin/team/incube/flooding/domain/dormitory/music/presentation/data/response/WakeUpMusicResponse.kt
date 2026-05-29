@@ -5,6 +5,8 @@ import java.time.LocalDateTime
 data class WakeUpMusicResponse(
     val id: Long,
     val userId: Long,
+    val userName: String,
+    val studentNumber: Int,
     val musicUrl: String,
     val title: String?,
     val artist: String?,

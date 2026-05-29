@@ -6,6 +6,7 @@ import java.time.LocalTime
 @ConfigurationProperties(prefix = "massage")
 class MassageProperties(
     val openTime: LocalTime,
+    val closeTime: LocalTime,
     val maxCount: Int,
     val lockKey: String,
 )
