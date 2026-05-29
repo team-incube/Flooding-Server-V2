@@ -70,12 +70,7 @@ class GetNeisTimetablesServiceImpl(
                 )
 
             periodNumbers.forEach { periodNum ->
-                val existing = periodMap[periodNum]
-                if (existing == null) {
-                    periodMap[periodNum] = nodePeriod.copy(period = periodNum)
-                } else {
-                    periodMap[periodNum] = mergePeriods(existing, nodePeriod, periodNum)
-                }
+                periodMap[periodNum] = nodePeriod.copy(period = periodNum)
             }
         }
 
@@ -120,11 +115,4 @@ class GetNeisTimetablesServiceImpl(
         if (single != null && single > 0) return listOf(single)
         return listOf(idx + 1)
     }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun mergePeriods(
-        existing: GetNeisTimetablesResponse.Period,
-        incoming: GetNeisTimetablesResponse.Period,
-        periodNum: Int,
-    ): GetNeisTimetablesResponse.Period = incoming.copy(period = periodNum)
 }
