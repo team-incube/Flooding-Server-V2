@@ -24,7 +24,8 @@ class GetMassageServiceImpl(
 ) : GetMassageService {
     override fun execute(): GetMassageListResponse {
         val currentUser = currentUserProvider.getCurrentUser()
-        val isApplicationOpen = !LocalTime.now(clock).isBefore(massageProperties.openTime)
+        val now = LocalTime.now(clock)
+        val isApplicationOpen = now >= massageProperties.openTime && now < massageProperties.closeTime
         val myApplicationStatus =
             when {
                 massageRedisAdapter.isReapplyBlocked(currentUser.id) -> MassageApplicationStatus.CANCELLED
