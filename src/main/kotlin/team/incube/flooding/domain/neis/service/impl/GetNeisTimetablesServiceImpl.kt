@@ -37,45 +37,50 @@ class GetNeisTimetablesServiceImpl(
                 .path("hisTimetable")
                 .find { node -> node.path("row").isArray }
                 ?.path("row")
-        if (neisRows != null && neisRows.isArray) {
-            return neisRows.mapIndexed { index, periodNode ->
-                GetNeisTimetablesResponse.Period(
-                    period = valueOf(periodNode, "PERIO", "period")?.toIntOrNull() ?: index + 1,
-                    subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
-                    teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
-                    classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom"),
-                )
+
+        val rawNodes: List<JsonNode> = if (neisRows != null && neisRows.isArray) {
+            neisRows.map { it }
+        } else {
+            val targets = listOf(response.path("data"), response.path("timetables"), response)
+            val periodNodes =
+                targets.firstNotNullOfOrNull { node ->
+                    when {
+                        node.isArray -> node
+                        node.path("periods").isArray -> node.path("periods")
+                        node.path("timetables").isArray -> node.path("timetables")
+                        node.path("data").isArray -> node.path("data")
+                        else -> null
+                    }
+                } ?: return emptyList()
+            periodNodes.map { it }
+        }
+
+        val periodMap = mutableMapOf<Int, GetNeisTimetablesResponse.Period>()
+
+        rawNodes.forEachIndexed { idx, periodNode ->
+            val periodNumbers = parsePeriodNumbers(periodNode, idx)
+
+            val nodePeriod = GetNeisTimetablesResponse.Period(
+                period = periodNumbers.firstOrNull() ?: (idx + 1),
+                subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
+                teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
+                classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom", "CLRM_NM"),
+            )
+
+            periodNumbers.forEach { periodNum ->
+                val existing = periodMap[periodNum]
+                if (existing == null) {
+                    periodMap[periodNum] = nodePeriod.copy(period = periodNum)
+                } else {
+                    periodMap[periodNum] = mergePeriods(existing, nodePeriod, periodNum)
+                }
             }
         }
 
-        val targets =
-            listOf(
-                response.path("data"),
-                response.path("timetables"),
-                response,
-            )
-
-        val periodNodes =
-            targets.firstNotNullOfOrNull { node ->
-                when {
-                    node.isArray -> node
-                    node.path("periods").isArray -> node.path("periods")
-                    node.path("timetables").isArray -> node.path("timetables")
-                    node.path("data").isArray -> node.path("data")
-                    else -> null
-                }
-            } ?: return emptyList()
-
-        return periodNodes.mapIndexed { index, periodNode ->
-            GetNeisTimetablesResponse.Period(
-                period = valueOf(periodNode, "period", "PERIO")?.toIntOrNull() ?: index + 1,
-                subject = valueOf(periodNode, "subject", "ITRT_CNTNT") ?: "미정",
-                teacher = valueOf(periodNode, "teacher", "TEACHER_NM"),
-                classroom = valueOf(periodNode, "classroom", "CLASSROOM", "CLRM_NM"),
-            )
-        }
+        return periodMap.keys.sorted().map { periodMap[it]!!.copy(period = it) }
     }
 
+    @Suppress("DEPRECATION")
     private fun valueOf(
         node: JsonNode,
         vararg keys: String,
@@ -85,5 +90,37 @@ class GetNeisTimetablesServiceImpl(
             if (!value.isMissingNode && !value.isNull) return value.asText()
         }
         return null
+    }
+    private fun parsePeriodNumbers(node: JsonNode, idx: Int): List<Int> {
+        val raw = valueOf(node, "PERIO", "period")?.trim() ?: return listOf(idx + 1)
+        var s = raw.replace("\\s".toRegex(), "")
+        s = s.replace("[–—·]".toRegex(), "-")
+        if (s.contains("-")) {
+            val dashIndex = s.indexOf('-')
+            if (dashIndex > 0) {
+                val left = s.substring(0, dashIndex)
+                val right = s.substring(dashIndex + 1)
+                val start = left.toIntOrNull()
+                val end = right.toIntOrNull()
+                if (start != null && end != null && end >= start) {
+                    return (start..end).toList()
+                }
+            }
+        }
+        if (s.contains(",")) {
+            return s.split(",").mapNotNull { it.toIntOrNull() }.filter { it > 0 }
+        }
+        val single = s.toIntOrNull()
+        if (single != null && single > 0) return listOf(single)
+        return listOf(idx + 1)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun mergePeriods(
+        existing: GetNeisTimetablesResponse.Period,
+        incoming: GetNeisTimetablesResponse.Period,
+        periodNum: Int,
+    ): GetNeisTimetablesResponse.Period {
+        return incoming.copy(period = periodNum)
     }
 }
