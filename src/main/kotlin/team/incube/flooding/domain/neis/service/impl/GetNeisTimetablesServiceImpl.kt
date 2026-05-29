@@ -96,6 +96,28 @@ class GetNeisTimetablesServiceImpl(
         val raw = valueOf(node, "PERIO", "period")?.trim() ?: return listOf(idx + 1)
         var s = raw.replace("\\s".toRegex(), "")
         s = s.replace("[–—·]".toRegex(), "-")
+        if (s.contains(",")) {
+            val parts = s.split(",")
+            val expanded =
+                parts.flatMap { part ->
+                    val p = part.trim()
+                    if (p.contains("-")) {
+                        val dashIndex = p.indexOf('-')
+                        if (dashIndex > 0) {
+                            val left = p.substring(0, dashIndex)
+                            val right = p.substring(dashIndex + 1)
+                            val start = left.toIntOrNull()
+                            val end = right.toIntOrNull()
+                            if (start != null && end != null && end >= start) return@flatMap (start..end).toList()
+                        }
+                        listOfNotNull(p.toIntOrNull())
+                    } else {
+                        listOfNotNull(p.toIntOrNull())
+                    }
+                }
+            return expanded.distinct().filter { it > 0 }
+        }
+
         if (s.contains("-")) {
             val dashIndex = s.indexOf('-')
             if (dashIndex > 0) {
@@ -107,9 +129,6 @@ class GetNeisTimetablesServiceImpl(
                     return (start..end).toList()
                 }
             }
-        }
-        if (s.contains(",")) {
-            return s.split(",").mapNotNull { it.toIntOrNull() }.filter { it > 0 }
         }
         val single = s.toIntOrNull()
         if (single != null && single > 0) return listOf(single)
