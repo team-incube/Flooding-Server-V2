@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.dormitory.music.service
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -7,9 +8,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.springframework.http.HttpStatus
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
-import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.impl.ApplyWakeUpMusicServiceImpl
 import team.incube.flooding.domain.user.entity.Role
@@ -17,6 +18,7 @@ import team.incube.flooding.domain.user.entity.Sex
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 import team.incube.flooding.global.client.YoutubeClient
 import team.incube.flooding.global.security.util.CurrentUserProvider
+import team.themoment.sdk.exception.ExpectedException
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -25,7 +27,6 @@ import java.time.ZoneId
 class ApplyWakeUpMusicServiceImplTest :
     BehaviorSpec({
         val wakeUpMusicRepository = mockk<WakeUpMusicRepository>()
-        val wakeUpMusicLikeRepository = mockk<WakeUpMusicLikeRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
         val youtubeClient = mockk<YoutubeClient>()
         val clock = Clock.fixed(Instant.parse("2026-05-14T01:00:00Z"), ZoneId.of("Asia/Seoul"))
@@ -33,7 +34,6 @@ class ApplyWakeUpMusicServiceImplTest :
         val service =
             ApplyWakeUpMusicServiceImpl(
                 wakeUpMusicRepository = wakeUpMusicRepository,
-                wakeUpMusicLikeRepository = wakeUpMusicLikeRepository,
                 currentUserProvider = currentUserProvider,
                 youtubeClient = youtubeClient,
                 clock = clock,
@@ -64,21 +64,30 @@ class ApplyWakeUpMusicServiceImplTest :
                 )
         }
 
-        given("신청 이력이 없을 때") {
+        given("오늘 신청 이력이 없을 때") {
             `when`("execute를 호출하면") {
                 then("기상음악이 저장되고 응답이 반환된다") {
                     val request = ApplyWakeUpMusicByUrlRequest("https://youtube.com/watch?v=abc")
                     val fixedNow = LocalDateTime.now(clock)
+                    val startOfDay = fixedNow.toLocalDate().atStartOfDay()
+                    val endOfDay = startOfDay.plusDays(1)
                     val slot = slot<WakeUpMusicJpaEntity>()
 
                     every { currentUserProvider.getCurrentUser() } returns user
-                    every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns emptyList()
+                    every {
+                        wakeUpMusicRepository.existsByUserIdAndAppliedAtBetween(
+                            user.id,
+                            startOfDay,
+                            endOfDay,
+                        )
+                    } returns
+                        false
                     stubYoutubeInfo(request.musicUrl)
-                    every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
+                    every { wakeUpMusicRepository.saveAndFlush(capture(slot)) } answers { slot.captured }
 
                     val result = service.execute(request)
 
-                    verify(exactly = 1) { wakeUpMusicRepository.save(any()) }
+                    verify(exactly = 1) { wakeUpMusicRepository.saveAndFlush(any()) }
                     slot.captured.musicUrl shouldBe "https://www.youtube.com/watch?v=test"
                     slot.captured.title shouldBe "테스트 음악"
                     slot.captured.artist shouldBe "테스트 채널"
@@ -93,62 +102,29 @@ class ApplyWakeUpMusicServiceImplTest :
             }
         }
 
-        given("신청 이력이 정확히 5개일 때") {
+        given("오늘 이미 신청 이력이 있을 때") {
             `when`("execute를 호출하면") {
-                then("가장 오래된 이력 1개가 삭제된 후 저장된다") {
+                then("CONFLICT 예외가 발생한다") {
                     val request = ApplyWakeUpMusicByUrlRequest("https://youtube.com/watch?v=new")
-                    val histories =
-                        (1L..5L).map { id ->
-                            WakeUpMusicJpaEntity(
-                                id = id,
-                                user = user,
-                                musicUrl = "https://youtube.com/watch?v=$id",
-                                appliedAt = LocalDateTime.now(clock).minusDays(6 - id),
-                            )
-                        }
-                    val slot = slot<WakeUpMusicJpaEntity>()
+                    val fixedNow = LocalDateTime.now(clock)
+                    val startOfDay = fixedNow.toLocalDate().atStartOfDay()
+                    val endOfDay = startOfDay.plusDays(1)
 
                     every { currentUserProvider.getCurrentUser() } returns user
-                    every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns histories
-                    every { wakeUpMusicLikeRepository.deleteAllByMusicIdIn(listOf(1L)) } returns Unit
-                    every { wakeUpMusicRepository.deleteAllInBatch(listOf(histories[0])) } returns Unit
-                    stubYoutubeInfo(request.musicUrl)
-                    every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
+                    every {
+                        wakeUpMusicRepository.existsByUserIdAndAppliedAtBetween(
+                            user.id,
+                            startOfDay,
+                            endOfDay,
+                        )
+                    } returns
+                        true
 
-                    service.execute(request)
+                    val exception = shouldThrow<ExpectedException> { service.execute(request) }
 
-                    verify(exactly = 1) { wakeUpMusicLikeRepository.deleteAllByMusicIdIn(listOf(1L)) }
-                    verify(exactly = 1) { wakeUpMusicRepository.deleteAllInBatch(listOf(histories[0])) }
-                    verify(exactly = 1) { wakeUpMusicRepository.save(any()) }
-                }
-            }
-        }
-
-        given("신청 이력이 4개일 때") {
-            `when`("execute를 호출하면") {
-                then("삭제 없이 바로 저장된다") {
-                    val request = ApplyWakeUpMusicByUrlRequest("https://youtube.com/watch?v=new")
-                    val histories =
-                        (1L..4L).map { id ->
-                            WakeUpMusicJpaEntity(
-                                id = id,
-                                user = user,
-                                musicUrl = "https://youtube.com/watch?v=$id",
-                                appliedAt = LocalDateTime.now(clock).minusDays(5 - id),
-                            )
-                        }
-                    val slot = slot<WakeUpMusicJpaEntity>()
-
-                    every { currentUserProvider.getCurrentUser() } returns user
-                    every { wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id) } returns histories
-                    stubYoutubeInfo(request.musicUrl)
-                    every { wakeUpMusicRepository.save(capture(slot)) } answers { slot.captured }
-
-                    service.execute(request)
-
-                    verify(exactly = 0) { wakeUpMusicLikeRepository.deleteAllByMusicIdIn(any()) }
-                    verify(exactly = 0) { wakeUpMusicRepository.deleteAllInBatch(any()) }
-                    verify(exactly = 1) { wakeUpMusicRepository.save(any()) }
+                    exception.statusCode shouldBe HttpStatus.CONFLICT
+                    verify(exactly = 0) { youtubeClient.getVideoInfo(any()) }
+                    verify(exactly = 0) { wakeUpMusicRepository.saveAndFlush(any()) }
                 }
             }
         }

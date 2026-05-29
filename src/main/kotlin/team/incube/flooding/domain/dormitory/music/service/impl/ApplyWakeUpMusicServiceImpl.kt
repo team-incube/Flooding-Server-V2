@@ -1,12 +1,13 @@
 package team.incube.flooding.domain.dormitory.music.service.impl
 
+import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
-import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.global.client.YoutubeClient
@@ -18,44 +19,52 @@ import java.time.LocalDateTime
 @Service
 class ApplyWakeUpMusicServiceImpl(
     private val wakeUpMusicRepository: WakeUpMusicRepository,
-    private val wakeUpMusicLikeRepository: WakeUpMusicLikeRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val youtubeClient: YoutubeClient,
     private val clock: Clock,
 ) : ApplyWakeUpMusicService {
-    companion object {
-        private const val MAX_HISTORY_SIZE = 5
-    }
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
     override fun execute(request: ApplyWakeUpMusicByUrlRequest): WakeUpMusicResponse {
         val user = currentUserProvider.getCurrentUser()
+        log.info("기상음악 신청 시작: userId={}, role={}, musicUrl={}", user.id, user.role, request.musicUrl)
 
-        val histories = wakeUpMusicRepository.findAllByUserIdOrderByAppliedAtAsc(user.id)
-        if (histories.size >= MAX_HISTORY_SIZE) {
-            val toDelete = histories.take(histories.size - MAX_HISTORY_SIZE + 1)
-            wakeUpMusicLikeRepository.deleteAllByMusicIdIn(toDelete.map { it.id })
-            wakeUpMusicRepository.deleteAllInBatch(toDelete)
+        val now = LocalDateTime.now(clock)
+        val startOfDay = now.toLocalDate().atStartOfDay()
+        val endOfDay = startOfDay.plusDays(1)
+        if (wakeUpMusicRepository.existsByUserIdAndAppliedAtBetween(user.id, startOfDay, endOfDay)) {
+            log.warn("기상음악 신청 거절 - 오늘 이미 신청됨: userId={}", user.id)
+            throw ExpectedException("이미 기상음악을 신청했습니다.", HttpStatus.CONFLICT)
         }
 
         val videoInfo =
             youtubeClient.getVideoInfo(request.musicUrl)
-                ?: throw ExpectedException("YouTube 영상 정보를 가져오지 못했습니다. URL을 확인해주세요.", HttpStatus.BAD_REQUEST)
+                ?: run {
+                    log.warn("YouTube 영상 정보 조회 실패: userId={}, musicUrl={}", user.id, request.musicUrl)
+                    throw ExpectedException("YouTube 영상 정보를 가져오지 못했습니다. URL을 확인해주세요.", HttpStatus.BAD_REQUEST)
+                }
 
         val saved =
-            wakeUpMusicRepository.save(
-                WakeUpMusicJpaEntity(
-                    user = user,
-                    musicUrl = videoInfo.videoUrl,
-                    title = videoInfo.title,
-                    artist = videoInfo.artist,
-                    duration = videoInfo.duration,
-                    durationText = videoInfo.durationText,
-                    thumbnailUrl = videoInfo.thumbnailUrl,
-                    videoUrl = videoInfo.videoUrl,
-                    appliedAt = LocalDateTime.now(clock),
-                ),
-            )
+            try {
+                wakeUpMusicRepository.saveAndFlush(
+                    WakeUpMusicJpaEntity(
+                        user = user,
+                        musicUrl = videoInfo.videoUrl,
+                        title = videoInfo.title,
+                        artist = videoInfo.artist,
+                        duration = videoInfo.duration,
+                        durationText = videoInfo.durationText,
+                        thumbnailUrl = videoInfo.thumbnailUrl,
+                        videoUrl = videoInfo.videoUrl,
+                        appliedAt = LocalDateTime.now(clock),
+                    ),
+                )
+            } catch (e: DataIntegrityViolationException) {
+                log.warn("기상음악 신청 DB 제약 위반: userId={}", user.id, e)
+                throw ExpectedException("이미 기상음악을 신청했습니다.", HttpStatus.CONFLICT)
+            }
+        log.info("기상음악 신청 완료: userId={}, musicId={}, title={}", user.id, saved.id, saved.title)
 
         return WakeUpMusicResponse(
             id = saved.id,

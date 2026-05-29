@@ -20,7 +20,6 @@ class ApplyMassageServiceImpl(
     private val redissonClient: RedissonClient,
     private val clock: Clock,
 ) : ApplyMassageService {
-
     override fun execute() {
         val user = currentUserProvider.getCurrentUser()
         val now = LocalTime.now(clock)
@@ -31,7 +30,7 @@ class ApplyMassageServiceImpl(
         ) {
             throw ExpectedException(
                 "안마의자 신청 시간이 아닙니다.",
-                HttpStatus.BAD_REQUEST
+                HttpStatus.BAD_REQUEST,
             )
         }
 
@@ -41,7 +40,7 @@ class ApplyMassageServiceImpl(
         if (!acquired) {
             throw ExpectedException(
                 "잠시 후 다시 시도해주세요.",
-                HttpStatus.TOO_MANY_REQUESTS
+                HttpStatus.TOO_MANY_REQUESTS,
             )
         }
 
@@ -49,26 +48,25 @@ class ApplyMassageServiceImpl(
             if (massageRedisAdapter.isApply(user.id)) {
                 throw ExpectedException(
                     "이미 신청하였습니다.",
-                    HttpStatus.CONFLICT
+                    HttpStatus.CONFLICT,
                 )
             }
 
             if (massageRedisAdapter.isReapplyBlocked(user.id)) {
                 throw ExpectedException(
                     "당일 취소한 안마의자는 다시 신청할 수 없습니다.",
-                    HttpStatus.CONFLICT
+                    HttpStatus.CONFLICT,
                 )
             }
 
             if (massageRedisAdapter.getCount() >= massageProperties.maxCount) {
                 throw ExpectedException(
                     "신청 인원이 마감되었습니다.",
-                    HttpStatus.CONFLICT
+                    HttpStatus.CONFLICT,
                 )
             }
 
             massageRedisAdapter.apply(user.id)
-
         } finally {
             if (lock.isHeldByCurrentThread) {
                 lock.unlock()
