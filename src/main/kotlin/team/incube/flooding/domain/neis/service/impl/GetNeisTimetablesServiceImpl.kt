@@ -64,7 +64,7 @@ class GetNeisTimetablesServiceImpl(
                 period = periodNumbers.firstOrNull() ?: (idx + 1),
                 subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
                 teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
-                classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom", "CLRM_NM"),
+                classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom"),
             )
 
             periodNumbers.forEach { periodNum ->
