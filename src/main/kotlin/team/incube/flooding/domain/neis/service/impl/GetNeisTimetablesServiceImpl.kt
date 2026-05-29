@@ -38,34 +38,36 @@ class GetNeisTimetablesServiceImpl(
                 .find { node -> node.path("row").isArray }
                 ?.path("row")
 
-        val rawNodes: List<JsonNode> = if (neisRows != null && neisRows.isArray) {
-            neisRows.map { it }
-        } else {
-            val targets = listOf(response.path("data"), response.path("timetables"), response)
-            val periodNodes =
-                targets.firstNotNullOfOrNull { node ->
-                    when {
-                        node.isArray -> node
-                        node.path("periods").isArray -> node.path("periods")
-                        node.path("timetables").isArray -> node.path("timetables")
-                        node.path("data").isArray -> node.path("data")
-                        else -> null
-                    }
-                } ?: return emptyList()
-            periodNodes.map { it }
-        }
+        val rawNodes: List<JsonNode> =
+            if (neisRows != null && neisRows.isArray) {
+                neisRows.map { it }
+            } else {
+                val targets = listOf(response.path("data"), response.path("timetables"), response)
+                val periodNodes =
+                    targets.firstNotNullOfOrNull { node ->
+                        when {
+                            node.isArray -> node
+                            node.path("periods").isArray -> node.path("periods")
+                            node.path("timetables").isArray -> node.path("timetables")
+                            node.path("data").isArray -> node.path("data")
+                            else -> null
+                        }
+                    } ?: return emptyList()
+                periodNodes.map { it }
+            }
 
         val periodMap = mutableMapOf<Int, GetNeisTimetablesResponse.Period>()
 
         rawNodes.forEachIndexed { idx, periodNode ->
             val periodNumbers = parsePeriodNumbers(periodNode, idx)
 
-            val nodePeriod = GetNeisTimetablesResponse.Period(
-                period = periodNumbers.firstOrNull() ?: (idx + 1),
-                subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
-                teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
-                classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom"),
-            )
+            val nodePeriod =
+                GetNeisTimetablesResponse.Period(
+                    period = periodNumbers.firstOrNull() ?: (idx + 1),
+                    subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
+                    teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
+                    classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom"),
+                )
 
             periodNumbers.forEach { periodNum ->
                 val existing = periodMap[periodNum]
@@ -91,7 +93,11 @@ class GetNeisTimetablesServiceImpl(
         }
         return null
     }
-    private fun parsePeriodNumbers(node: JsonNode, idx: Int): List<Int> {
+
+    private fun parsePeriodNumbers(
+        node: JsonNode,
+        idx: Int,
+    ): List<Int> {
         val raw = valueOf(node, "PERIO", "period")?.trim() ?: return listOf(idx + 1)
         var s = raw.replace("\\s".toRegex(), "")
         s = s.replace("[–—·]".toRegex(), "-")
@@ -120,7 +126,5 @@ class GetNeisTimetablesServiceImpl(
         existing: GetNeisTimetablesResponse.Period,
         incoming: GetNeisTimetablesResponse.Period,
         periodNum: Int,
-    ): GetNeisTimetablesResponse.Period {
-        return incoming.copy(period = periodNum)
-    }
+    ): GetNeisTimetablesResponse.Period = incoming.copy(period = periodNum)
 }
