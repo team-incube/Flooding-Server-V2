@@ -37,45 +37,47 @@ class GetNeisTimetablesServiceImpl(
                 .path("hisTimetable")
                 .find { node -> node.path("row").isArray }
                 ?.path("row")
-        if (neisRows != null && neisRows.isArray) {
-            return neisRows.mapIndexed { index, periodNode ->
+
+        val rawNodes: List<JsonNode> =
+            if (neisRows != null && neisRows.isArray) {
+                neisRows.map { it }
+            } else {
+                val targets = listOf(response.path("data"), response.path("timetables"), response)
+                val periodNodes =
+                    targets.firstNotNullOfOrNull { node ->
+                        when {
+                            node.isArray -> node
+                            node.path("periods").isArray -> node.path("periods")
+                            node.path("timetables").isArray -> node.path("timetables")
+                            node.path("data").isArray -> node.path("data")
+                            else -> null
+                        }
+                    } ?: return emptyList()
+                periodNodes.map { it }
+            }
+
+        val periodMap = mutableMapOf<Int, GetNeisTimetablesResponse.Period>()
+
+        rawNodes.forEachIndexed { idx, periodNode ->
+            val periodNumbers = parsePeriodNumbers(periodNode, idx)
+
+            val nodePeriod =
                 GetNeisTimetablesResponse.Period(
-                    period = valueOf(periodNode, "PERIO", "period")?.toIntOrNull() ?: index + 1,
+                    period = periodNumbers.firstOrNull() ?: (idx + 1),
                     subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
                     teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
                     classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom"),
                 )
+
+            periodNumbers.forEach { periodNum ->
+                periodMap[periodNum] = nodePeriod.copy(period = periodNum)
             }
         }
 
-        val targets =
-            listOf(
-                response.path("data"),
-                response.path("timetables"),
-                response,
-            )
-
-        val periodNodes =
-            targets.firstNotNullOfOrNull { node ->
-                when {
-                    node.isArray -> node
-                    node.path("periods").isArray -> node.path("periods")
-                    node.path("timetables").isArray -> node.path("timetables")
-                    node.path("data").isArray -> node.path("data")
-                    else -> null
-                }
-            } ?: return emptyList()
-
-        return periodNodes.mapIndexed { index, periodNode ->
-            GetNeisTimetablesResponse.Period(
-                period = valueOf(periodNode, "period", "PERIO")?.toIntOrNull() ?: index + 1,
-                subject = valueOf(periodNode, "subject", "ITRT_CNTNT") ?: "미정",
-                teacher = valueOf(periodNode, "teacher", "TEACHER_NM"),
-                classroom = valueOf(periodNode, "classroom", "CLASSROOM", "CLRM_NM"),
-            )
-        }
+        return periodMap.toSortedMap().values.toList()
     }
 
+    @Suppress("DEPRECATION")
     private fun valueOf(
         node: JsonNode,
         vararg keys: String,
@@ -85,5 +87,51 @@ class GetNeisTimetablesServiceImpl(
             if (!value.isMissingNode && !value.isNull) return value.asText()
         }
         return null
+    }
+
+    private fun parsePeriodNumbers(
+        node: JsonNode,
+        idx: Int,
+    ): List<Int> {
+        val raw = valueOf(node, "PERIO", "period")?.trim() ?: return listOf(idx + 1)
+        var s = raw.replace("\\s".toRegex(), "")
+        s = s.replace("[–—·]".toRegex(), "-")
+        if (s.contains(",")) {
+            val parts = s.split(",")
+            val expanded =
+                parts.flatMap { part ->
+                    val p = part.trim()
+                    if (p.contains("-")) {
+                        val dashIndex = p.indexOf('-')
+                        if (dashIndex > 0) {
+                            val left = p.substring(0, dashIndex)
+                            val right = p.substring(dashIndex + 1)
+                            val start = left.toIntOrNull()
+                            val end = right.toIntOrNull()
+                            if (start != null && end != null && end >= start) return@flatMap (start..end).toList()
+                        }
+                        listOfNotNull(p.toIntOrNull())
+                    } else {
+                        listOfNotNull(p.toIntOrNull())
+                    }
+                }
+            return expanded.distinct().filter { it > 0 }
+        }
+
+        if (s.contains("-")) {
+            val dashIndex = s.indexOf('-')
+            if (dashIndex > 0) {
+                val left = s.substring(0, dashIndex)
+                val right = s.substring(dashIndex + 1)
+                val start = left.toIntOrNull()
+                val end = right.toIntOrNull()
+                if (start != null && end != null && end >= start) {
+                    return (start..end).toList()
+                }
+            }
+        }
+        val single = s.toIntOrNull()
+        if (single != null && single > 0) return listOf(single)
+        return listOf(idx + 1)
     }
 }
