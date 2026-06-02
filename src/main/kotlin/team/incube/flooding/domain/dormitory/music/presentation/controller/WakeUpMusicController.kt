@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
@@ -23,6 +24,7 @@ import team.incube.flooding.domain.dormitory.music.service.CancelLikeWakeUpMusic
 import team.incube.flooding.domain.dormitory.music.service.CancelWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.GetWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.LikeWakeUpMusicService
+import team.incube.flooding.domain.dormitory.music.service.SubscribeWakeUpMusicService
 import team.themoment.sdk.response.CommonApiResponse
 import java.time.LocalDate
 
@@ -35,7 +37,19 @@ class WakeUpMusicController(
     private val getWakeUpMusicService: GetWakeUpMusicService,
     private val likeWakeUpMusicService: LikeWakeUpMusicService,
     private val cancelLikeWakeUpMusicService: CancelLikeWakeUpMusicService,
+    private val subscribeWakeUpMusicService: SubscribeWakeUpMusicService,
 ) {
+    @Operation(
+        summary = "기상 음악 SSE 구독",
+        description = "기상 음악 신청/취소 이벤트를 실시간으로 수신합니다. 연결 시 오늘의 음악 목록을 init 이벤트로 전송합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "SSE 구독 성공"),
+        ApiResponse(responseCode = "401", description = "인증 실패"),
+    )
+    @GetMapping("/subscribe", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun subscribe(): SseEmitter = subscribeWakeUpMusicService.execute()
+
     @Operation(
         summary = "기상음악 목록 조회",
         description = "날짜별로 신청된 기상음악 목록을 조회합니다.",

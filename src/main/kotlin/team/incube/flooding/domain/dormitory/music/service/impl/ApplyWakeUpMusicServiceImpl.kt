@@ -5,8 +5,10 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.incube.flooding.domain.dormitory.music.adapter.WakeUpMusicSseEmitterRegistry
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
+import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicEventResponse
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
@@ -22,6 +24,7 @@ class ApplyWakeUpMusicServiceImpl(
     private val currentUserProvider: CurrentUserProvider,
     private val youtubeClient: YoutubeClient,
     private val clock: Clock,
+    private val sseEmitterRegistry: WakeUpMusicSseEmitterRegistry,
 ) : ApplyWakeUpMusicService {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -66,21 +69,43 @@ class ApplyWakeUpMusicServiceImpl(
             }
         log.info("기상음악 신청 완료: userId={}, musicId={}, title={}", user.id, saved.id, saved.title)
 
-        return WakeUpMusicResponse(
-            id = saved.id,
-            userId = user.id,
-            userName = user.name,
-            studentNumber = user.studentNumber,
-            musicUrl = saved.musicUrl,
-            title = saved.title,
-            artist = saved.artist,
-            duration = saved.duration,
-            durationText = saved.durationText,
-            thumbnailUrl = saved.thumbnailUrl,
-            videoUrl = saved.videoUrl,
-            appliedAt = saved.appliedAt,
-            likeCount = 0,
-            isLiked = false,
+        val response =
+            WakeUpMusicResponse(
+                id = saved.id,
+                userId = user.id,
+                userName = user.name,
+                studentNumber = user.studentNumber,
+                musicUrl = saved.musicUrl,
+                title = saved.title,
+                artist = saved.artist,
+                duration = saved.duration,
+                durationText = saved.durationText,
+                thumbnailUrl = saved.thumbnailUrl,
+                videoUrl = saved.videoUrl,
+                appliedAt = saved.appliedAt,
+                likeCount = 0,
+                isLiked = false,
+            )
+
+        sseEmitterRegistry.broadcast(
+            WakeUpMusicEventResponse(
+                id = response.id,
+                userId = response.userId,
+                userName = response.userName,
+                studentNumber = response.studentNumber,
+                musicUrl = response.musicUrl,
+                title = response.title,
+                artist = response.artist,
+                duration = response.duration,
+                durationText = response.durationText,
+                thumbnailUrl = response.thumbnailUrl,
+                videoUrl = response.videoUrl,
+                appliedAt = response.appliedAt,
+                likeCount = 0L,
+                isLiked = false,
+            ),
         )
+
+        return response
     }
 }

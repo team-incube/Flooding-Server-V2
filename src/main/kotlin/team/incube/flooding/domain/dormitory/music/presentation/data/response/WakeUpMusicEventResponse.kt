@@ -1,0 +1,20 @@
+package team.incube.flooding.domain.dormitory.music.presentation.data.response
+
+import java.time.LocalDateTime
+
+data class WakeUpMusicEventResponse(
+    val id: Long,
+    val userId: Long,
+    val userName: String,
+    val studentNumber: Int,
+    val musicUrl: String,
+    val title: String?,
+    val artist: String?,
+    val duration: String?,
+    val durationText: String?,
+    val thumbnailUrl: String?,
+    val videoUrl: String?,
+    val appliedAt: LocalDateTime,
+    val likeCount: Long = 0L,
+    val isLiked: Boolean = false,
+)
