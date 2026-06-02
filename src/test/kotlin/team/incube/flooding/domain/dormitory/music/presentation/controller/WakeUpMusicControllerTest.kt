@@ -13,6 +13,7 @@ import team.incube.flooding.domain.dormitory.music.service.CancelLikeWakeUpMusic
 import team.incube.flooding.domain.dormitory.music.service.CancelWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.GetWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.LikeWakeUpMusicService
+import team.incube.flooding.domain.dormitory.music.service.SubscribeWakeUpMusicService
 import java.time.LocalDateTime
 
 class WakeUpMusicControllerTest :
@@ -22,6 +23,7 @@ class WakeUpMusicControllerTest :
         val getWakeUpMusicService = mockk<GetWakeUpMusicService>()
         val likeWakeUpMusicService = mockk<LikeWakeUpMusicService>()
         val cancelLikeWakeUpMusicService = mockk<CancelLikeWakeUpMusicService>()
+        val subscribeWakeUpMusicService = mockk<SubscribeWakeUpMusicService>()
 
         val controller =
             WakeUpMusicController(
@@ -30,6 +32,7 @@ class WakeUpMusicControllerTest :
                 getWakeUpMusicService = getWakeUpMusicService,
                 likeWakeUpMusicService = likeWakeUpMusicService,
                 cancelLikeWakeUpMusicService = cancelLikeWakeUpMusicService,
+                subscribeWakeUpMusicService = subscribeWakeUpMusicService,
             )
 
         given("기상음악 신청이 성공할 때") {
@@ -57,10 +60,7 @@ class WakeUpMusicControllerTest :
                 val response = controller.applyWakeUpMusic(request)
 
                 then("신청된 기상음악 데이터가 응답에 포함된다") {
-                    response.status shouldBe HttpStatus.OK
-                    response.code shouldBe 200
-                    response.message shouldBe "OK"
-                    response.data shouldBe serviceResponse
+                    response shouldBe serviceResponse
                     verify(exactly = 1) { applyWakeUpMusicService.execute(request) }
                 }
             }
