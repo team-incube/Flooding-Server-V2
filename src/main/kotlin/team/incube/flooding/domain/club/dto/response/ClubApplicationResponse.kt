@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.club.dto.response
 
+import team.incube.flooding.domain.club.entity.ClubApprovalStatus
 import team.incube.flooding.domain.club.entity.ClubType
 
 data class ClubApplicationListResponse(
@@ -14,4 +15,5 @@ data class ClubApplicationResponse(
     val description: String,
     val imageUrl: String?,
     val maxMember: Int?,
+    val approvalStatus: ClubApprovalStatus,
 )

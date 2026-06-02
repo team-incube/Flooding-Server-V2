@@ -38,6 +38,7 @@ class QueryClubApplicationServiceImpl(
                         description = club.description ?: "",
                         imageUrl = club.imageUrl,
                         maxMember = club.maxMember,
+                        approvalStatus = club.approvalStatus,
                     )
                 },
         )
