@@ -5,10 +5,11 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import team.incube.flooding.domain.dormitory.music.adapter.WakeUpMusicSseEmitterRegistry
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
-import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicEventResponse
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
@@ -87,23 +88,12 @@ class ApplyWakeUpMusicServiceImpl(
                 isLiked = false,
             )
 
-        sseEmitterRegistry.broadcast(
-            WakeUpMusicEventResponse(
-                id = response.id,
-                userId = response.userId,
-                userName = response.userName,
-                studentNumber = response.studentNumber,
-                musicUrl = response.musicUrl,
-                title = response.title,
-                artist = response.artist,
-                duration = response.duration,
-                durationText = response.durationText,
-                thumbnailUrl = response.thumbnailUrl,
-                videoUrl = response.videoUrl,
-                appliedAt = response.appliedAt,
-                likeCount = 0L,
-                isLiked = false,
-            ),
+        TransactionSynchronizationManager.registerSynchronization(
+            object : TransactionSynchronization {
+                override fun afterCommit() {
+                    sseEmitterRegistry.broadcast(response)
+                }
+            },
         )
 
         return response

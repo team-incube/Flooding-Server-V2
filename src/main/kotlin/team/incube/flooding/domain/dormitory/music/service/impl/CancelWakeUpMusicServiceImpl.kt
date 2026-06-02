@@ -3,6 +3,8 @@ package team.incube.flooding.domain.dormitory.music.service.impl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import team.incube.flooding.domain.dormitory.music.adapter.WakeUpMusicSseEmitterRegistry
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicLikeRepository
@@ -35,6 +37,12 @@ class CancelWakeUpMusicServiceImpl(
         wakeUpMusicLikeRepository.deleteAllByMusicId(musicId)
         wakeUpMusicRepository.delete(music)
 
-        sseEmitterRegistry.broadcastCancelled(WakeUpMusicCancelledEvent(musicId = musicId))
+        TransactionSynchronizationManager.registerSynchronization(
+            object : TransactionSynchronization {
+                override fun afterCommit() {
+                    sseEmitterRegistry.broadcastCancelled(WakeUpMusicCancelledEvent(musicId = musicId))
+                }
+            },
+        )
     }
 }

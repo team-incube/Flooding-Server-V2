@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
-import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicEventResponse
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import tools.jackson.databind.ObjectMapper
 import java.util.concurrent.CopyOnWriteArrayList
@@ -27,7 +26,6 @@ class WakeUpMusicSseEmitterRegistry(
         return emitter
     }
 
-    @Async
     fun sendInitialData(
         emitter: SseEmitter,
         initList: List<WakeUpMusicResponse>,
@@ -60,7 +58,7 @@ class WakeUpMusicSseEmitterRegistry(
     }
 
     @Async
-    fun broadcast(event: WakeUpMusicEventResponse) {
+    fun broadcast(event: WakeUpMusicResponse) {
         log.info("broadcast 진입: emitters.size={}, event={}", emitters.size, event)
         val json =
             try {
