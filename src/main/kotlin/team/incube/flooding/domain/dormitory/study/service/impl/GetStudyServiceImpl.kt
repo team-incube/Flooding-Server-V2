@@ -47,19 +47,19 @@ class GetStudyServiceImpl(
             if (applicantIds.isEmpty()) {
                 emptyList()
             } else {
-                userRepository
-                    .findAllById(applicantIds)
-                    .sortedBy { it.studentNumber }
-                    .map {
-                        GetStudyResponse(
-                            userId = it.id,
-                            name = it.name,
-                            studentNumber = it.studentNumber,
-                            sex = it.sex,
-                            isBanned = it.id in bannedUserIds,
-                            isChecked = it.id in checkedUserIds,
-                        )
-                    }
+                val userMap = userRepository.findAllById(applicantIds).associateBy { it.id }
+                applicantIds.mapIndexedNotNull { index, userId ->
+                    val user = userMap[userId] ?: return@mapIndexedNotNull null
+                    GetStudyResponse(
+                        order = index + 1,
+                        userId = user.id,
+                        name = user.name,
+                        studentNumber = user.studentNumber,
+                        sex = user.sex,
+                        isBanned = user.id in bannedUserIds,
+                        isChecked = user.id in checkedUserIds,
+                    )
+                }
             }
         return GetStudyListResponse(
             isApplicationOpen = isStudyAvailable(now),
