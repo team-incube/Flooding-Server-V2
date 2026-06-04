@@ -32,8 +32,16 @@ class GetWakeUpMusicServiceImpl(
                 .toSet()
         val result = musicList.map { it.copy(isLiked = it.id in likedIds) }
         return when (sort) {
-            WakeUpMusicSort.TIME -> result.sortedByDescending { it.appliedAt }
-            WakeUpMusicSort.LIKE -> result.sortedByDescending { it.likeCount }
+            WakeUpMusicSort.TIME -> {
+                result.sortedByDescending { it.appliedAt }
+            }
+
+            WakeUpMusicSort.LIKE -> {
+                result.sortedWith(
+                    compareByDescending<WakeUpMusicResponse> { it.likeCount }
+                        .thenByDescending { it.appliedAt },
+                )
+            }
         }
     }
 }

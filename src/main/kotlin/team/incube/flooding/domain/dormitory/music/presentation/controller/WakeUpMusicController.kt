@@ -50,13 +50,13 @@ class WakeUpMusicController(
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?,
         @Parameter(description = "정렬 기준 (TIME: 시간순, LIKE: 좋아요순)", required = false)
-        @RequestParam(required = false) sort: WakeUpMusicSort?,
+        @RequestParam(required = false, defaultValue = "TIME") sort: WakeUpMusicSort,
     ): CommonApiResponse<List<WakeUpMusicResponse>> =
         CommonApiResponse.success(
             "OK",
             getWakeUpMusicService.execute(
                 date ?: LocalDate.now(),
-                sort ?: WakeUpMusicSort.TIME,
+                sort,
             ),
         )
 

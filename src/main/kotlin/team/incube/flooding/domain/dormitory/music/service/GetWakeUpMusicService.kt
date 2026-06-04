@@ -7,6 +7,6 @@ import java.time.LocalDate
 interface GetWakeUpMusicService {
     fun execute(
         date: LocalDate,
-        sort: WakeUpMusicSort,
+        sort: WakeUpMusicSort = WakeUpMusicSort.TIME,
     ): List<WakeUpMusicResponse>
 }
