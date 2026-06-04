@@ -125,6 +125,11 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.PATCH, "/dormitory/cleaning-zones/*/members")
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
 
+                // user
+                it
+                    .requestMatchers(HttpMethod.PATCH, "/users/*/role")
+                    .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+
                 it.anyRequest().authenticated()
             }.exceptionHandling {
                 it.authenticationEntryPoint { _, response, _ ->
