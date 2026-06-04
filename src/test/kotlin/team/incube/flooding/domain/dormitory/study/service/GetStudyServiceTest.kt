@@ -70,7 +70,7 @@ class GetStudyServiceTest :
         given("신청자가 없을 때") {
             `when`("자습 신청자 목록을 조회하면") {
                 then("빈 리스트를 반환한다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns emptySet()
+                    every { studyRedisAdapter.getApplicantIds() } returns emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
 
                     val result = service.execute()
@@ -87,7 +87,7 @@ class GetStudyServiceTest :
 
             `when`("아무도 자습체크를 하지 않았으면") {
                 then("모든 isChecked가 false다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L)
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L, 2L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
@@ -102,7 +102,7 @@ class GetStudyServiceTest :
 
             `when`("한 명만 자습체크를 했으면") {
                 then("체크한 학생의 isChecked는 true, 나머지는 false다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L)
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L, 2L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns setOf(1L)
@@ -117,7 +117,7 @@ class GetStudyServiceTest :
 
             `when`("모두 자습체크를 했으면") {
                 then("모든 isChecked가 true다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L)
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L, 2L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns setOf(1L, 2L)
@@ -144,7 +144,7 @@ class GetStudyServiceTest :
 
             `when`("자습 신청자 목록을 조회하면") {
                 then("금지된 학생의 isBanned는 true다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L)
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L, 2L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         listOf(banEntity)
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
@@ -170,7 +170,7 @@ class GetStudyServiceTest :
 
             `when`("자습 신청자 목록을 조회하면") {
                 then("isBanned와 isChecked가 모두 true다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L)
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         listOf(banEntity)
                     every { studyRedisAdapter.getAttendanceIds() } returns setOf(1L)
@@ -190,7 +190,7 @@ class GetStudyServiceTest :
 
             `when`("자습 신청자 목록을 조회하면") {
                 then("sex 필드가 올바르게 매핑된다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L)
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L, 2L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
@@ -204,14 +204,14 @@ class GetStudyServiceTest :
             }
         }
 
-        given("신청자 3명이 studentNumber 순서가 섞여 있을 때") {
+        given("신청자 3명이 순서대로 신청했을 때") {
             val user1 = user(id = 1L, studentNumber = 1103)
             val user2 = user(id = 2L, studentNumber = 1101)
             val user3 = user(id = 3L, studentNumber = 1102)
 
             `when`("자습 신청자 목록을 조회하면") {
-                then("studentNumber 오름차순으로 정렬된다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns setOf(1L, 2L, 3L)
+                then("신청 순서대로 정렬된다") {
+                    every { studyRedisAdapter.getApplicantIds() } returns listOf(1L, 2L, 3L)
                     every { studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(any(), any()) } returns
                         emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
@@ -219,9 +219,12 @@ class GetStudyServiceTest :
 
                     val result = service.execute().applicants
 
-                    result[0].studentNumber shouldBe 1101
-                    result[1].studentNumber shouldBe 1102
-                    result[2].studentNumber shouldBe 1103
+                    result[0].userId shouldBe 1L
+                    result[1].userId shouldBe 2L
+                    result[2].userId shouldBe 3L
+                    result[0].order shouldBe 1
+                    result[1].order shouldBe 2
+                    result[2].order shouldBe 3
                 }
             }
         }
@@ -229,7 +232,7 @@ class GetStudyServiceTest :
         given("현재 사용자가 오늘 자습을 취소했을 때") {
             `when`("자습 신청자 목록을 조회하면") {
                 then("내 신청 상태가 CANCELLED로 반환된다") {
-                    every { studyRedisAdapter.getApplicantIds() } returns emptySet()
+                    every { studyRedisAdapter.getApplicantIds() } returns emptyList()
                     every { studyRedisAdapter.getAttendanceIds() } returns emptySet()
                     every { studyRedisAdapter.getApplicationStatus(currentUser.id) } returns
                         StudyApplicationStatus.CANCELLED
