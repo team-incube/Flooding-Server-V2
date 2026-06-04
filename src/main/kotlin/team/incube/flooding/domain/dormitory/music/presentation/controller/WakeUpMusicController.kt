@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
+import team.incube.flooding.domain.dormitory.music.presentation.data.request.WakeUpMusicSort
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import team.incube.flooding.domain.dormitory.music.service.ApplyWakeUpMusicService
 import team.incube.flooding.domain.dormitory.music.service.CancelLikeWakeUpMusicService
@@ -48,8 +49,16 @@ class WakeUpMusicController(
         @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = false)
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?,
+        @Parameter(description = "정렬 기준 (TIME: 시간순, LIKE: 좋아요순)", required = false)
+        @RequestParam(required = false) sort: WakeUpMusicSort?,
     ): CommonApiResponse<List<WakeUpMusicResponse>> =
-        CommonApiResponse.success("OK", getWakeUpMusicService.execute(date ?: LocalDate.now()))
+        CommonApiResponse.success(
+            "OK",
+            getWakeUpMusicService.execute(
+                date ?: LocalDate.now(),
+                sort ?: WakeUpMusicSort.TIME,
+            ),
+        )
 
     @Operation(
         summary = "기상음악 신청",
