@@ -9,6 +9,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.springframework.http.HttpStatus
+import team.incube.flooding.domain.dormitory.music.adapter.WakeUpMusicSseEmitterRegistry
 import team.incube.flooding.domain.dormitory.music.entity.WakeUpMusicJpaEntity
 import team.incube.flooding.domain.dormitory.music.presentation.data.request.ApplyWakeUpMusicByUrlRequest
 import team.incube.flooding.domain.dormitory.music.repository.WakeUpMusicRepository
@@ -29,6 +30,7 @@ class ApplyWakeUpMusicServiceImplTest :
         val wakeUpMusicRepository = mockk<WakeUpMusicRepository>()
         val currentUserProvider = mockk<CurrentUserProvider>()
         val youtubeClient = mockk<YoutubeClient>()
+        val sseEmitterRegistry = mockk<WakeUpMusicSseEmitterRegistry>(relaxed = true)
         val clock = Clock.fixed(Instant.parse("2026-05-14T01:00:00Z"), ZoneId.of("Asia/Seoul"))
 
         val service =
@@ -37,6 +39,7 @@ class ApplyWakeUpMusicServiceImplTest :
                 currentUserProvider = currentUserProvider,
                 youtubeClient = youtubeClient,
                 clock = clock,
+                sseEmitterRegistry = sseEmitterRegistry,
             )
 
         val user =
