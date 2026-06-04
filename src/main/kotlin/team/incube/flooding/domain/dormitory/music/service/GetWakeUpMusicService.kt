@@ -1,8 +1,12 @@
 package team.incube.flooding.domain.dormitory.music.service
 
+import team.incube.flooding.domain.dormitory.music.presentation.data.request.WakeUpMusicSort
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import java.time.LocalDate
 
 interface GetWakeUpMusicService {
-    fun execute(date: LocalDate): List<WakeUpMusicResponse>
+    fun execute(
+        date: LocalDate,
+        sort: WakeUpMusicSort = WakeUpMusicSort.TIME,
+    ): List<WakeUpMusicResponse>
 }
