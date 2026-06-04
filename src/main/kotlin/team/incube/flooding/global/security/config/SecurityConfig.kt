@@ -98,6 +98,7 @@ class SecurityConfig(
 
                 // music
                 it.requestMatchers(HttpMethod.GET, "/dormitory/music").authenticated()
+                it.requestMatchers(HttpMethod.GET, "/dormitory/music/subscribe").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/dormitory/music").authenticated()
                 it.requestMatchers(HttpMethod.DELETE, "/dormitory/music/*").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/dormitory/music/*/like").authenticated()
