@@ -91,7 +91,6 @@ datagsm:
   neis:
     meals:
       baseUrl: ${DATAGSM_NEIS_MEALS_BASE_URL:https://openapi.datagsm.kr/}
-      apiKey: ${DATAGSM_NEIS_MEALS_API_KEY}
       path: "v1/neis/meals"
 
 ai:
