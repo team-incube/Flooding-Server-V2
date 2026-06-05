@@ -26,6 +26,7 @@ class WakeUpMusicSseEmitterRegistry(
         return emitter
     }
 
+    @Async
     fun sendInitialData(
         emitter: SseEmitter,
         initList: List<WakeUpMusicResponse>,
