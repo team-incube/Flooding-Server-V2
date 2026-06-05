@@ -1,12 +1,12 @@
 package team.incube.flooding.domain.neis.client
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
 import team.incube.flooding.domain.neis.client.dto.GetMealsRequest
-import org.springframework.beans.factory.annotation.Value
 import team.incube.flooding.domain.neis.config.DgMealsProperties
 import team.themoment.sdk.exception.ExpectedException
 import tools.jackson.databind.JsonNode
