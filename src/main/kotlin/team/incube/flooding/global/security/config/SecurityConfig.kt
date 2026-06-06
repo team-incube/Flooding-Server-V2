@@ -1,5 +1,6 @@
 package team.incube.flooding.global.security.config
 
+import jakarta.servlet.DispatcherType
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -45,6 +46,16 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .authorizeHttpRequests {
+                // SSE 등 비동기 요청의 ASYNC/ERROR/FORWARD 재디스패치는 인가를 재평가하지 않도록 permit.
+                // STATELESS + ThreadLocal 환경에서 재디스패치 시 SecurityContext가 비어 Access Denied가
+                // 발생하고, 이미 commit된 text/event-stream 응답이 끊겨 재연결 폭주가 생기는 것을 방지한다.
+                // (Spring Security 7에서 제거된 shouldFilterAllDispatcherTypes(false) 대체)
+                it
+                    .dispatcherTypeMatchers(
+                        DispatcherType.ASYNC,
+                        DispatcherType.ERROR,
+                        DispatcherType.FORWARD,
+                    ).permitAll()
                 it.requestMatchers("/actuator/**").permitAll()
                 it.requestMatchers("/error").permitAll()
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
