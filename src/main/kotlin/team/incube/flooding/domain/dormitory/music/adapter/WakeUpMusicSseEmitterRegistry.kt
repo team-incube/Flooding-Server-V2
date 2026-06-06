@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
+import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicLikeEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import tools.jackson.databind.ObjectMapper
 import java.util.concurrent.CopyOnWriteArrayList
@@ -80,6 +81,18 @@ class WakeUpMusicSseEmitterRegistry(
                 return
             }
         broadcastEvent("music-cancelled", json)
+    }
+
+    @Async
+    fun broadcastLike(event: WakeUpMusicLikeEvent) {
+        log.info("broadcastLike 진입: emitters.size={}, event={}", emitters.size, event)
+        val json =
+            try {
+                objectMapper.writeValueAsString(event)
+            } catch (e: Exception) {
+                return
+            }
+        broadcastEvent("music-like-updated", json)
     }
 
     @Scheduled(fixedDelay = 30_000L)

@@ -88,13 +88,17 @@ class ApplyWakeUpMusicServiceImpl(
                 isLiked = false,
             )
 
-        TransactionSynchronizationManager.registerSynchronization(
-            object : TransactionSynchronization {
-                override fun afterCommit() {
-                    sseEmitterRegistry.broadcast(response)
-                }
-            },
-        )
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                object : TransactionSynchronization {
+                    override fun afterCommit() {
+                        sseEmitterRegistry.broadcast(response)
+                    }
+                },
+            )
+        } else {
+            sseEmitterRegistry.broadcast(response)
+        }
 
         return response
     }

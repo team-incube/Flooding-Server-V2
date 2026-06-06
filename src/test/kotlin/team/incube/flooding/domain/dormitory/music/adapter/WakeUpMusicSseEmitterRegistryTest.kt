@@ -10,6 +10,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
+import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicLikeEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
 import tools.jackson.databind.ObjectMapper
 import java.io.IOException
@@ -150,6 +151,22 @@ class WakeUpMusicSseEmitterRegistryTest :
                     every { objectMapper.writeValueAsString(cancelEvent) } returns "{}"
 
                     registry.broadcastCancelled(cancelEvent)
+
+                    verify(exactly = 1) { emitter.send(any<SseEmitter.SseEventBuilder>()) }
+                }
+            }
+        }
+
+        given("broadcastLike를 호출할 때") {
+            val likeEvent = WakeUpMusicLikeEvent(musicId = 1L, likeCount = 5L)
+
+            `when`("등록된 emitter가 있으면") {
+                then("emitter에 좋아요 업데이트 이벤트가 전송된다") {
+                    val emitter = spyk(SseEmitter(1_800_000L))
+                    registry.register(emitter)
+                    every { objectMapper.writeValueAsString(likeEvent) } returns "{}"
+
+                    registry.broadcastLike(likeEvent)
 
                     verify(exactly = 1) { emitter.send(any<SseEmitter.SseEventBuilder>()) }
                 }
