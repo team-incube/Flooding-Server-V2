@@ -4,17 +4,24 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import team.incube.flooding.domain.user.presentation.data.request.PatchUserRoleRequest
 import team.incube.flooding.domain.user.presentation.data.response.GetMeResponse
 import team.incube.flooding.domain.user.presentation.data.response.SearchUsersResponse
 import team.incube.flooding.domain.user.service.GetMeService
+import team.incube.flooding.domain.user.service.PatchUserRoleService
 import team.incube.flooding.domain.user.service.SearchUsersService
 import team.themoment.sdk.response.CommonApiResponse
 
@@ -24,6 +31,7 @@ import team.themoment.sdk.response.CommonApiResponse
 class UserController(
     private val getMeService: GetMeService,
     private val searchUsersService: SearchUsersService,
+    private val patchUserRoleService: PatchUserRoleService,
 ) {
     @Operation(
         summary = "내 정보 조회",
@@ -54,4 +62,21 @@ class UserController(
         pageable: Pageable,
     ): CommonApiResponse<Page<SearchUsersResponse>> =
         CommonApiResponse.success("OK", searchUsersService.execute(name, studentNumber, pageable))
+
+    @Operation(
+        summary = "유저 권한 변경",
+        description = "특정 유저의 권한(Role)을 변경합니다. ADMIN 또는 DORMITORY_MANAGER 역할만 접근 가능합니다.",
+    )
+    @ApiResponse(responseCode = "204", description = "권한 변경 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN 또는 DORMITORY_MANAGER만 접근 가능)")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자")
+    @PatchMapping("/{userId}/role")
+    fun patchUserRole(
+        @Parameter(description = "권한을 변경할 유저 ID") @PathVariable userId: Long,
+        @Valid @RequestBody request: PatchUserRoleRequest,
+    ): ResponseEntity<Void> {
+        patchUserRoleService.execute(userId, request.role)
+        return ResponseEntity.noContent().build()
+    }
 }
