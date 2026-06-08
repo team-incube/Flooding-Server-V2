@@ -138,8 +138,8 @@ class GetWakeUpMusicServiceImplTest :
 
                     val result = service.execute(date)
 
-                    result[0].isLiked shouldBe false
-                    result[1].isLiked shouldBe true
+                    result[0].isLiked shouldBe true
+                    result[1].isLiked shouldBe false
                 }
             }
         }

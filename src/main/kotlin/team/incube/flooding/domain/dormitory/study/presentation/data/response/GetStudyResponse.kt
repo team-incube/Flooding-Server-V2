@@ -3,6 +3,7 @@ package team.incube.flooding.domain.dormitory.study.presentation.data.response
 import team.incube.flooding.domain.user.entity.Sex
 
 data class GetStudyResponse(
+    val order: Int,
     val userId: Long,
     val name: String,
     val studentNumber: Int,

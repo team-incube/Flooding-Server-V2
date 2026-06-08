@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.neis.client
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.ResourceAccessException
@@ -14,6 +15,7 @@ import tools.jackson.databind.JsonNode
 class DgMealsClient(
     private val dgMealsProperties: DgMealsProperties,
     restClientBuilder: RestClient.Builder,
+    @Value("\${datagsm.open-api-key}") private val apiKey: String,
 ) {
     private val restClient =
         restClientBuilder
@@ -30,7 +32,7 @@ class DgMealsClient(
                         .path(dgMealsProperties.path)
                         .queryParam("date", request.date)
                         .build()
-                }.header("X-API-KEY", dgMealsProperties.apiKey)
+                }.header("X-API-KEY", apiKey)
                 .retrieve()
                 .body(JsonNode::class.java)
                 ?: throw ExpectedException("DG 급식 응답이 비어 있습니다.", HttpStatus.INTERNAL_SERVER_ERROR)

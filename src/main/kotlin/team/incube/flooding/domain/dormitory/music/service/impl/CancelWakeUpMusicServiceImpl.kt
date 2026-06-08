@@ -37,12 +37,16 @@ class CancelWakeUpMusicServiceImpl(
         wakeUpMusicLikeRepository.deleteAllByMusicId(musicId)
         wakeUpMusicRepository.delete(music)
 
-        TransactionSynchronizationManager.registerSynchronization(
-            object : TransactionSynchronization {
-                override fun afterCommit() {
-                    sseEmitterRegistry.broadcastCancelled(WakeUpMusicCancelledEvent(musicId = musicId))
-                }
-            },
-        )
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                object : TransactionSynchronization {
+                    override fun afterCommit() {
+                        sseEmitterRegistry.broadcastCancelled(WakeUpMusicCancelledEvent(musicId = musicId))
+                    }
+                },
+            )
+        } else {
+            sseEmitterRegistry.broadcastCancelled(WakeUpMusicCancelledEvent(musicId = musicId))
+        }
     }
 }

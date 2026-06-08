@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.user.presentation.data.response
 
+import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 
@@ -11,6 +12,7 @@ data class SearchUsersResponse(
     val grade: Int,
     val classNumber: Int,
     val number: Int,
+    val role: Role,
     val isBanned: Boolean,
 ) {
     companion object {
@@ -25,6 +27,7 @@ data class SearchUsersResponse(
             grade = user.grade,
             classNumber = user.classNumber,
             number = user.number,
+            role = user.role,
             isBanned = isBanned,
         )
     }

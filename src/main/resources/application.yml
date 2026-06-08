@@ -42,6 +42,7 @@ sdk:
       - "/v3/api-docs/**"
       - "/swagger-ui/**"
       - "/dormitory/studies/attendance"
+      - "/dormitory/music/subscribe"
 
   response:
     enabled: true
@@ -50,6 +51,7 @@ sdk:
       - "/v3/api-docs"
       - "/swagger-ui/**"
       - "/dormitory/studies/attendance"
+      - "/dormitory/music/subscribe"
 
   swagger:
     enabled: true
@@ -91,7 +93,6 @@ datagsm:
   neis:
     meals:
       baseUrl: ${DATAGSM_NEIS_MEALS_BASE_URL:https://openapi.datagsm.kr/}
-      apiKey: ${DATAGSM_NEIS_MEALS_API_KEY}
       path: "v1/neis/meals"
 
 ai:

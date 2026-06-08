@@ -60,20 +60,21 @@ class StudyRedisAdapter(
     fun getCount(): Long = redisTemplate.opsForValue().get(COUNT_KEY)?.toLong() ?: 0
 
     fun addApplicant(userId: Long) {
-        redisTemplate.opsForSet().add(APPLICANTS_KEY, userId.toString())
-        redisTemplate.expire(APPLICANTS_KEY, ttlUntil6AM())
+        val size = redisTemplate.opsForList().rightPush(APPLICANTS_KEY, userId.toString())
+        if (size == 1L) {
+            redisTemplate.expire(APPLICANTS_KEY, ttlUntil6AM())
+        }
     }
 
     fun removeApplicant(userId: Long) {
-        redisTemplate.opsForSet().remove(APPLICANTS_KEY, userId.toString())
+        redisTemplate.opsForList().remove(APPLICANTS_KEY, 1, userId.toString())
     }
 
-    fun getApplicantIds(): Set<Long> =
+    fun getApplicantIds(): List<Long> =
         redisTemplate
-            .opsForSet()
-            .members(APPLICANTS_KEY)
-            ?.map { it.toLong() }
-            ?.toSet() ?: emptySet()
+            .opsForList()
+            .range(APPLICANTS_KEY, 0, -1)
+            ?.map { it.toLong() } ?: emptyList()
 
     fun checkAttendance(userId: Long) {
         redisTemplate.opsForSet().add(ATTENDANCE_KEY, userId.toString())
