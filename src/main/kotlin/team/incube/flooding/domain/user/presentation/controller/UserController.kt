@@ -3,26 +3,34 @@ package team.incube.flooding.domain.user.presentation.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import team.incube.flooding.domain.user.presentation.data.request.PatchUserRoleRequest
 import team.incube.flooding.domain.user.presentation.data.response.GetMeResponse
 import team.incube.flooding.domain.user.presentation.data.response.SearchUsersResponse
+import team.incube.flooding.domain.user.presentation.data.response.UploadUserProfileImageResponse
 import team.incube.flooding.domain.user.service.GetMeService
 import team.incube.flooding.domain.user.service.PatchUserRoleService
 import team.incube.flooding.domain.user.service.SearchUsersService
+import team.incube.flooding.domain.user.service.UploadUserProfileImageService
 import team.themoment.sdk.response.CommonApiResponse
 
 @Tag(name = "유저", description = "유저 관련 API")
@@ -32,6 +40,7 @@ class UserController(
     private val getMeService: GetMeService,
     private val searchUsersService: SearchUsersService,
     private val patchUserRoleService: PatchUserRoleService,
+    private val uploadUserProfileImageService: UploadUserProfileImageService,
 ) {
     @Operation(
         summary = "내 정보 조회",
@@ -62,6 +71,23 @@ class UserController(
         pageable: Pageable,
     ): CommonApiResponse<Page<SearchUsersResponse>> =
         CommonApiResponse.success("OK", searchUsersService.execute(name, studentNumber, pageable))
+
+    @Operation(
+        summary = "유저 프로필 이미지 업로드",
+        description = "multipart/form-data로 프로필 이미지를 업로드하고, 사용할 profileImageUrl을 반환합니다.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "업로드 성공"),
+        ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일"),
+        ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        ApiResponse(responseCode = "413", description = "업로드 가능한 파일 크기 초과"),
+    )
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/me/profile-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadUserProfileImage(
+        @RequestParam("image") image: MultipartFile,
+    ): CommonApiResponse<UploadUserProfileImageResponse> =
+        CommonApiResponse.created("OK", uploadUserProfileImageService.execute(image))
 
     @Operation(
         summary = "유저 권한 변경",

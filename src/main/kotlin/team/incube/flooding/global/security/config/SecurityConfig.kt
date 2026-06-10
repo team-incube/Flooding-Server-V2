@@ -140,6 +140,9 @@ class SecurityConfig(
                 it
                     .requestMatchers(HttpMethod.PATCH, "/users/*/role")
                     .hasAnyRole(Role.DORMITORY_MANAGER.name, Role.ADMIN.name)
+                it
+                    .requestMatchers(HttpMethod.POST, "/users/me/profile-image")
+                    .authenticated()
 
                 it.anyRequest().authenticated()
             }.exceptionHandling {
