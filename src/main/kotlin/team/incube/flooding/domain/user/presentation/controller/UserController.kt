@@ -3,7 +3,6 @@ package team.incube.flooding.domain.user.presentation.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
@@ -76,12 +75,10 @@ class UserController(
         summary = "유저 프로필 이미지 업로드",
         description = "multipart/form-data로 프로필 이미지를 업로드하고, 사용할 profileImageUrl을 반환합니다.",
     )
-    @ApiResponses(
-        ApiResponse(responseCode = "201", description = "업로드 성공"),
-        ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일"),
-        ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-        ApiResponse(responseCode = "413", description = "업로드 가능한 파일 크기 초과"),
-    )
+    @ApiResponse(responseCode = "201", description = "업로드 성공")
+    @ApiResponse(responseCode = "400", description = "지원하지 않는 이미지 파일")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @ApiResponse(responseCode = "413", description = "업로드 가능한 파일 크기 초과")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/me/profile-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadUserProfileImage(
