@@ -10,4 +10,5 @@ data class GetStudyResponse(
     val sex: Sex,
     val isBanned: Boolean,
     val isChecked: Boolean,
+    val profileImageUrl: String?,
 )

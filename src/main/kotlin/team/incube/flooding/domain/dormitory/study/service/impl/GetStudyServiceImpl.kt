@@ -58,6 +58,7 @@ class GetStudyServiceImpl(
                         sex = user.sex,
                         isBanned = user.id in bannedUserIds,
                         isChecked = user.id in checkedUserIds,
+                        profileImageUrl = user.profileImageUrl,
                     )
                 }
             }
