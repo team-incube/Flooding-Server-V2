@@ -20,6 +20,7 @@ data class GetMeResponse(
     val penaltyScore: Int,
     val isBanned: Boolean,
     val hasClubApplication: Boolean,
+    val profileImageUrl: String?,
 ) {
     companion object {
         fun from(
@@ -42,6 +43,7 @@ data class GetMeResponse(
             penaltyScore = user.penaltyScore,
             isBanned = isBanned,
             hasClubApplication = hasClubApplication,
+            profileImageUrl = user.profileImageUrl,
         )
     }
 }

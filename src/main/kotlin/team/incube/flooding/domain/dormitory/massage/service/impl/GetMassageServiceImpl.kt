@@ -41,7 +41,12 @@ class GetMassageServiceImpl(
                 queue
                     .mapIndexed { index, userId ->
                         val user = userMap[userId] ?: return@mapIndexed null
-                        GetMassageResponse(order = index + 1L, name = user.name, studentNumber = user.studentNumber)
+                        GetMassageResponse(
+                            order = index + 1L,
+                            name = user.name,
+                            studentNumber = user.studentNumber,
+                            profileImageUrl = user.profileImageUrl,
+                        )
                     }.filterNotNull()
             }
         return GetMassageListResponse(

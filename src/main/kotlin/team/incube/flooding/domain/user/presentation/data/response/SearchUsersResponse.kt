@@ -14,6 +14,7 @@ data class SearchUsersResponse(
     val number: Int,
     val role: Role,
     val isBanned: Boolean,
+    val profileImageUrl: String?,
 ) {
     companion object {
         fun from(
@@ -29,6 +30,7 @@ data class SearchUsersResponse(
             number = user.number,
             role = user.role,
             isBanned = isBanned,
+            profileImageUrl = user.profileImageUrl,
         )
     }
 }
