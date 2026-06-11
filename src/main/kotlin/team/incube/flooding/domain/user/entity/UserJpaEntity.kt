@@ -34,6 +34,8 @@ class UserJpaEntity(
     var dormitoryRoom: Int,
     @field:Column(name = "specialty", length = 100)
     var specialty: String? = null,
+    @field:Column(name = "profile_image_url")
+    var profileImageUrl: String? = null,
     @field:Column(name = "penalty_score", nullable = false)
     var penaltyScore: Int = 0,
     @field:ManyToOne(fetch = FetchType.LAZY)
