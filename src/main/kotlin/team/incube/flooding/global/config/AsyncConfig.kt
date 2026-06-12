@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 
 @Configuration
@@ -28,16 +29,7 @@ class AsyncConfig : AsyncConfigurer {
     }
 
     @Bean(name = ["sseSendExecutor"])
-    fun sseSendExecutor(): ThreadPoolTaskExecutor {
-        val executor = ThreadPoolTaskExecutor()
-        executor.corePoolSize = 8
-        executor.maxPoolSize = 32
-        executor.queueCapacity = 1000
-        executor.setThreadNamePrefix("sse-send-")
-        executor.setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
-        executor.initialize()
-        return executor
-    }
+    fun sseSendExecutor(): Executor = Executors.newVirtualThreadPerTaskExecutor()
 
     override fun getAsyncUncaughtExceptionHandler(): AsyncUncaughtExceptionHandler =
         AsyncUncaughtExceptionHandler { ex, method, params ->

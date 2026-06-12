@@ -2,16 +2,16 @@ package team.incube.flooding.global.sse
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 @Component
 class SseEmitterDispatcher(
-    @Qualifier("sseSendExecutor") private val sendExecutor: ThreadPoolTaskExecutor,
+    @Qualifier("sseSendExecutor") private val sendExecutor: Executor,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -19,29 +19,19 @@ class SseEmitterDispatcher(
         emitters: CopyOnWriteArrayList<SseEmitter>,
         event: () -> SseEmitter.SseEventBuilder,
     ) {
-        val targets = emitters.toList()
-        if (targets.isEmpty()) return
-
-        val tasks =
-            targets.map { emitter ->
-                Callable {
+        emitters.toList().forEach { emitter ->
+            CompletableFuture
+                .runAsync({
                     synchronized(emitter) { emitter.send(event()) }
+                }, sendExecutor)
+                .orTimeout(SEND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .exceptionally { e ->
+                    if (emitters.remove(emitter)) {
+                        log.warn("SSE 전송 실패/지연으로 emitter 제거: {}", e.message)
+                        runCatching { emitter.completeWithError(e) }
+                    }
+                    null
                 }
-            }
-
-        val futures =
-            sendExecutor.threadPoolExecutor.invokeAll(tasks, SEND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-
-        futures.forEachIndexed { index, future ->
-            try {
-                future.get()
-            } catch (e: Exception) {
-                val emitter = targets[index]
-                if (emitters.remove(emitter)) {
-                    log.warn("SSE 전송 실패/지연으로 emitter 제거: {}", e.message)
-                    runCatching { emitter.completeWithError(e) }
-                }
-            }
         }
     }
 
