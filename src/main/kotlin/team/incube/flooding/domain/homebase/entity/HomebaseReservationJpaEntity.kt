@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
@@ -15,12 +16,15 @@ import team.incube.flooding.domain.homebase.dto.response.GetHomebaseResponse
 import java.time.LocalDate
 
 @Entity
-@Table(name = "tb_homebase_reservation")
+@Table(
+    name = "tb_homebase_reservation",
+    indexes = [Index(name = "idx_tb_homebase_reservation_reservation_date", columnList = "reservation_date")],
+)
 class HomebaseReservationJpaEntity(
     @field:Id
     @field:GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
-    @field:Column(nullable = false)
+    @field:Column(name = "reservation_date", nullable = false)
     val reservationDate: LocalDate,
     @field:Column(nullable = false)
     val startPeriod: Int,
