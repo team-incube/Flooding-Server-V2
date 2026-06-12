@@ -8,18 +8,30 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicLikeEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
+import team.incube.flooding.global.sse.SseEmitterDispatcher
 import tools.jackson.databind.ObjectMapper
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ThreadPoolExecutor
 
 class WakeUpMusicSseEmitterRegistryTest :
     BehaviorSpec({
         val objectMapper = mockk<ObjectMapper>()
+        val sseSendExecutor =
+            ThreadPoolTaskExecutor().apply {
+                corePoolSize = 4
+                maxPoolSize = 8
+                queueCapacity = 100
+                setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
+                initialize()
+            }
+        val sseEmitterDispatcher = SseEmitterDispatcher(sseSendExecutor)
         lateinit var registry: WakeUpMusicSseEmitterRegistry
 
         fun emitters(): CopyOnWriteArrayList<SseEmitter> {
@@ -48,7 +60,7 @@ class WakeUpMusicSseEmitterRegistryTest :
 
         beforeEach {
             clearAllMocks()
-            registry = WakeUpMusicSseEmitterRegistry(objectMapper)
+            registry = WakeUpMusicSseEmitterRegistry(objectMapper, sseEmitterDispatcher)
         }
 
         given("emitter를 등록할 때") {

@@ -2,6 +2,11 @@ spring:
   application:
     name: flooding-server-v2
 
+  task:
+    scheduling:
+      pool:
+        size: 2
+
   servlet:
     multipart:
       max-file-size: 5MB

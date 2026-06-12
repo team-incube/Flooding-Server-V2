@@ -8,12 +8,14 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicLikeEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
+import team.incube.flooding.global.sse.SseEmitterDispatcher
 import tools.jackson.databind.ObjectMapper
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Component
 class WakeUpMusicSseEmitterRegistry(
     private val objectMapper: ObjectMapper,
+    private val sseEmitterDispatcher: SseEmitterDispatcher,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val emitters = CopyOnWriteArrayList<SseEmitter>()
@@ -97,14 +99,8 @@ class WakeUpMusicSseEmitterRegistry(
 
     @Scheduled(fixedDelay = 30_000L)
     fun sendHeartbeat() {
-        emitters.forEach { emitter ->
-            synchronized(emitter) {
-                try {
-                    emitter.send(SseEmitter.event().comment("heartbeat"))
-                } catch (e: Exception) {
-                    emitter.completeWithError(e)
-                }
-            }
+        sseEmitterDispatcher.dispatch(emitters) {
+            SseEmitter.event().comment("heartbeat")
         }
     }
 
@@ -113,21 +109,11 @@ class WakeUpMusicSseEmitterRegistry(
         json: String,
     ) {
         log.info("broadcastEvent: name={}, emitters.size={}", name, emitters.size)
-        emitters.forEach { emitter ->
-            synchronized(emitter) {
-                try {
-                    emitter.send(
-                        SseEmitter
-                            .event()
-                            .name(name)
-                            .data(json),
-                    )
-                    log.info("send 성공: name={}", name)
-                } catch (e: Exception) {
-                    log.error("send 실패: name={}, json={}", name, json, e)
-                    emitter.completeWithError(e)
-                }
-            }
+        sseEmitterDispatcher.dispatch(emitters) {
+            SseEmitter
+                .event()
+                .name(name)
+                .data(json)
         }
     }
 }
