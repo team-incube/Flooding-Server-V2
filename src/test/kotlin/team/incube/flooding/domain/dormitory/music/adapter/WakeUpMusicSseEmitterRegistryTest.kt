@@ -12,14 +12,17 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicCancelledEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicLikeEvent
 import team.incube.flooding.domain.dormitory.music.presentation.data.response.WakeUpMusicResponse
+import team.incube.flooding.global.sse.SseEmitterDispatcher
 import tools.jackson.databind.ObjectMapper
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executor
 
 class WakeUpMusicSseEmitterRegistryTest :
     BehaviorSpec({
         val objectMapper = mockk<ObjectMapper>()
+        val sseEmitterDispatcher = SseEmitterDispatcher(Executor { it.run() })
         lateinit var registry: WakeUpMusicSseEmitterRegistry
 
         fun emitters(): CopyOnWriteArrayList<SseEmitter> {
@@ -48,7 +51,7 @@ class WakeUpMusicSseEmitterRegistryTest :
 
         beforeEach {
             clearAllMocks()
-            registry = WakeUpMusicSseEmitterRegistry(objectMapper)
+            registry = WakeUpMusicSseEmitterRegistry(objectMapper, sseEmitterDispatcher)
         }
 
         given("emitter를 등록할 때") {

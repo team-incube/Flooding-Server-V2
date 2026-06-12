@@ -4,4 +4,5 @@ data class GetMassageResponse(
     val order: Long,
     val name: String,
     val studentNumber: Int,
+    val profileImageUrl: String?,
 )
