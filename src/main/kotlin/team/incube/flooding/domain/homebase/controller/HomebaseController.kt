@@ -42,7 +42,7 @@ class HomebaseController(
     @Operation(summary = "홈베이스 예약 조회")
     @GetMapping
     fun getReservation(
-        @RequestParam("date")
+        @RequestParam("date", required = true)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         date: LocalDate,
     ): CommonApiResponse<List<GetHomebaseResponse>> {
