@@ -32,4 +32,18 @@ interface HomebaseReservationRepository : JpaRepository<HomebaseReservationJpaEn
     """,
     )
     fun findAllWithMembers(): List<HomebaseReservationJpaEntity>
+
+    @Query(
+        """
+        SELECT DISTINCT r 
+        FROM HomebaseReservationJpaEntity r 
+        JOIN FETCH r.homebase 
+        LEFT JOIN FETCH r.members
+        WHERE r.reservationDate = :reservationDate
+    """,
+    )
+    fun findAllWithMembersByDate(
+        @Param("reservationDate")
+        reservationDate: LocalDate,
+    ): List<HomebaseReservationJpaEntity>
 }
