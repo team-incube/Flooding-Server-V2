@@ -80,6 +80,10 @@ dependencies {
     testImplementation(kotlin("test"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // Resilience4j
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.3.0")
+    implementation("io.github.resilience4j:resilience4j-retry:2.3.0")
+
     // Excel
     implementation("org.apache.poi:poi-ooxml:5.2.3")
 }
