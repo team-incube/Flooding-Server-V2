@@ -38,7 +38,7 @@ management:
         include: health
   endpoint:
     health:
-      show-details: never
+      show-details: when-authorized
 
 sdk:
   logging:
