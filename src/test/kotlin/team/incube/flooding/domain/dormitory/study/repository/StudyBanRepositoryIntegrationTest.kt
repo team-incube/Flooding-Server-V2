@@ -19,7 +19,7 @@ import kotlin.test.assertTrue
 @Transactional
 class StudyBanRepositoryIntegrationTest : IntegrationTestBase() {
     @Autowired
-    lateinit var studyBanJpaRepository: StudyBanJpaRepository
+    lateinit var studyBanRepository: StudyBanJpaRepository
 
     @Autowired
     lateinit var userRepository: UserRepository
@@ -43,14 +43,15 @@ class StudyBanRepositoryIntegrationTest : IntegrationTestBase() {
     @Test
     fun `활성 밴이 존재하면 existsByUserIdAndBannedUntilAfter는 true를 반환한다`() {
         val user = createUser(1L, "user1@test.com")
-        studyBanJpaRepository.save(
+        val now = LocalDateTime.now()
+        studyBanRepository.save(
             StudyBanJpaEntity(
                 user = user,
-                bannedUntil = LocalDateTime.now().plusWeeks(1),
+                bannedUntil = now.plusWeeks(1),
             ),
         )
 
-        val result = studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())
+        val result = studyBanRepository.existsByUserIdAndBannedUntilAfter(user.id, now)
 
         assertTrue(result)
     }
@@ -58,14 +59,15 @@ class StudyBanRepositoryIntegrationTest : IntegrationTestBase() {
     @Test
     fun `만료된 밴만 존재하면 existsByUserIdAndBannedUntilAfter는 false를 반환한다`() {
         val user = createUser(2L, "user2@test.com")
-        studyBanJpaRepository.save(
+        val now = LocalDateTime.now()
+        studyBanRepository.save(
             StudyBanJpaEntity(
                 user = user,
-                bannedUntil = LocalDateTime.now().minusDays(1),
+                bannedUntil = now.minusDays(1),
             ),
         )
 
-        val result = studyBanJpaRepository.existsByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())
+        val result = studyBanRepository.existsByUserIdAndBannedUntilAfter(user.id, now)
 
         assertFalse(result)
     }
@@ -73,15 +75,16 @@ class StudyBanRepositoryIntegrationTest : IntegrationTestBase() {
     @Test
     fun `활성 밴이 존재하면 findByUserIdAndBannedUntilAfter가 해당 엔티티를 반환한다`() {
         val user = createUser(3L, "user3@test.com")
+        val now = LocalDateTime.now()
         val ban =
-            studyBanJpaRepository.save(
+            studyBanRepository.save(
                 StudyBanJpaEntity(
                     user = user,
-                    bannedUntil = LocalDateTime.now().plusWeeks(1),
+                    bannedUntil = now.plusWeeks(1),
                 ),
             )
 
-        val result = studyBanJpaRepository.findByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())
+        val result = studyBanRepository.findByUserIdAndBannedUntilAfter(user.id, now)
 
         assertNotNull(result)
         assertEquals(ban.id, result.id)
@@ -90,14 +93,15 @@ class StudyBanRepositoryIntegrationTest : IntegrationTestBase() {
     @Test
     fun `활성 밴이 없으면 findByUserIdAndBannedUntilAfter는 null을 반환한다`() {
         val user = createUser(4L, "user4@test.com")
-        studyBanJpaRepository.save(
+        val now = LocalDateTime.now()
+        studyBanRepository.save(
             StudyBanJpaEntity(
                 user = user,
-                bannedUntil = LocalDateTime.now().minusDays(1),
+                bannedUntil = now.minusDays(1),
             ),
         )
 
-        val result = studyBanJpaRepository.findByUserIdAndBannedUntilAfter(user.id, LocalDateTime.now())
+        val result = studyBanRepository.findByUserIdAndBannedUntilAfter(user.id, now)
 
         assertNull(result)
     }
@@ -107,18 +111,19 @@ class StudyBanRepositoryIntegrationTest : IntegrationTestBase() {
         val user1 = createUser(5L, "user5@test.com")
         val user2 = createUser(6L, "user6@test.com")
         val user3 = createUser(7L, "user7@test.com")
+        val now = LocalDateTime.now()
 
-        studyBanJpaRepository.save(
-            StudyBanJpaEntity(user = user1, bannedUntil = LocalDateTime.now().plusWeeks(1)),
+        studyBanRepository.save(
+            StudyBanJpaEntity(user = user1, bannedUntil = now.plusWeeks(1)),
         )
-        studyBanJpaRepository.save(
-            StudyBanJpaEntity(user = user2, bannedUntil = LocalDateTime.now().minusDays(1)),
+        studyBanRepository.save(
+            StudyBanJpaEntity(user = user2, bannedUntil = now.minusDays(1)),
         )
 
         val result =
-            studyBanJpaRepository.findAllByUserIdInAndBannedUntilAfter(
+            studyBanRepository.findAllByUserIdInAndBannedUntilAfter(
                 listOf(user1.id, user2.id, user3.id),
-                LocalDateTime.now(),
+                now,
             )
 
         assertEquals(1, result.size)
