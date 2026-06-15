@@ -9,6 +9,7 @@ import io.github.resilience4j.retry.RetryRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.client.ResourceAccessException
 import team.themoment.sdk.exception.ExpectedException
 import java.time.Duration
 
