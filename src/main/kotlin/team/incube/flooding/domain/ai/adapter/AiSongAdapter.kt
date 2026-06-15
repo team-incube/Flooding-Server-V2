@@ -34,17 +34,13 @@ class AiSongAdapter(
                 },
             ).build()
 
-    fun recommend(request: RecommendAiSongRequest): RecommendAiSongResponse {
-        val decorated =
-            CircuitBreaker.decorateCheckedSupplier(circuitBreaker) {
-                Retry
-                    .decorateCheckedSupplier(retry) {
-                        doRecommend(request)
-                    }.get()
+    fun recommend(request: RecommendAiSongRequest): RecommendAiSongResponse =
+        try {
+            circuitBreaker.executeCheckedSupplier {
+                retry.executeCheckedSupplier {
+                    doRecommend(request)
+                }
             }
-
-        return try {
-            decorated.get()
         } catch (e: CallNotPermittedException) {
             throw ExpectedException("AI 음악 추천 서버가 일시적으로 사용 불가합니다. 잠시 후 다시 시도해주세요.", HttpStatus.SERVICE_UNAVAILABLE)
         } catch (e: ExpectedException) {
@@ -53,7 +49,6 @@ class AiSongAdapter(
             log.error("AI 음악 추천 서버 통신 실패 - {}", e.message)
             throw ExpectedException("AI 음악 추천 서버와 통신 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY)
         }
-    }
 
     private fun doRecommend(request: RecommendAiSongRequest): RecommendAiSongResponse =
         restClient
