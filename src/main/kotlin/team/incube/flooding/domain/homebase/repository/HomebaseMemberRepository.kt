@@ -9,6 +9,8 @@ import java.time.LocalDate
 interface HomebaseMemberRepository : JpaRepository<HomebaseMemberJpaEntity, Long> {
     fun findByReservationId(reservationId: Long): List<HomebaseMemberJpaEntity>
 
+    fun findAllByReservationIdIn(reservationIds: List<Long>): List<HomebaseMemberJpaEntity>
+
     fun deleteByReservationId(reservationId: Long)
 
     @Query(

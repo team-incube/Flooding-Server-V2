@@ -38,7 +38,7 @@ class HomebaseReservationJpaEntity(
     @field:OneToMany(mappedBy = "reservation")
     val members: List<HomebaseMemberJpaEntity> = mutableListOf(),
 ) {
-    fun toResponse() =
+    fun toResponse(members: List<HomebaseMemberJpaEntity> = emptyList()) =
         GetHomebaseResponse(
             id = id,
             reservationDate = reservationDate,
