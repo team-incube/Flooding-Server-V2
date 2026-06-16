@@ -1,0 +1,58 @@
+oauth:
+  client-id: test-client-id
+  client-secret: test-client-secret
+
+neis:
+  openapi:
+    timetable:
+      apiKey: test-key
+
+datagsm:
+  open-api-key: test-key
+
+ai:
+  chatbot:
+    base-url: http://localhost:19999
+  song:
+    base-url: http://localhost:19999
+
+youtube:
+  api-key: test-key
+
+jwt:
+  secret: test-secret-key-for-integration-testing-only-must-be-long-enough
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
+
+file:
+  bucket: test-bucket
+  endpoint: http://localhost:19999
+  access-key: test-access-key
+  secret-key: test-secret-key
+  public-base-url: http://localhost:19999
+  region: auto
+
+study:
+  open-time: "00:00"
+  close-time: "23:59"
+  max-count: 50
+  lock-key: study:lock
+
+massage:
+  open-time: "00:00"
+  close-time: "23:59"
+  max-count: 5
+  lock-key: lock
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+management:
+  endpoint:
+    health:
+      show-details: always
