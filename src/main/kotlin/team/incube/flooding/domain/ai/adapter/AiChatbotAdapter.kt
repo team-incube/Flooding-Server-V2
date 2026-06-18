@@ -1,5 +1,10 @@
 package team.incube.flooding.domain.ai.adapter
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+import io.github.resilience4j.circuitbreaker.CircuitBreaker
+import io.github.resilience4j.retry.Retry
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -13,7 +18,11 @@ import team.themoment.sdk.exception.ExpectedException
 @Component
 class AiChatbotAdapter(
     @Value("\${ai.chatbot.base-url}") baseUrl: String,
+    @Qualifier("chatbotCircuitBreaker") private val circuitBreaker: CircuitBreaker,
+    @Qualifier("chatbotRetry") private val retry: Retry,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     private val restClient =
         RestClient
             .builder()
@@ -26,13 +35,31 @@ class AiChatbotAdapter(
             ).build()
 
     fun chat(request: SendAiChatRequest): SendAiChatResponse =
+        try {
+            circuitBreaker.executeCheckedSupplier {
+                retry.executeCheckedSupplier {
+                    doChat(request)
+                }
+            }
+        } catch (e: CallNotPermittedException) {
+            throw ExpectedException("AI 챗봇 서버가 일시적으로 사용 불가합니다. 잠시 후 다시 시도해주세요.", HttpStatus.SERVICE_UNAVAILABLE)
+        } catch (e: ExpectedException) {
+            throw e
+        } catch (e: Throwable) {
+            log.error("AI 챗봇 서버 통신 실패 - {}", e.message)
+            throw ExpectedException("AI 챗봇 서버와 통신 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY)
+        }
+
+    private fun doChat(request: SendAiChatRequest): SendAiChatResponse =
         restClient
             .post()
             .uri("/ai/chat")
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .retrieve()
-            .onStatus({ it.isError }) { _, _ ->
+            .onStatus({ it.isError }) { _, response ->
+                val body = response.body.bufferedReader().use { it.readText() }
+                log.error("AI 챗봇 서버 오류 - status: {}, body: {}", response.statusCode, body)
                 throw ExpectedException("AI 챗봇 서버와 통신 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY)
             }.body(SendAiChatResponse::class.java)
             ?: throw ExpectedException("AI 챗봇 서버로부터 응답을 받지 못했습니다.", HttpStatus.BAD_GATEWAY)
