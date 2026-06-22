@@ -47,7 +47,5 @@ interface HomebaseReservationRepository : JpaRepository<HomebaseReservationJpaEn
     ): List<HomebaseReservationJpaEntity>
 
     @EntityGraph(attributePaths = ["homebase"])
-    fun findAllByReservationDate(
-        reservationDate: LocalDate,
-    ): List<HomebaseReservationJpaEntity>
+    fun findAllByReservationDate(reservationDate: LocalDate): List<HomebaseReservationJpaEntity>
 }
