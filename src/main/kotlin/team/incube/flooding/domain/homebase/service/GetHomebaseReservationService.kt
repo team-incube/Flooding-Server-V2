@@ -25,7 +25,7 @@ class GetHomebaseReservationService(
 
     @Transactional(readOnly = true)
     fun getReservationList(reservationDate: LocalDate): List<GetHomebaseResponse> {
-        val reservations = reservationRepository.findAllWithHomebaseByDate(reservationDate)
+        val reservations = reservationRepository.findAllByReservationDate(reservationDate)
         if (reservations.isEmpty()) return emptyList()
         val membersByReservationId =
             memberRepository
