@@ -1,5 +1,6 @@
 package team.incube.flooding.domain.homebase.repository
 
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -44,4 +45,7 @@ interface HomebaseReservationRepository : JpaRepository<HomebaseReservationJpaEn
         @Param("reservationDate")
         reservationDate: LocalDate,
     ): List<HomebaseReservationJpaEntity>
+
+    @EntityGraph(attributePaths = ["homebase"])
+    fun findAllByReservationDate(reservationDate: LocalDate): List<HomebaseReservationJpaEntity>
 }
