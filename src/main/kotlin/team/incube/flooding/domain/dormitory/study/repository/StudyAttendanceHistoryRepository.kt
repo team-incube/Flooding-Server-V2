@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param
 import team.incube.flooding.domain.dormitory.study.entity.StudyAttendanceHistoryJpaEntity
 import java.time.LocalDate
 
-interface StudyAttendanceHistoryJpaRepository : JpaRepository<StudyAttendanceHistoryJpaEntity, Long> {
+interface StudyAttendanceHistoryRepository : JpaRepository<StudyAttendanceHistoryJpaEntity, Long> {
     fun existsByUserIdAndAttendedDate(
         userId: Long,
         attendedDate: LocalDate,

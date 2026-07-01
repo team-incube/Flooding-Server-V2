@@ -9,10 +9,11 @@ import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.entity.StudyApplicationStatus
 import team.incube.flooding.domain.dormitory.study.entity.StudyAttendanceHistoryJpaEntity
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
-import team.incube.flooding.domain.dormitory.study.repository.StudyAttendanceHistoryJpaRepository
+import team.incube.flooding.domain.dormitory.study.repository.StudyAttendanceHistoryRepository
 import team.incube.flooding.domain.dormitory.study.service.CheckStudyAttendanceService
 import team.incube.flooding.domain.user.repository.UserRepository
 import team.themoment.sdk.exception.ExpectedException
+import java.time.Clock
 import java.time.LocalDate
 
 @Service
@@ -21,7 +22,8 @@ class CheckStudyAttendanceServiceImpl(
     private val studyRedisAdapter: StudyRedisAdapter,
     private val userRepository: UserRepository,
     private val sseEmitterRegistry: StudyAttendanceSseEmitterRegistry,
-    private val studyAttendanceHistoryJpaRepository: StudyAttendanceHistoryJpaRepository,
+    private val studyAttendanceHistoryRepository: StudyAttendanceHistoryRepository,
+    private val clock: Clock,
 ) : CheckStudyAttendanceService {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -40,9 +42,9 @@ class CheckStudyAttendanceServiceImpl(
         }
 
         studyRedisAdapter.checkAttendance(userId)
-        val today = LocalDate.now()
-        if (!studyAttendanceHistoryJpaRepository.existsByUserIdAndAttendedDate(userId, today)) {
-            studyAttendanceHistoryJpaRepository.save(
+        val today = LocalDate.now(clock)
+        if (!studyAttendanceHistoryRepository.existsByUserIdAndAttendedDate(userId, today)) {
+            studyAttendanceHistoryRepository.save(
                 StudyAttendanceHistoryJpaEntity(user = user, attendedDate = today),
             )
         }

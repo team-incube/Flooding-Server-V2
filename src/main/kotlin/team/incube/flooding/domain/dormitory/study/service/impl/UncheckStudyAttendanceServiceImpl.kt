@@ -7,10 +7,11 @@ import org.springframework.transaction.annotation.Transactional
 import team.incube.flooding.domain.dormitory.study.adapter.StudyAttendanceSseEmitterRegistry
 import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
-import team.incube.flooding.domain.dormitory.study.repository.StudyAttendanceHistoryJpaRepository
+import team.incube.flooding.domain.dormitory.study.repository.StudyAttendanceHistoryRepository
 import team.incube.flooding.domain.dormitory.study.service.UncheckStudyAttendanceService
 import team.incube.flooding.domain.user.repository.UserRepository
 import team.themoment.sdk.exception.ExpectedException
+import java.time.Clock
 import java.time.LocalDate
 
 @Service
@@ -19,7 +20,8 @@ class UncheckStudyAttendanceServiceImpl(
     private val userRepository: UserRepository,
     private val studyRedisAdapter: StudyRedisAdapter,
     private val sseEmitterRegistry: StudyAttendanceSseEmitterRegistry,
-    private val studyAttendanceHistoryJpaRepository: StudyAttendanceHistoryJpaRepository,
+    private val studyAttendanceHistoryRepository: StudyAttendanceHistoryRepository,
+    private val clock: Clock,
 ) : UncheckStudyAttendanceService {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -34,7 +36,7 @@ class UncheckStudyAttendanceServiceImpl(
         }
 
         studyRedisAdapter.cancelAttendance(userId)
-        studyAttendanceHistoryJpaRepository.deleteByUserIdAndAttendedDate(userId, LocalDate.now())
+        studyAttendanceHistoryRepository.deleteByUserIdAndAttendedDate(userId, LocalDate.now(clock))
         log.info("cancelAttendance Redis 반영 완료, broadcastCancel 호출 직전: userId={}", userId)
         sseEmitterRegistry.broadcastCancel(
             StudyAttendanceEventResponse(userId = user.id, name = user.name, studentNumber = user.studentNumber),
