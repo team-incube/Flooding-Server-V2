@@ -12,12 +12,14 @@ import org.springframework.http.HttpStatus
 import team.incube.flooding.domain.dormitory.study.adapter.StudyAttendanceSseEmitterRegistry
 import team.incube.flooding.domain.dormitory.study.adapter.StudyRedisAdapter
 import team.incube.flooding.domain.dormitory.study.presentation.data.response.StudyAttendanceEventResponse
+import team.incube.flooding.domain.dormitory.study.repository.StudyAttendanceHistoryJpaRepository
 import team.incube.flooding.domain.dormitory.study.service.impl.UncheckStudyAttendanceServiceImpl
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
 import team.incube.flooding.domain.user.entity.UserJpaEntity
 import team.incube.flooding.domain.user.repository.UserRepository
 import team.themoment.sdk.exception.ExpectedException
+import java.time.LocalDate
 import java.util.Optional
 
 class UncheckStudyAttendanceServiceTest :
@@ -25,7 +27,14 @@ class UncheckStudyAttendanceServiceTest :
         val userRepository = mockk<UserRepository>()
         val studyRedisAdapter = mockk<StudyRedisAdapter>()
         val sseEmitterRegistry = mockk<StudyAttendanceSseEmitterRegistry>()
-        val service = UncheckStudyAttendanceServiceImpl(userRepository, studyRedisAdapter, sseEmitterRegistry)
+        val studyAttendanceHistoryJpaRepository = mockk<StudyAttendanceHistoryJpaRepository>()
+        val service =
+            UncheckStudyAttendanceServiceImpl(
+                userRepository,
+                studyRedisAdapter,
+                sseEmitterRegistry,
+                studyAttendanceHistoryJpaRepository,
+            )
 
         beforeEach { clearAllMocks() }
 
@@ -74,6 +83,7 @@ class UncheckStudyAttendanceServiceTest :
                     every { userRepository.findById(1L) } returns Optional.of(targetUser)
                     every { studyRedisAdapter.isAttendanceChecked(1L) } returns true
                     justRun { studyRedisAdapter.cancelAttendance(1L) }
+                    justRun { studyAttendanceHistoryJpaRepository.deleteByUserIdAndAttendedDate(1L, LocalDate.now()) }
                     justRun {
                         sseEmitterRegistry.broadcastCancel(
                             StudyAttendanceEventResponse(
@@ -87,6 +97,9 @@ class UncheckStudyAttendanceServiceTest :
                     service.execute(1L)
 
                     verify(exactly = 1) { studyRedisAdapter.cancelAttendance(1L) }
+                    verify(exactly = 1) {
+                        studyAttendanceHistoryJpaRepository.deleteByUserIdAndAttendedDate(1L, LocalDate.now())
+                    }
                     verify(exactly = 1) {
                         sseEmitterRegistry.broadcastCancel(
                             StudyAttendanceEventResponse(
