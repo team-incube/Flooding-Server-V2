@@ -60,6 +60,7 @@ class SecurityConfig(
                 it.requestMatchers("/error").permitAll()
                 it.requestMatchers("/auth/signin", "/auth/reissue").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                it.requestMatchers("/public/**").permitAll()
                 // ai
                 it.requestMatchers(HttpMethod.POST, "/ai/chat").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/ai/song").authenticated()
