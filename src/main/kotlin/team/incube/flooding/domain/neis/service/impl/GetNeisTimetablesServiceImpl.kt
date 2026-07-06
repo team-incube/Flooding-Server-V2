@@ -16,8 +16,6 @@ class GetNeisTimetablesServiceImpl(
         val response =
             neisTimetableClient.getTimetables(
                 GetTimetablesRequest(
-                    officeCode = request.officeCode,
-                    schoolCode = request.schoolCode,
                     grade = request.grade,
                     classNumber = request.classNumber,
                     date = request.date,
@@ -66,7 +64,7 @@ class GetNeisTimetablesServiceImpl(
                     period = periodNumbers.firstOrNull() ?: (idx + 1),
                     subject = valueOf(periodNode, "ITRT_CNTNT", "subject") ?: "미정",
                     teacher = valueOf(periodNode, "TEACHER_NM", "teacher"),
-                    classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom"),
+                    classroom = valueOf(periodNode, "CLRM_NM", "CLASSROOM", "classroom", "classroomName"),
                 )
 
             periodNumbers.forEach { periodNum ->

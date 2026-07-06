@@ -46,16 +46,12 @@ class NeisController(
             ),
         )
 
-    @Operation(summary = "시간표 조회", description = "NEIS 원본 API를 사용해 시간표를 조회합니다.")
+    @Operation(summary = "시간표 조회", description = "DataGSM API를 사용해 시간표를 조회합니다.")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "시간표 조회 성공"),
     )
     @GetMapping("/timetables")
     fun getTimetables(
-        @Parameter(description = "시도교육청 코드")
-        @RequestParam officeCode: String,
-        @Parameter(description = "학교 코드")
-        @RequestParam schoolCode: String,
         @Parameter(description = "학년")
         @RequestParam
         @Min(value = 1, message = "grade는 1 이상이어야 합니다.")
@@ -74,8 +70,6 @@ class NeisController(
             "OK",
             getNeisTimetablesService.execute(
                 GetNeisTimetablesRequest(
-                    officeCode = officeCode,
-                    schoolCode = schoolCode,
                     grade = grade,
                     classNumber = classNumber,
                     date = date,
