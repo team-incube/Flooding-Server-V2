@@ -2,11 +2,6 @@ oauth:
   client-id: test-client-id
   client-secret: test-client-secret
 
-neis:
-  openapi:
-    timetable:
-      apiKey: test-key
-
 datagsm:
   open-api-key: test-key
 
