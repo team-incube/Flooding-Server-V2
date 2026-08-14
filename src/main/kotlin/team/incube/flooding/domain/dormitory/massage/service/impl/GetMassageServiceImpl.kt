@@ -26,13 +26,13 @@ class GetMassageServiceImpl(
         val currentUser = currentUserProvider.getCurrentUser()
         val now = LocalTime.now(clock)
         val isApplicationOpen = now >= massageProperties.openTime && now < massageProperties.closeTime
+        val queue = massageRedisAdapter.getQueue()
         val myApplicationStatus =
             when {
                 massageRedisAdapter.isReapplyBlocked(currentUser.id) -> MassageApplicationStatus.CANCELLED
-                massageRedisAdapter.isApply(currentUser.id) -> MassageApplicationStatus.APPLIED
+                currentUser.id in queue -> MassageApplicationStatus.APPLIED
                 else -> null
             }
-        val queue = massageRedisAdapter.getQueue()
         val applicants =
             if (queue.isEmpty()) {
                 emptyList()

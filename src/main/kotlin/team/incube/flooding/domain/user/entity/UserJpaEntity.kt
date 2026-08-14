@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -13,7 +14,10 @@ import jakarta.persistence.Transient
 import team.incube.flooding.domain.dormitory.cleaningzone.entity.CleaningZoneJpaEntity
 
 @Entity
-@Table(name = "tb_user")
+@Table(
+    name = "tb_user",
+    indexes = [Index(name = "idx_tb_user_student_number", columnList = "student_number")],
+)
 class UserJpaEntity(
     @field:Id
     @field:Column(name = "id")

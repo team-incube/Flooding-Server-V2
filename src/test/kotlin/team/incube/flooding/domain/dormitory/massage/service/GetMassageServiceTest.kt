@@ -2,10 +2,13 @@ package team.incube.flooding.domain.dormitory.massage.service
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import team.incube.flooding.domain.dormitory.massage.adapter.MassageRedisAdapter
 import team.incube.flooding.domain.dormitory.massage.config.MassageProperties
+import team.incube.flooding.domain.dormitory.massage.entity.MassageApplicationStatus
 import team.incube.flooding.domain.dormitory.massage.service.impl.GetMassageServiceImpl
 import team.incube.flooding.domain.user.entity.Role
 import team.incube.flooding.domain.user.entity.Sex
@@ -45,7 +48,6 @@ class GetMassageServiceTest :
         val currentUser = user(999L)
         every { currentUserProvider.getCurrentUser() } returns currentUser
         every { massageRedisAdapter.isReapplyBlocked(any()) } returns false
-        every { massageRedisAdapter.isApply(any()) } returns false
 
         val service =
             GetMassageServiceImpl(
@@ -70,6 +72,22 @@ class GetMassageServiceTest :
                     result.applicants[2].order shouldBe 3L
                     result.applicants[3].order shouldBe 4L
                     result.applicants[4].order shouldBe 5L
+                }
+            }
+        }
+
+        given("현재 사용자가 이미 대기열에 포함되어 있을 때") {
+            `when`("목록을 조회하면") {
+                then("myApplicationStatus가 APPLIED이다") {
+                    clearMocks(massageRedisAdapter, answers = false)
+                    every { massageRedisAdapter.isReapplyBlocked(any()) } returns false
+                    every { massageRedisAdapter.getQueue() } returns listOf(currentUser.id)
+                    every { userRepository.findAllById(any<List<Long>>()) } returns listOf(currentUser)
+
+                    val result = service.execute()
+
+                    result.myApplicationStatus shouldBe MassageApplicationStatus.APPLIED
+                    verify(exactly = 1) { massageRedisAdapter.getQueue() }
                 }
             }
         }
