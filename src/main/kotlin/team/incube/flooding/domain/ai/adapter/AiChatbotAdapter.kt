@@ -34,11 +34,14 @@ class AiChatbotAdapter(
                 },
             ).build()
 
-    fun chat(request: SendAiChatRequest): SendAiChatResponse =
+    fun chat(
+        request: SendAiChatRequest,
+        authorization: String,
+    ): SendAiChatResponse =
         try {
             circuitBreaker.executeCheckedSupplier {
                 retry.executeCheckedSupplier {
-                    doChat(request)
+                    doChat(request, authorization)
                 }
             }
         } catch (e: CallNotPermittedException) {
@@ -50,11 +53,15 @@ class AiChatbotAdapter(
             throw ExpectedException("AI 챗봇 서버와 통신 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY)
         }
 
-    private fun doChat(request: SendAiChatRequest): SendAiChatResponse =
+    private fun doChat(
+        request: SendAiChatRequest,
+        authorization: String,
+    ): SendAiChatResponse =
         restClient
             .post()
             .uri("/ai/chat")
             .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", authorization)
             .body(request)
             .retrieve()
             .onStatus({ it.isError }) { _, response ->

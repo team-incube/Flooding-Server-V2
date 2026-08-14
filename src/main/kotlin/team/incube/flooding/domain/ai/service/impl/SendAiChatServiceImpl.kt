@@ -10,5 +10,8 @@ import team.incube.flooding.domain.ai.service.SendAiChatService
 class SendAiChatServiceImpl(
     private val aiChatbotAdapter: AiChatbotAdapter,
 ) : SendAiChatService {
-    override fun execute(request: SendAiChatRequest): SendAiChatResponse = aiChatbotAdapter.chat(request)
+    override fun execute(
+        request: SendAiChatRequest,
+        authorization: String,
+    ): SendAiChatResponse = aiChatbotAdapter.chat(request, authorization)
 }

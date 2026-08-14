@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import team.incube.flooding.domain.ai.presentation.data.request.SendAiChatRequest
@@ -34,7 +35,9 @@ class AiController(
     @PostMapping("/chat")
     fun chat(
         @Valid @RequestBody request: SendAiChatRequest,
-    ): CommonApiResponse<SendAiChatResponse> = CommonApiResponse.success("OK", sendAiChatService.execute(request))
+        @RequestHeader("Authorization") authorization: String,
+    ): CommonApiResponse<SendAiChatResponse> =
+        CommonApiResponse.success("OK", sendAiChatService.execute(request, authorization))
 
     @Operation(
         summary = "AI 음악 추천",
