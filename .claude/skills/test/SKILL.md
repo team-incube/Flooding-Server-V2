@@ -1,34 +1,38 @@
 ---
 name: test
-description: Run tests and report results. Determines test scope based on context and analyzes failures in detail.
+description: Run tests with coverage analysis and report results. Determines appropriate test scope (single test / module / all) based on context and analyzes failures in detail.
+allowed-tools: Bash, Glob, Grep
 ---
 
-Run tests following these steps:
+## Determine Test Scope
 
-## Steps
+Based on the user's request or changed files, choose the appropriate scope:
 
-1. **Determine test scope**:
-    - If specific test class mentioned: run that test
-    - If specific domain affected: run related tests
-    - Otherwise: run all tests
+| Scope               | Command                                              |
+|---------------------|------------------------------------------------------|
+| Specific test class | `./gradlew test --tests "fully.qualified.ClassName"` |
+| Specific module     | `./gradlew :<module>:test`                           |
+| All modules         | `./gradlew test`                                     |
 
-2. **Run tests**:
+Discover available modules at runtime from the project structure (e.g., `settings.gradle.kts`, `package.json` workspaces, `pom.xml` modules).
 
-    ```bash
-    # Specific test class
-    ./gradlew test --tests "*{TestClassName}*"
+## Run Tests
 
-    # All tests
-    ./gradlew test
-    ```
+Execute the chosen command. Add `--info` if failures need detailed output:
 
-3. **Analyze results**:
-    - Show test summary
-    - If failures: show failure messages and suggest fixes
-    - If success: confirm all tests passed
+```bash
+./gradlew <scope> --info
+```
 
-4. **Report**:
-    - Total tests run
-    - Pass/Fail count
+## Analyze Results
 
-Do NOT claim success without running the tests first.
+After the run, report:
+
+- Total tests / passed / failed / skipped
+- Execution time
+- For each failure:
+  - Test name and class
+  - Failure message and root cause
+  - Relevant stack trace lines
+
+If there are failures, read the relevant source files and suggest the most likely fix.

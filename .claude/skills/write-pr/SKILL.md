@@ -1,123 +1,72 @@
 ---
 name: write-pr
-description: Generate PR title and body from commits since the base branch, then create the PR on GitHub following the project PR template exactly.
+description: Generate a PR title, body, and a single label from commits since the base branch, then create the PR on GitHub. Handles base branch detection, label selection, and PR creation end-to-end.
+allowed-tools: Bash(git *:*), Bash(bash *create-pr.sh:*), Bash(cat *:*), Read, Write
 ---
 
 ## Step 1 — Gather Context
 
 ```bash
 git branch --show-current
+git log origin/develop..HEAD --oneline 2>/dev/null || git log --oneline -15
+git diff origin/develop...HEAD --stat 2>/dev/null || git diff HEAD~5...HEAD --stat
+git diff origin/develop...HEAD 2>/dev/null || git diff HEAD~5...HEAD
 ```
 
-현재 브랜치가 `develop` 또는 `master`이면 즉시 중단:
-
-```
-현재 브랜치: develop
-feature 브랜치를 먼저 생성하세요 (/new-branch)
-```
-
-feature 브랜치가 맞으면 계속 진행:
+Also read the PR template:
 
 ```bash
-git log origin/develop..HEAD --oneline
-git diff origin/develop...HEAD --stat
-git diff origin/develop...HEAD
+cat .github/PULL_REQUEST_TEMPLATE.md
 ```
 
-## Step 2 — Generate PR Title
+## Step 2 — Determine the Label
 
-Format: `설명`
+Read `${CLAUDE_SKILL_DIR}/references/labels.md` and select **exactly one** label based on the nature of the changes. When several labels apply, follow the priority order in that reference and keep only the top match.
+Read `${CLAUDE_SKILL_DIR}/references/commit-conventions.md` for commit type and scope naming rules.
 
-- Description: Korean, concise, no emojis, max 50 characters
-- Generate 3 options and mark the best with `← 추천`
+## Step 3 — Generate PR Content
 
-## Step 3 — Generate PR Body
+**Title** — Generate 3 options in the format `[scope] description`:
+- Scope: determine from changed file paths and directory structure — infer the domain from path segments. Use `[global]` / `[ci/cd]` for cross-cutting changes only. Wrap in brackets: `[auth]`, `[user]`, etc.
+- Description: Korean, concise, no emojis, max 50 characters total
+- Wrap class names, method names, annotations, file names, and technical terms in backticks (e.g., `@Transactional`, `QueryProjectServiceImpl`, `SKILL.md`)
 
-Fill in the following template **exactly** (do not change the structure):
+**Body** — Follow the `.github/PULL_REQUEST_TEMPLATE.md` structure:
+- Korean 합쇼체: `~하였습니다`, `~되었습니다`, `~추가하였습니다`
+- No emojis
+- Max 2500 characters
+- Wrap all proper nouns and technical identifiers in backticks: class names, method names, annotations, file names, field names, config keys, module names, and agent names.
 
-```
-## #️⃣연관된 이슈
+## Step 4 — Write Body & Show Preview
 
-> #이슈번호
-
-## 📝작업 내용
-
-<변경 내용을 구체적으로 작성>
-
-### 스크린샷 (선택)
-
-## 💬리뷰 요구사항(선택)
-
-> 리뷰어가 특별히 봐주었으면 하는 부분이 있다면 작성해주세요
-```
-
-Rules:
-- Korean
-- No emojis in content (template headings already have emojis, keep them)
-- Describe what was changed and why concisely
-
-## Step 4 — Select Label
-
-커밋 내용을 기반으로 Type 라벨 1개를 선택한다:
-
-| 라벨 | 선택 기준 |
-|------|---------|
-| `📩 Type: Feature/Function` | 새 기능, API 구현, 성능 개선 |
-| `📜 Type: Feature/Document` | 문서, 스킬, 에이전트, 설정 파일 |
-| `🐞 Type: Bug/Function` | 버그 수정 |
-
-Status 라벨은 항상 `🌟 Status: Reviewing`으로 고정.
-
-## Step 5 — Show Preview & Confirm
+Write the body to `PR_BODY.md`, then display:
 
 ```
-## 추천 PR 제목
+## PR 제목 후보
 1. [title1]
 2. [title2]
-3. [title3] ← 추천
+3. [title3]
 
-## 라벨
-- 📩 Type: Feature/Function
-- 🌟 Status: Reviewing
+## 선택된 라벨
+- label
 
 ## PR 본문 미리보기
 [body content]
 ```
 
-Ask the user which title to use. If no response, use the recommended option.
+Use AskUserQuestion to ask the user which title to use (present options 1/2/3). Wait for the answer before proceeding.
 
-## Step 6 — Create PR
+## Step 5 — Create PR
 
-Get the current GitHub username for assignee:
-
-```bash
-gh api user --jq .login
-```
+Run the creation script with the confirmed title and the single label:
 
 ```bash
-gh pr create \
-  --title "<title>" \
-  --base develop \
-  --assignee "<github-username>" \
-  --reviewer "team-incube/flooding-server" \
-  --label "<Type 라벨>" \
-  --label "🌟 Status: Reviewing" \
-  --body "$(cat <<'EOF'
-## #️⃣연관된 이슈
-
-> #이슈번호
-
-## 📝작업 내용
-
-<내용>
-
-### 스크린샷 (선택)
-
-## 💬리뷰 요구사항(선택)
-
-> <내용 또는 없으면 없음>
-EOF
-)"
+bash "${CLAUDE_SKILL_DIR}/scripts/create-pr.sh" "<confirmed-title>" "PR_BODY.md" "<label>"
 ```
 
-Display the PR URL after creation.
+The script drops the label and creates the PR unlabeled when the repository does not have that
+label. Never create a missing label or swap in a different one — an unlabeled PR is the expected
+outcome there.
+
+After creation, display the PR URL. If the label was dropped, say so in one line.
+Cleanup: remove `PR_BODY.md`.
