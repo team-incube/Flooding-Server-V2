@@ -1,27 +1,41 @@
 ---
 name: kotest-guide
-description: Kotest + MockK testing patterns for this project — BehaviorSpec structure, mock creation, stubbing, argument capture, and exception assertions. Reference when writing or reviewing test code.
+description: Kotest + MockK testing patterns for this project — Given/When/Then structure, mock creation, stubbing, argument capture, coroutine testing, and exception assertions. Reference when writing or reviewing test code.
 ---
 
 # Kotest + MockK Testing Guide
 
-## Test Class Structure
+## Given-When-Then Pattern
 
-Use `BehaviorSpec` with Given/When/Then:
+Use Kotest `DescribeSpec` with `describe` / `context` / `it` blocks.
 
 ```kotlin
-class ExampleServiceTest : BehaviorSpec({
-    val repository = mockk<ExampleRepository>()
-    val service = ExampleServiceImpl(repository)
+class CreateApiKeyServiceTest : DescribeSpec({
+    lateinit var repository: ApiKeyRepository
+    lateinit var service: CreateApiKeyService
 
-    given("활성 폼이 존재할 때") {
-        every { repository.findById(1L) } returns entity
+    beforeEach {
+        repository = mockk()
+        service = CreateApiKeyServiceImpl(repository)
+    }
 
-        `when`("execute를 호출하면") {
-            val result = service.execute(1L)
+    describe("CreateApiKeyService 클래스의") {
+        describe("execute 메서드는") {
+            context("유효한 요청인 경우") {
+                it("API 키를 생성하고 반환한다") {
+                    // Given
+                    val reqDto = CreateApiKeyReqDto(clientId = "test-client")
+                    val apiKey = ApiKey(id = 1L, key = "generated-key")
+                    every { repository.save(any()) } returns apiKey
 
-            then("결과가 반환된다") {
-                result.id shouldBe 1L
+                    // When
+                    val result = service.execute(reqDto)
+
+                    // Then
+                    result shouldNotBe null
+                    result.apiKey shouldBe "generated-key"
+                    verify(exactly = 1) { repository.save(any()) }
+                }
             }
         }
     }
@@ -31,74 +45,85 @@ class ExampleServiceTest : BehaviorSpec({
 ## MockK Patterns
 
 ### Mock Creation
-
 ```kotlin
-private val repository = mockk<ExampleRepository>()
-private val service = ExampleServiceImpl(repository)
+private val repository: ApiKeyRepository = mockk()
+private val service = ApiKeyService(repository)
 ```
 
 ### Stubbing
-
 ```kotlin
-// Return value
-every { repository.findById(1L) } returns Optional.of(entity)
+// Regular function
+every { repository.findById(1L) } returns Optional.of(apiKey)
 
-// Return null
-every { repository.findByIdOrNull(1L) } returns null
+// Coroutine
+coEvery { repository.save(any()) } returns apiKey
 
 // Any matcher
-every { repository.save(any()) } returns entity
+every { repository.save(any()) } returns apiKey
 ```
 
 ### Verification
-
 ```kotlin
 // Verify call count
 verify(exactly = 1) { repository.save(any()) }
+verify(atLeast = 1) { repository.findAll() }
+
+// Verify not called
 verify(exactly = 0) { repository.delete(any()) }
+
+// Coroutine
+coVerify(exactly = 1) { repository.save(any()) }
 ```
 
 ### Argument Capture
+```kotlin
+val slot = slot<ApiKey>()
+every { repository.save(capture(slot)) } returns apiKey
+
+service.execute(reqDto)
+
+slot.captured.key shouldBe "expected-key"
+```
+
+## Coroutine Testing
 
 ```kotlin
-val slot = slot<ExampleJpaEntity>()
-every { repository.save(capture(slot)) } returns entity
+context("비동기 처리가 필요한 경우") {
+    it("결과를 정상적으로 반환한다") {
+        // Given
+        coEvery { repository.findById(1L) } coAnswers {
+            delay(100)
+            Optional.of(apiKey)
+        }
 
-service.execute(request)
+        // When
+        val result = service.execute(1L)
 
-slot.captured.name shouldBe "expected"
+        // Then
+        result shouldNotBe null
+    }
+}
 ```
 
 ## Exception Testing
 
 ```kotlin
-then("NOT_FOUND 예외가 발생한다") {
-    val exception = shouldThrow<ExpectedException> {
-        service.execute(999L)
+context("API 키가 존재하지 않는 경우") {
+    it("ExpectedException을 던진다") {
+        // Given
+        every { repository.findById(1L) } returns Optional.empty()
+
+        // When & Then
+        shouldThrow<ExpectedException> {
+            service.execute(1L)
+        }
     }
-    exception.statusCode shouldBe HttpStatus.NOT_FOUND
 }
 ```
 
-## Assertions
+## Reference Files
 
-```kotlin
-result shouldBe expected
-result shouldNotBe null
-result.list shouldHaveSize 3
-result.list[0].value shouldBe "first"
+Discover real test examples dynamically:
+```bash
+find . -name "*ServiceTest.kt" ! -path "*/build/*" | head -5
 ```
-
-## Dependencies (build.gradle.kts)
-
-```kotlin
-testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
-testImplementation("io.kotest:kotest-assertions-core:5.9.1")
-testImplementation("io.mockk:mockk:1.13.17")
-```
-
-## Conventions
-
-- Test file: `{ServiceName}Test.kt` under `src/test/kotlin/.../service/`
-- No Spring context loading — instantiate service impl directly with mocked repos
-- Test description in Korean using backtick method names or Given/When/Then structure

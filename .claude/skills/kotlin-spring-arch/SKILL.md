@@ -1,92 +1,79 @@
 ---
 name: kotlin-spring-arch
-description: Architecture reference for Flooding project — Controller/Service/Repository layer responsibilities, @Transactional strategy, ExpectedException usage, entity conventions, and response wrapping.
+description: Architecture reference for this project — Controller/Service/Repository layer responsibilities, @Transactional strategy (readOnly optimization, N+1 prevention), ExpectedException usage (no subclasses), and Entity↔DTO conversion patterns.
 ---
 
-# Kotlin + Spring Boot Architecture Guide (Flooding)
+# Kotlin + Spring Boot Architecture Guide
 
 ## Layer Structure
 
-### Controller (`presentation/controller/`)
-- `@RestController`, `@RequestMapping`
-- Swagger: `@Tag`, `@Operation`, `@ApiResponse` on every endpoint
-- `@RequestBody` parameter always named `request`
-- Return `ResponseEntity<CommonApiResponse<T>>` (SDK wraps automatically)
+### Controller
+- Role: Request validation, DTO conversion, HTTP response
+- Annotations: `@RestController`, `@RequestMapping`
+- Validation: `@Valid`, `@Validated`
+- Response: Use `CommonApiResponse` wrapper
 
-### Service (`service/` + `service/impl/`)
-- Always interface + impl pattern
-- `@Transactional` here only — never in repository
-- Business logic, validation, exception throwing
+### Service
+- Role: Business logic, transaction management
+- Pattern: interface + implementation
+- Transaction:
+  - Read: `@Transactional(readOnly = true)`
+  - Write: `@Transactional`
+- Dependencies: Inject Repository via constructor injection
 
-### Repository (`repository/`)
-- Extend `JpaRepository<Entity, Long>`
-- Derived query methods for simple queries
-- No `@Transactional` here
+### Repository
+- Role: Data access
+- JPA: Extend `JpaRepository`
+- QueryDSL: Complex queries
+- Avoid N+1: Fetch Join, `@EntityGraph`
 
-## Entity Conventions (`entity/`)
+## Transaction Strategy
 
+### Read-only Optimization
 ```kotlin
-@Entity
-@Table(name = "tb_{domain_name}")  // singular, snake_case, tb_ prefix
-class {Domain}JpaEntity(
-    @field:Id
-    @field:GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-
-    @field:ManyToOne(fetch = FetchType.LAZY)  // always LAZY
-    @field:JoinColumn(name = "..._id", nullable = false)
-    val relation: OtherJpaEntity,
-
-    @field:Column(name = "field_name", nullable = false)
-    var mutableField: String,
-
-    @field:Enumerated(EnumType.STRING)  // always STRING
-    @field:Column(name = "status", length = 50)
-    var status: StatusEnum,
-)
+@Transactional(readOnly = true)
+fun findApiKeys(): List<ApiKeyResDto> {
+    return repository.findAll()
+        .map { it.toResDto() }
+}
 ```
 
-Key rules:
-- `@field:` prefix on all JPA annotations
-- `val` for immutable fields (id, relations), `var` for mutable fields
-- `FetchType.LAZY` always
-- `EnumType.STRING` always
-- Table name: `tb_` prefix + singular snake_case
+### N+1 Problem Resolution
+```kotlin
+// ❌ N+1 occurs
+repository.findAll() // 1 query
+entity.relatedEntity // N queries
+
+// ✅ Fetch Join
+@Query("SELECT e FROM Entity e JOIN FETCH e.relatedEntity")
+fun findAllWithRelated(): List<Entity>
+```
 
 ## Exception Handling
 
-Do NOT subclass `ExpectedException`. Always instantiate directly:
-
+### Use ExpectedException Directly
 ```kotlin
-repository.findById(id).orElseThrow {
-    ExpectedException("설명", HttpStatus.NOT_FOUND)
+val apiKey = repository.findById(id).orElseThrow {
+    ExpectedException("API key를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
 }
-
-// Or with ?: throw
-repository.findByClubIdAndIsActiveTrue(clubId)
-    ?: throw ExpectedException("활성화된 신청 폼이 없습니다.", HttpStatus.NOT_FOUND)
 ```
 
-Property to check: `exception.statusCode` (not `httpStatus`)
+Do not create custom exception subclasses extending `ExpectedException`.
 
-## Response Wrapping
+### Global Handler
+Locate with: `find . -name "GlobalExceptionHandler.kt" ! -path "*/build/*"`
 
-SDK auto-wraps with `CommonApiResponse<T>`. Return the DTO directly from service.
-Controller returns `ResponseEntity.ok(CommonApiResponse.success(response))` or similar SDK helper.
-
-## Common Repository Patterns
+## DTO Conversion Pattern
 
 ```kotlin
-// Derived queries
-fun findByClubIdAndIsActiveTrue(clubId: Long): ClubFormJpaEntity?
-fun findAllByFormIdOrderByFieldOrder(formId: Long): List<ClubFormFieldJpaEntity>
-fun findAllByFieldIdInOrderByOptionOrder(fieldIds: List<Long>): List<ClubFormFieldOptionJpaEntity>
-fun existsByFormIdAndUserId(formId: Long, userId: Long): Boolean
+// Entity → ResDto
+fun Entity.toResDto() = EntityResDto(
+    id = this.id,
+    name = this.name
+)
 
-// Batch save instead of loop
-repository.saveAll(items.map { ... })
+// ReqDto → Entity
+fun EntityReqDto.toEntity() = Entity(
+    name = this.name
+)
 ```
-
-## Security / Auth
-
-Current user: `CurrentUserProvider.getCurrentUser()` → `UserJpaEntity`
