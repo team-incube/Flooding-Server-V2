@@ -11,21 +11,31 @@ import team.incube.flooding.domain.dormitory.study.presentation.data.response.Ge
 import team.incube.flooding.domain.dormitory.study.service.GetPublicStudyAttendanceListService
 import team.themoment.sdk.response.CommonApiResponse
 
-@Tag(name = "자습(공개)", description = "인증 없이 조회 가능한 자습 관련 공개 API")
+@Tag(
+    name = "자습(서드파티)",
+    description =
+        "DataGSM 서드파티 스코프로 보호되는 자습 관련 API. " +
+            "DataGSM OAuth로 Flooding 애플리케이션 스코프를 포함해 발급받은 액세스 토큰을 " +
+            "`Authorization: Bearer {token}` 헤더로 전달해야 합니다.",
+)
 @RestController
-@RequestMapping("public/study")
-class PublicStudyController(
+@RequestMapping("third-party/study")
+class ThirdPartyStudyController(
     private val getPublicStudyAttendanceListService: GetPublicStudyAttendanceListService,
 ) {
     @Operation(
-        summary = "최근 1주일 자습 출석자 목록 조회 (공개)",
+        summary = "최근 1주일 자습 출석자 목록 조회 (서드파티)",
         description =
-            "인증 없이 오늘을 포함한 최근 7일간 날짜별 자습 출석자 이름 리스트를 조회합니다. " +
+            "오늘을 포함한 최근 7일간 날짜별 자습 출석자 이름 리스트를 조회합니다. " +
                 "학번, 유저 ID 등 개인 식별 정보는 포함되지 않으며 이름만 제공합니다. " +
-                "스트릭(연속 출석) 계산과 같은 부가 로직은 이 API를 사용하는 클라이언트(서드파티)가 직접 수행해야 합니다.",
+                "스트릭(연속 출석) 계산과 같은 부가 로직은 이 API를 사용하는 클라이언트(서드파티)가 직접 수행해야 합니다. " +
+                "DataGSM에서 발급한 액세스 토큰의 `scopes` 클레임에 Flooding 스코프" +
+                "(`55fc9c58-377b-4e53-bcf3-9fc38aac912e:flooding`)가 포함되어 있어야 합니다.",
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "조회 성공"),
+        ApiResponse(responseCode = "401", description = "토큰 누락, 서명 검증 실패 또는 만료"),
+        ApiResponse(responseCode = "403", description = "토큰에 Flooding 스코프가 없음"),
     )
     @GetMapping("/attendances")
     fun getAttendances(): CommonApiResponse<List<GetStudyAttendanceListResponse>> =
